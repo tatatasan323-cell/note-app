@@ -83,7 +83,7 @@ function ramp(z){ const a=Math.max(0,Math.min(1,(20-z)/38)); return Math.pow(a,1
 function hAt(x,z){ const amp=z>10?0.3:0.85; return ramp(z) + Math.sin(x*0.15)*amp + Math.cos((x*0.4+z)*0.12)*amp*0.8; }
 const GSEG=130, GSIZE=130;
 const groundGeo=new THREE.PlaneGeometry(GSIZE,GSIZE,GSEG,GSEG);
-{ const p=groundGeo.attributes.position; for(let i=0;i<p.count;i++){ const x=p.getX(i), y=p.getY(i); p.setZ(i, hAt(x,y)); } groundGeo.computeVertexNormals(); }
+{ const p=groundGeo.attributes.position; for(let i=0;i<p.count;i++){ const x=p.getX(i), y=p.getY(i); p.setZ(i, hAt(x,-y)); } groundGeo.computeVertexNormals(); }  // rotation.x=-90°で world z=-(local y) になるため符号を合わせ、地面とオブジェクト(hAt(x,z))を一致させる
 const ground=new THREE.Mesh(groundGeo, new THREE.MeshStandardMaterial({color:0x356235,roughness:1,flatShading:true}));
 ground.rotation.x=-Math.PI/2; scene.add(ground);
 

@@ -188,9 +188,9 @@ function animFireworks(t){ for(const b of bursts){ const u=((t*0.14)+b.phase)%1;
     sp.s.position.set(b.center.x+sp.dir.x*r,b.center.y+sp.dir.y*r-life*life*2,b.center.z+sp.dir.z*r);
     sp.s.material.opacity=Math.max(0,1-life)*0.95; const sc=0.5+life*0.6; sp.s.scale.set(sc,sc,1); } } }
 
-controls.target.set(0,4,-6);
-camera.position.set(4,24,42);
-if(innerWidth<600){ camera.position.set(4,28,52); }
+controls.target.set(0,8,-8);   // 高めの俯角＋遠めで、手前の空き地を画面外に圧縮しマップを縦いっぱいに
+camera.position.set(3,30,52);
+if(innerWidth<600){ camera.position.set(3,42,72); }
 
 addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
   renderer.setSize(innerWidth,innerHeight); labelRenderer.setSize(innerWidth,innerHeight); });

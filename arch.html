@@ -6,21 +6,23 @@
 <title>AIアーキテクチャ 全体地図（簡易版） ─ 6層＋4横断面</title>
 <style>
 :root{--ink:#eef4fb;--sub:#a8bccf;--line:#2e4258;}
-*{box-sizing:border-box} html,body{margin:0;height:100%;overflow:hidden;background:#0a1626;
+*{box-sizing:border-box} html,body{margin:0;height:100%;overflow:hidden;background:#070f1e;
   font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Yu Gothic UI",Meiryo,sans-serif;color:var(--ink)}
 #app{position:fixed;inset:0}
 .lbl{font-size:13px;font-weight:700;padding:3px 9px;border-radius:8px;white-space:nowrap;
-  background:rgba(7,14,26,.74);border:1px solid var(--line);box-shadow:0 3px 12px rgba(0,0,0,.5);pointer-events:none;backdrop-filter:blur(2px)}
-.lbl small{display:block;color:var(--sub);font-weight:400;font-size:11px;margin-top:1px}
-.lbl.cross{border-color:#5a6fa0;color:#cfe6ff;background:rgba(10,18,34,.8)}
-#title{position:fixed;left:16px;top:12px;z-index:5;text-shadow:0 2px 8px rgba(0,0,0,.7);max-width:62%}
+  background:rgba(7,14,26,.66);border:1px solid var(--line);box-shadow:0 3px 12px rgba(0,0,0,.5);pointer-events:none;backdrop-filter:blur(2px)}
+.lbl.cross{color:#cfe6ff;border-color:#5a6fa0}
+#tip{position:fixed;z-index:8;display:none;max-width:320px;color:#eef4fb;font-size:1.05rem;line-height:1.5;
+  background:rgba(7,14,26,.94);border:1px solid #3a5575;border-radius:10px;padding:10px 13px;box-shadow:0 6px 22px rgba(0,0,0,.6);pointer-events:none;backdrop-filter:blur(2px)}
+#tip b{display:block;margin-bottom:3px;font-size:1.1rem}
+#title{position:fixed;left:16px;top:12px;z-index:5;text-shadow:0 2px 8px rgba(0,0,0,.7);max-width:64%}
 #title h1{font-size:1.15rem;margin:0 0 4px} #title .desc{margin:0;color:var(--sub);font-size:.84rem;line-height:1.5}
 #title .ops{margin:4px 0 0;color:var(--sub);font-size:.8rem}
 footer{position:fixed;left:16px;bottom:10px;z-index:5;color:var(--sub);font-size:.74rem;text-shadow:0 1px 4px rgba(0,0,0,.85)}
 #loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#8fb4d6;z-index:9}
 @media(max-width:600px){
-  #title{max-width:82%} #title h1{font-size:1.05rem} #title .desc{display:none} #title .ops{font-size:.72rem}
-  .lbl{font-size:11px} .lbl small{display:none}
+  #title{max-width:84%} #title h1{font-size:1.05rem} #title .desc{display:none} #title .ops{font-size:.72rem}
+  .lbl{font-size:11px} #tip{font-size:.95rem;max-width:78vw}
   footer{font-size:.64rem}
 }
 </style>
@@ -30,10 +32,11 @@ footer{position:fixed;left:16px;bottom:10px;z-index:5;color:var(--sub);font-size
 <div id="loading">地図を描いています･･･</div>
 <div id="title">
   <h1>AIアーキテクチャ 全体地図（簡易版）</h1>
-  <p class="desc">6つの層（下＝土台 → 上＝窓口）と、それを貫く4つの横断面。「どこに何があり、どこにAIが効くか」を1枚で。</p>
-  <p class="ops">ドラッグで回転／ホイール・2本指で拡大。</p>
+  <p class="desc">6つの層（下＝土台 → 上＝窓口）と、それを貫く4つの横断面。全体を俯瞰するための地図です。細かい中身は、各項目をAIに伴走してもらって学べばOK。</p>
+  <p class="ops">各層・横断面にマウスを乗せる（スマホはタップ）と概要。ドラッグで回転／ホイール・2本指で拡大。</p>
 </div>
-<footer>制作：AI内製化工房 MITA ｜ 公式チャンネル：https://note.com/ai_naiseika ｜ 全体像の簡易版（詳細は別途）</footer>
+<div id="tip"></div>
+<footer>制作：AI内製化工房 MITA ｜ 公式チャンネル：https://note.com/ai_naiseika ｜ 俯瞰用の簡易版</footer>
 
 <script type="importmap">
 { "imports": {
@@ -45,70 +48,93 @@ footer{position:fixed;left:16px;bottom:10px;z-index:5;color:var(--sub);font-size
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 const app=document.getElementById('app');
 const scene=new THREE.Scene();
-scene.fog=new THREE.FogExp2(0x0a1626,0.018);
+scene.fog=new THREE.FogExp2(0x070f1e,0.016);
 const camera=new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.1, 200);
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));
-renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.2;
+renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.15;
 app.appendChild(renderer.domElement);
+const pmrem=new THREE.PMREMGenerator(renderer);
+scene.environment=pmrem.fromScene(new RoomEnvironment(),0.04).texture;
 const labelRenderer=new CSS2DRenderer(); labelRenderer.setSize(innerWidth,innerHeight);
 labelRenderer.domElement.style.position='fixed'; labelRenderer.domElement.style.top='0'; labelRenderer.domElement.style.pointerEvents='none';
 app.appendChild(labelRenderer.domElement);
 const controls=new OrbitControls(camera,renderer.domElement);
-controls.enableDamping=true; controls.autoRotate=true; controls.autoRotateSpeed=0.55; controls.minDistance=8; controls.maxDistance=44;
+controls.enableDamping=true; controls.autoRotate=true; controls.autoRotateSpeed=0.5; controls.minDistance=8; controls.maxDistance=46;
 
-scene.add(new THREE.HemisphereLight(0xbfe0ff,0x16243a,1.1));
-const key=new THREE.DirectionalLight(0xffffff,0.7); key.position.set(9,18,12); scene.add(key);
+scene.add(new THREE.HemisphereLight(0xbfe0ff,0x12203a,1.0));
+const key=new THREE.DirectionalLight(0xffffff,0.8); key.position.set(9,18,12); scene.add(key);
+const rim=new THREE.DirectionalLight(0x7fb0ff,0.5); rim.position.set(-12,6,-10); scene.add(rim);
 
-const sky=new THREE.Mesh(new THREE.SphereGeometry(130,16,10), new THREE.ShaderMaterial({side:THREE.BackSide,
-  uniforms:{top:{value:new THREE.Color(0x0a1626)},bot:{value:new THREE.Color(0x16314f)}},
+// 背景グラデ
+const sky=new THREE.Mesh(new THREE.SphereGeometry(140,18,10), new THREE.ShaderMaterial({side:THREE.BackSide,
+  uniforms:{top:{value:new THREE.Color(0x070f1e)},bot:{value:new THREE.Color(0x183356)}},
   vertexShader:'varying float h;void main(){h=normalize(position).y;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-  fragmentShader:'varying float h;uniform vec3 top;uniform vec3 bot;void main(){gl_FragColor=vec4(mix(bot,top,smoothstep(-0.35,0.65,h)),1.0);}'}));
+  fragmentShader:'varying float h;uniform vec3 top;uniform vec3 bot;void main(){gl_FragColor=vec4(mix(bot,top,smoothstep(-0.4,0.7,h)),1.0);}'}));
 scene.add(sky);
 
-function label(text,sub,cls,x,y,z){ const d=document.createElement('div'); d.className='lbl '+(cls||'');
-  d.innerHTML=text+(sub?`<small>${sub}</small>`:''); const o=new CSS2DObject(d); o.position.set(x,y,z); scene.add(o); return o; }
+// 漂う粒子（リッチさ）
+const pc=520, pg=new THREE.BufferGeometry(), pa=new Float32Array(pc*3);
+for(let i=0;i<pc;i++){ const a=Math.random()*6.28, r=6+Math.random()*30; pa[i*3]=Math.cos(a)*r; pa[i*3+1]=-2+Math.random()*18; pa[i*3+2]=Math.sin(a)*r; }
+pg.setAttribute('position',new THREE.BufferAttribute(pa,3));
+const particles=new THREE.Points(pg,new THREE.PointsMaterial({color:0x9fd0ff,size:0.07,transparent:true,opacity:.5,depthWrite:false}));
+scene.add(particles);
 
-// ===== 6層（下＝土台 → 上＝窓口）=====
+function glowTex(stops){ const c=document.createElement('canvas'); c.width=c.height=128; const g=c.getContext('2d');
+  const gr=g.createRadialGradient(64,64,0,64,64,64); stops.forEach(s=>gr.addColorStop(s[0],s[1])); g.fillStyle=gr; g.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); }
+function glowSprite(color){ const t=glowTex([[0,'rgba(255,255,255,0.55)'],[0.4,color.replace('1)','0.4)')],[1,color.replace('1)','0)')]]);
+  return new THREE.Sprite(new THREE.SpriteMaterial({map:t,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})); }
+function label(text,cls,x,y,z){ const d=document.createElement('div'); d.className='lbl '+(cls||''); d.textContent=text;
+  const o=new CSS2DObject(d); o.position.set(x,y,z); scene.add(o); return o; }
+
 const LAYERS=[
- {n:'① インフラ層（土台）', r:'どこで動かすか', c:0x5a86d6},
- {n:'② データ層（素材）', r:'何を・どう持つか', c:0x36c8d8},
- {n:'③ 統合・連携層（つなぐ）', r:'既存システムと繋ぐ', c:0x33d49a},
- {n:'④ AIエンジン層（頭脳）', r:'AIを使うか／どれを', c:0x86d63c},
- {n:'⑤ アプリ層（仕事）', r:'どんな仕事をさせる', c:0xf0b82e},
- {n:'⑥ インターフェース層（窓口）', r:'人がどこで触れる', c:0xf0792e},
+ {n:'① インフラ層（土台）', c:0x5a86d6, d:'どこで動かすか。クラウドか社内か。ここの選択が、上の全層に波及する“土台”。'},
+ {n:'② データ層（素材）', c:0x36c8d8, d:'AIの賢さは「食わせるデータ」で決まる。何を・どう持ち、どう渡すか。'},
+ {n:'③ 統合・連携層（つなぐ）', c:0x33d49a, d:'ゼロから作るより、既にある道具（表計算・会計・在庫）と繋ぐのが中小の主戦場。'},
+ {n:'④ AIエンジン層（頭脳）', c:0x86d63c, d:'そもそもAIを使うか。使うならどれを・どこで。賢さ・コスト・機密のトレードオフが最も濃い。'},
+ {n:'⑤ アプリ層（仕事）', c:0xf0b82e, d:'AIにどんな“仕事の形”をさせるか。欲張ると複雑、絞ると続く。'},
+ {n:'⑥ インターフェース層（窓口）', c:0xf0792e, d:'人がどこで触れるか。中身が良くても、ここが使いにくいと使われない。'},
 ];
-const W=7, D=5, H=1.1, GAP=0.7, N=LAYERS.length;
+const W=7, D=5, H=1.15, GAP=0.75, N=LAYERS.length;
+const hoverable=[];
+
+// 台座（反射する床）
+const base=new THREE.Mesh(new THREE.CylinderGeometry(6.2,6.6,0.5,48), new THREE.MeshStandardMaterial({color:0x10203a,metalness:.8,roughness:.25}));
+base.position.y=-H/2-0.5; scene.add(base);
+
 LAYERS.forEach((L,i)=>{
   const y=i*(H+GAP);
-  const slab=new THREE.Mesh(new THREE.BoxGeometry(W,H,D),
-    new THREE.MeshStandardMaterial({color:L.c,transparent:true,opacity:.82,metalness:.2,roughness:.45,emissive:L.c,emissiveIntensity:.22,flatShading:true}));
-  slab.position.y=y; scene.add(slab);
-  const edge=new THREE.LineSegments(new THREE.EdgesGeometry(slab.geometry), new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.22}));
+  const mat=new THREE.MeshStandardMaterial({color:L.c,metalness:.35,roughness:.18,transparent:true,opacity:.62,emissive:L.c,emissiveIntensity:.28});
+  const slab=new THREE.Mesh(new THREE.BoxGeometry(W,H,D),mat); slab.position.y=y; scene.add(slab);
+  const edge=new THREE.LineSegments(new THREE.EdgesGeometry(slab.geometry), new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.3}));
   edge.position.y=y; scene.add(edge);
-  label(L.n,L.r,'',W/2+0.55,y,0);
+  const gs=glowSprite('rgba('+[(L.c>>16)&255,(L.c>>8)&255,L.c&255].join(',')+',1)'); gs.position.set(0,y,0); gs.scale.set(W*1.5,H*3,1); scene.add(gs);
+  label(L.n,'',W/2+0.55,y,0);
+  slab.userData={name:L.n,desc:L.d}; hoverable.push({mesh:slab,mat,baseEI:.28});
 });
 
-// ===== 4横断面＝全層を貫く柱 =====
+// 4横断面＝全層を貫く柱
 const baseY=-H/2, topY=(N-1)*(H+GAP)+H/2, totalH=topY-baseY;
 const CROSS=[
- {n:'🛡 セキュリティ', c:0xff6b8a, sx:-1, sz:-1},
- {n:'運用', c:0x8a9bff, sx:1, sz:-1},
- {n:'⚖ ガバナンス', c:0xc0a0ff, sx:-1, sz:1},
- {n:'コスト', c:0xffd166, sx:1, sz:1},
+ {n:'🛡 セキュリティ', c:0xff6b8a, sx:-1, sz:-1, d:'1つの層でなく“全層を貫く守り”。完璧は無く、社内でトレードオフして有限化する。'},
+ {n:'運用', c:0x8a9bff, sx:1, sz:-1, d:'作って終わりでなく、動かし続け育てる。弱いと「動いたのに続かない」。'},
+ {n:'⚖ ガバナンス', c:0xc0a0ff, sx:-1, sz:1, d:'やっていい/いけないの線引きと責任。まずはA4一枚のAI利用ルールから。'},
+ {n:'コスト', c:0xffd166, sx:1, sz:1, d:'結局いくらか。見える料金＋隠れコストの総額（TCO）で判断。経営者の第一関心。'},
 ];
-const cx=W/2*0.84, cz=D/2*0.84;
+const cx=W/2*0.86, cz=D/2*0.86;
 CROSS.forEach(C=>{
   const px=C.sx*cx, pz=C.sz*cz;
-  const pillar=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,totalH+1.4,12),
-    new THREE.MeshStandardMaterial({color:C.c,transparent:true,opacity:.5,emissive:C.c,emissiveIntensity:.6}));
+  const mat=new THREE.MeshStandardMaterial({color:C.c,metalness:.4,roughness:.15,transparent:true,opacity:.6,emissive:C.c,emissiveIntensity:.55});
+  const pillar=new THREE.Mesh(new THREE.CylinderGeometry(0.17,0.17,totalH+1.5,16),mat);
   pillar.position.set(px,(baseY+topY)/2,pz); scene.add(pillar);
-  const cap=new THREE.Mesh(new THREE.SphereGeometry(0.28,16,16), new THREE.MeshStandardMaterial({color:C.c,emissive:C.c,emissiveIntensity:.9}));
-  cap.position.set(px,topY+0.7,pz); scene.add(cap);
-  label(C.n,'全層を貫く','cross',px,topY+1.4,pz);
+  const cap=new THREE.Mesh(new THREE.SphereGeometry(0.3,18,18),new THREE.MeshStandardMaterial({color:C.c,emissive:C.c,emissiveIntensity:1.0,metalness:.3,roughness:.2}));
+  cap.position.set(px,topY+0.8,pz); scene.add(cap);
+  label(C.n,'cross',px,topY+1.5,pz);
+  pillar.userData={name:C.n,desc:C.d}; hoverable.push({mesh:pillar,mat,baseEI:.55});
 });
 
 const CTRY=(N-1)*(H+GAP)/2;
@@ -116,11 +142,29 @@ controls.target.set(0,CTRY,0);
 camera.position.set(12,CTRY+6,16);
 if(innerWidth<600){ camera.position.set(14,CTRY+7,20); }
 
+// ===== ホバー／タップで簡易解説 =====
+const ray=new THREE.Raycaster(), mouse=new THREE.Vector2(); const tip=document.getElementById('tip');
+function setHover(mesh){ for(const h of hoverable){ const on=h.mesh===mesh; h.mat.emissiveIntensity=on?h.baseEI+0.6:h.baseEI; h.mesh.scale.setScalar(on?1.05:1); } }
+function showTip(e){ mouse.x=(e.clientX/innerWidth)*2-1; mouse.y=-(e.clientY/innerHeight)*2+1; ray.setFromCamera(mouse,camera);
+  const hit=ray.intersectObjects(hoverable.map(h=>h.mesh),false);
+  if(hit.length){ const h=hoverable.find(x=>x.mesh===hit[0].object); tip.innerHTML='<b>'+h.mesh.userData.name+'</b>'+h.mesh.userData.desc; tip.style.display='block';
+    const pad=14,w=tip.offsetWidth,hh=tip.offsetHeight; let x=e.clientX+16,y=e.clientY+16;
+    if(x+w>innerWidth-pad)x=e.clientX-w-16; if(y+hh>innerHeight-pad)y=innerHeight-hh-pad; if(x<pad)x=pad; if(y<pad)y=pad;
+    tip.style.left=x+'px'; tip.style.top=y+'px'; setHover(h.mesh); controls.autoRotate=false; }
+  else { tip.style.display='none'; setHover(null); } }
+renderer.domElement.addEventListener('pointermove',e=>{ if(e.pointerType!=='touch') showTip(e); });
+renderer.domElement.addEventListener('pointerdown',showTip);
+renderer.domElement.addEventListener('pointerleave',()=>{ tip.style.display='none'; setHover(null); controls.autoRotate=true; });
+
 addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
   renderer.setSize(innerWidth,innerHeight); labelRenderer.setSize(innerWidth,innerHeight); });
 
 const loadingEl=document.getElementById('loading'); if(loadingEl) loadingEl.remove();
-(function loop(){ requestAnimationFrame(loop); controls.update(); renderer.render(scene,camera); labelRenderer.render(scene,camera); })();
+let t=0;
+(function loop(){ requestAnimationFrame(loop); t+=0.01;
+  particles.rotation.y=t*0.04;
+  controls.update(); renderer.render(scene,camera); labelRenderer.render(scene,camera);
+})();
 </script>
 </body>
 </html>

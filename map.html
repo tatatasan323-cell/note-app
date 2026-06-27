@@ -31,13 +31,14 @@
 #compass .cap{margin-top:2px;font-size:1.25rem;font-weight:700;color:#ffd166;text-shadow:0 2px 6px rgba(0,0,0,.85)}
 #loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#8fb4d6;font-size:.9rem;z-index:9}
 @media (max-width:600px){
-  #title{left:10px;top:8px;max-width:60%} #title h1{font-size:1.7rem} #title p{font-size:1.12rem}
-  #legend{left:10px;right:10px;top:auto;bottom:128px;max-width:none;font-size:1.08rem;line-height:1.45;padding:9px 11px}
+  /* スマホは画面を覆わないよう、表題h1・コンパス・下部ボタンだけ残し、副題/凡例/島ラベルは隠す */
+  #title{left:10px;top:8px;max-width:72%} #title h1{font-size:1.45rem} #title p{display:none}
+  #legend{display:none}
+  .lbl{display:none}
   #tip{font-size:1.05rem;max-width:80vw}
-  .btns{left:10px;right:10px;max-width:none;bottom:8px;justify-content:flex-start} .btns button{padding:10px 12px;font-size:1.15rem}
-  .lbl{font-size:22px} .lbl small{display:none}
-  #compass{width:78px;top:6px;right:8px;bottom:auto}
-  #compass svg{width:78px;height:78px} #compass .cap{font-size:1rem}
+  .btns{left:10px;right:10px;max-width:none;bottom:8px;justify-content:center} .btns button{padding:10px 13px;font-size:1.2rem}
+  #compass{width:74px;top:6px;right:8px;bottom:auto}
+  #compass svg{width:74px;height:74px} #compass .cap{font-size:.95rem}
 }
 </style>
 </head>
@@ -350,13 +351,14 @@ renderer.domElement.addEventListener('pointerleave',()=>{ tip.style.display='non
 
 function fly(target,cam){ controls.target.copy(target); camera.position.copy(cam); }
 const V={ all:[new THREE.Vector3(0,4,-5),new THREE.Vector3(1,16,36)],
+  allM:[new THREE.Vector3(0,4,-6),new THREE.Vector3(1,23,56)],
   port:[new THREE.Vector3(0,1,20),new THREE.Vector3(0,8,32)],
   '1':[new THREE.Vector3(-11,1.5,11),new THREE.Vector3(-11,8,22)],
   '2':[new THREE.Vector3(12,2.5,2),new THREE.Vector3(12,9,14)],
   '3':[new THREE.Vector3(-13,1.5,-8),new THREE.Vector3(-13,9,3)],
   '4':[new THREE.Vector3(15,9,-19),new THREE.Vector3(16,21,3)] };
-document.querySelectorAll('.btns button').forEach(b=>b.onclick=()=>{ const v=V[b.dataset.go]; if(v) fly(v[0],v[1]); });
-fly(V.all[0],V.all[1]);
+document.querySelectorAll('.btns button').forEach(b=>b.onclick=()=>{ const mob=innerWidth<600; const v=(b.dataset.go==='all'&&mob)?V.allM:V[b.dataset.go]; if(v) fly(v[0],v[1]); });
+{ const v=innerWidth<600?V.allM:V.all; fly(v[0],v[1]); }
 
 addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
   renderer.setSize(innerWidth,innerHeight); labelRenderer.setSize(innerWidth,innerHeight); });

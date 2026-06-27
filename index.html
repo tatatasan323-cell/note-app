@@ -29,12 +29,14 @@
 #compass{position:fixed;right:16px;bottom:84px;z-index:6;width:88px;text-align:center;pointer-events:none}
 #compass svg{display:block;width:88px;height:88px;filter:drop-shadow(0 3px 10px rgba(0,0,0,.55))}
 #compass .cap{margin-top:2px;font-size:1.25rem;font-weight:700;color:#ffd166;text-shadow:0 2px 6px rgba(0,0,0,.85)}
+#cred{position:fixed;left:16px;bottom:12px;z-index:5;color:var(--sub);font-size:.74rem;text-shadow:0 1px 4px rgba(0,0,0,.85)}
 #loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#8fb4d6;font-size:.9rem;z-index:9}
 @media (max-width:600px){
   /* スマホは画面を覆わないよう、表題h1・コンパス・下部ボタンだけ残し、副題/凡例/島ラベルは隠す */
   #title{left:10px;top:8px;max-width:72%} #title h1{font-size:1.45rem} #title .desc{display:none} #title .ops{font-size:.78rem;margin-top:2px;opacity:.9}
   #legend{display:none}
   .lbl{font-size:14px;padding:3px 8px} .lbl small{display:none}
+  #cred{display:none}
   #tip{font-size:1.05rem;max-width:80vw}
   .btns{left:10px;right:10px;max-width:none;bottom:8px;justify-content:center} .btns button{padding:10px 13px;font-size:1.2rem}
   #compass{width:74px;top:6px;right:8px;bottom:auto}
@@ -62,6 +64,7 @@
 </div>
 
 <div id="tip"></div>
+<div id="cred">制作：AI内製化工房 MITA ｜ 公式チャンネル：https://note.com/ai_naiseika</div>
 
 <div class="btns">
   <button data-go="port">現在地</button>

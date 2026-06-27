@@ -125,22 +125,22 @@ const CROSS=[
  {n:'⚖ ガバナンス', c:0xc0a0ff, sx:-1, sz:1, d:'やっていい/いけないの線引きと責任。まずはA4一枚のAI利用ルールから。'},
  {n:'コスト', c:0xffd166, sx:1, sz:1, d:'結局いくらか。見える料金＋隠れコストの総額（TCO）で判断。経営者の第一関心。'},
 ];
-// 横並びに立てた“板”で表現（全層に効く・奥もホバーしやすい）
-const plateY=(baseY+topY)/2, plateH=totalH, platesX=[-5.4,-1.8,1.8,5.4], platesZ=D/2+2.6;
+// 6つの層を“貫く”4枚の横断板（縦・横並び・薄くして層を覆わず上下に突き出る）
+const plateY=(baseY+topY)/2, plateH=totalH+5, platesX=[-2.55,-0.85,0.85,2.55];
 CROSS.forEach((C,i)=>{
   const px=platesX[i];
-  const mat=new THREE.MeshStandardMaterial({color:C.c,metalness:.4,roughness:.18,transparent:true,opacity:.44,emissive:C.c,emissiveIntensity:.5,side:THREE.DoubleSide});
-  const plate=new THREE.Mesh(new THREE.BoxGeometry(2.7,plateH,0.22),mat);
-  plate.position.set(px,plateY,platesZ); scene.add(plate);
-  const edge=new THREE.LineSegments(new THREE.EdgesGeometry(plate.geometry),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.28})); edge.position.copy(plate.position); scene.add(edge);
-  label(C.n,'cross',px,topY+0.9,platesZ);
+  const mat=new THREE.MeshStandardMaterial({color:C.c,metalness:.35,roughness:.2,transparent:true,opacity:.5,emissive:C.c,emissiveIntensity:.5,side:THREE.DoubleSide,depthWrite:false});
+  const plate=new THREE.Mesh(new THREE.BoxGeometry(0.14,plateH,D*0.86),mat); // 薄(x)・縦に層を貫き上下へ突出(y)・奥行き方向に貫く(z)
+  plate.position.set(px,plateY,0); scene.add(plate);
+  const cap=new THREE.Mesh(new THREE.SphereGeometry(0.24,16,16),new THREE.MeshStandardMaterial({color:C.c,emissive:C.c,emissiveIntensity:1.0})); cap.position.set(px,plateY+plateH/2-0.3,0); scene.add(cap);
+  label(C.n,'cross',px,plateY+plateH/2+0.5,0);
   plate.userData={name:C.n,desc:C.d}; hoverable.push({mesh:plate,mat,baseEI:.5});
 });
 
 const CTRY=(N-1)*(H+GAP)/2;
-controls.target.set(0,CTRY,1.2);   // マップ本体（層スタック＋板）の中心を回転軸に
-camera.position.set(0.5,CTRY+5,21);
-if(innerWidth<600){ camera.position.set(0.5,CTRY+7,27); }
+controls.target.set(0,CTRY,0);   // 層スタックの中心＝回転軸
+camera.position.set(11,CTRY+8,15);
+if(innerWidth<600){ camera.position.set(13,CTRY+9,20); }
 
 // ===== ホバー／タップで簡易解説 =====
 const ray=new THREE.Raycaster(), mouse=new THREE.Vector2(); const tip=document.getElementById('tip');

@@ -121,12 +121,12 @@ LAYERS.forEach((L,i)=>{
 const baseY=-H/2, topY=(N-1)*(H+GAP)+H/2, totalH=topY-baseY;
 const CROSS=[
  {n:'🛡 セキュリティ', c:0xff6b8a, sx:-1, sz:-1, d:'1つの層でなく“全層を貫く守り”。完璧は無く、社内でトレードオフして有限化する。'},
- {n:'運用', c:0x8a9bff, sx:1, sz:-1, d:'作って終わりでなく、動かし続け育てる。弱いと「動いたのに続かない」。'},
- {n:'⚖ ガバナンス', c:0xc0a0ff, sx:-1, sz:1, d:'やっていい/いけないの線引きと責任。まずはA4一枚のAI利用ルールから。'},
+ {n:'運用', c:0x2ec4ff, sx:1, sz:-1, d:'作って終わりでなく、動かし続け育てる。弱いと「動いたのに続かない」。'},
+ {n:'⚖ ガバナンス', c:0xb96bff, sx:-1, sz:1, d:'やっていい/いけないの線引きと責任。まずはA4一枚のAI利用ルールから。'},
  {n:'コスト', c:0xffd166, sx:1, sz:1, d:'結局いくらか。見える料金＋隠れコストの総額（TCO）で判断。経営者の第一関心。'},
 ];
 // 6つの層を“貫く”4枚の横断板（縦・横並び・薄くして層を覆わず上下に突き出る）
-const plateY=(baseY+topY)/2, plateH=totalH+5, platesX=[-2.55,-0.85,0.85,2.55];
+const plateY=(baseY+topY)/2, plateH=totalH+2.5, platesX=[-2.55,-0.85,0.85,2.55];
 CROSS.forEach((C,i)=>{
   const px=platesX[i];
   const mat=new THREE.MeshStandardMaterial({color:C.c,metalness:.35,roughness:.2,transparent:true,opacity:.5,emissive:C.c,emissiveIntensity:.5,side:THREE.DoubleSide,depthWrite:false});

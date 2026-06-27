@@ -32,7 +32,7 @@
 #loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#8fb4d6;font-size:.9rem;z-index:9}
 @media (max-width:600px){
   /* スマホは画面を覆わないよう、表題h1・コンパス・下部ボタンだけ残し、副題/凡例/島ラベルは隠す */
-  #title{left:10px;top:8px;max-width:72%} #title h1{font-size:1.45rem} #title p{display:none}
+  #title{left:10px;top:8px;max-width:72%} #title h1{font-size:1.45rem} #title .desc{display:none} #title .ops{font-size:.78rem;margin-top:2px;opacity:.9}
   #legend{display:none}
   .lbl{font-size:14px;padding:3px 8px} .lbl small{display:none}
   #tip{font-size:1.05rem;max-width:80vw}
@@ -48,7 +48,8 @@
 
 <div id="title">
   <h1>AIで儲かる順番の航海図</h1>
-  <p>4つの島＝AI導入の4段。近い島ほど “確実・すぐ”、遠い島ほど “大きいが険しい”。<br>指で回転／2本指で拡大（PCはドラッグ／ホイール）。</p>
+  <p class="desc">4つの島＝AI導入の4段。近い島ほど “確実・すぐ”、遠い島ほど “大きいが険しい”。</p>
+  <p class="ops">指で回転／2本指で拡大（PCはドラッグ／ホイール）。</p>
 </div>
 
 <div id="legend">

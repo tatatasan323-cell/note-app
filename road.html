@@ -31,7 +31,7 @@ footer{position:fixed;left:16px;bottom:10px;z-index:5;color:var(--sub);font-size
 <div id="loading">道のりを描いています･･･</div>
 <div id="title">
   <h1>成功への道のり ─ AI内製化ロードマップ</h1>
-  <p class="desc">失敗の罠（毒沼・マグマ）を避け、森と山を抜けて、“成功＝天空の城”へ。緑の道標＝進むべき順番、赤い罠＝よくある失敗。</p>
+  <p class="desc">失敗の罠（毒沼・マグマ）を避け、起伏する森と山を越えて、“成功＝天空の城”へ。緑の関門＝越えるべき6つの課題、赤い罠＝よくある失敗。道は平坦ではない。</p>
   <p class="ops">ドラッグで回転／ホイール・2本指で拡大。</p>
 </div>
 <footer>制作：AI内製化工房 MITA ｜ 公式チャンネル：https://note.com/ai_naiseika</footer>
@@ -49,7 +49,7 @@ import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer
 
 const app=document.getElementById('app');
 const scene=new THREE.Scene();
-scene.fog=new THREE.FogExp2(0x16314f,0.011);
+scene.fog=new THREE.FogExp2(0x16314f,0.010);
 const camera=new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.1, 400);
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));
@@ -59,16 +59,16 @@ const labelRenderer=new CSS2DRenderer(); labelRenderer.setSize(innerWidth,innerH
 labelRenderer.domElement.style.position='fixed'; labelRenderer.domElement.style.top='0'; labelRenderer.domElement.style.pointerEvents='none';
 app.appendChild(labelRenderer.domElement);
 const controls=new OrbitControls(camera,renderer.domElement);
-controls.enableDamping=true; controls.maxPolarAngle=Math.PI*0.49; controls.minDistance=12; controls.maxDistance=90;
+controls.enableDamping=true; controls.maxPolarAngle=Math.PI*0.49; controls.minDistance=12; controls.maxDistance=110;
 
 // ===== 空・光 =====
-const sky=new THREE.Mesh(new THREE.SphereGeometry(300,24,12), new THREE.ShaderMaterial({side:THREE.BackSide,
+const sky=new THREE.Mesh(new THREE.SphereGeometry(320,24,12), new THREE.ShaderMaterial({side:THREE.BackSide,
   uniforms:{top:{value:new THREE.Color(0x0b1a30)},mid:{value:new THREE.Color(0x244c6b)},bot:{value:new THREE.Color(0x3a5570)}},
   vertexShader:'varying float h;void main(){h=normalize(position).y;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
   fragmentShader:'varying float h;uniform vec3 top;uniform vec3 mid;uniform vec3 bot;void main(){vec3 c=h>0.05?mix(mid,top,smoothstep(0.05,0.6,h)):mix(bot,mid,smoothstep(-0.1,0.05,h));gl_FragColor=vec4(c,1.0);}'}));
 scene.add(sky);
-scene.add(new THREE.HemisphereLight(0xbfe0ff,0x24402c,1.05));
-const sun=new THREE.DirectionalLight(0xffe9c0,1.4); sun.position.set(-20,30,-20); scene.add(sun);
+scene.add(new THREE.HemisphereLight(0xbfe0ff,0x24402c,1.0));
+const sun=new THREE.DirectionalLight(0xffe9c0,1.5); sun.position.set(-24,34,-18); scene.add(sun);
 
 // ===== ヘルパ =====
 function glowTex(stops){ const c=document.createElement('canvas'); c.width=c.height=128; const g=c.getContext('2d');
@@ -78,95 +78,110 @@ function glow(x,y,z,scale,tex=goldGlow){ const s=new THREE.Sprite(new THREE.Spri
   s.position.set(x,y,z); s.scale.set(scale,scale,1); scene.add(s); return s; }
 function label(text,sub,cls,x,y,z){ const d=document.createElement('div'); d.className='lbl '+(cls||'');
   d.innerHTML=text+(sub?`<small>${sub}</small>`:''); const o=new CSS2DObject(d); o.position.set(x,y,z); scene.add(o); return o; }
-function tree(x,z,s=1){ const g=new THREE.Group();
-  const tr=new THREE.Mesh(new THREE.CylinderGeometry(0.08*s,0.12*s,0.7*s,6),new THREE.MeshStandardMaterial({color:0x5a4326})); tr.position.y=0.35*s; g.add(tr);
-  const fo=new THREE.Mesh(new THREE.ConeGeometry(0.45*s,1.1*s,7),new THREE.MeshStandardMaterial({color:Math.random()<.5?0x2c5e34:0x244f2b,flatShading:true})); fo.position.y=1.1*s; g.add(fo);
-  g.position.set(x,0,z); scene.add(g); }
-function mountain(x,z,h){ const m=new THREE.Mesh(new THREE.ConeGeometry(h*0.62,h,7),new THREE.MeshStandardMaterial({color:0x586a51,roughness:1,flatShading:true})); m.position.set(x,h/2,z); scene.add(m);
-  const cap=new THREE.Mesh(new THREE.ConeGeometry(h*0.26,h*0.32,7),new THREE.MeshStandardMaterial({color:0xeef3f6,roughness:.9,flatShading:true})); cap.position.set(x,h-h*0.16,z); scene.add(cap); }
 
-// ===== 地面 =====
-const ground=new THREE.Mesh(new THREE.CircleGeometry(46,48), new THREE.MeshStandardMaterial({color:0x37663a,roughness:1,flatShading:true}));
-ground.rotation.x=-Math.PI/2; ground.position.y=0; scene.add(ground);
+// ===== 起伏する地形 =====
+function hAt(x,z){ return Math.sin(x*0.12)*1.3 + Math.cos(z*0.11)*1.3 + Math.sin((x*0.5+z)*0.08)*0.9; }
+const GSEG=90, GSIZE=110;
+const groundGeo=new THREE.PlaneGeometry(GSIZE,GSIZE,GSEG,GSEG);
+{ const p=groundGeo.attributes.position; for(let i=0;i<p.count;i++){ const x=p.getX(i), y=p.getY(i); p.setZ(i, hAt(x,y)); } groundGeo.computeVertexNormals(); }
+const ground=new THREE.Mesh(groundGeo, new THREE.MeshStandardMaterial({color:0x356235,roughness:1,flatShading:true}));
+ground.rotation.x=-Math.PI/2; scene.add(ground);
 
-// 周囲の山並み
-[[-30,-26,13],[-18,-34,16],[2,-38,18],[22,-32,15],[33,-22,12],[-34,-6,10],[34,2,10]].forEach(m=>mountain(m[0],m[1],m[2]));
-// 森（道の外側に散らす）
-for(let i=0;i<90;i++){ const a=Math.random()*6.28, r=10+Math.random()*32; const x=Math.cos(a)*r, z=Math.sin(a)*r;
-  if(z<-30) continue; tree(x,z,0.8+Math.random()*0.6); }
+function tree(x,z,s=1){ const y=hAt(x,z); const g=new THREE.Group();
+  const tr=new THREE.Mesh(new THREE.CylinderGeometry(0.12*s,0.18*s,1.1*s,6),new THREE.MeshStandardMaterial({color:0x5a4326})); tr.position.y=0.55*s; g.add(tr);
+  for(let k=0;k<3;k++){ const fo=new THREE.Mesh(new THREE.ConeGeometry((0.7-k*0.18)*s,(1.2-k*0.2)*s,7),new THREE.MeshStandardMaterial({color:k%2?0x2c5e34:0x244f2b,flatShading:true})); fo.position.y=(1.2+k*0.7)*s; g.add(fo); }
+  g.position.set(x,y,z); scene.add(g); }
+function mountain(x,z,h){ const y=hAt(x,z); const m=new THREE.Mesh(new THREE.ConeGeometry(h*0.6,h,7,1),new THREE.MeshStandardMaterial({color:0x55684f,roughness:1,flatShading:true}));
+  m.position.set(x,y+h/2,z); jitter(m.geometry,0.5); scene.add(m);
+  const cap=new THREE.Mesh(new THREE.ConeGeometry(h*0.26,h*0.32,7),new THREE.MeshStandardMaterial({color:0xeef3f6,roughness:.9,flatShading:true})); cap.position.set(x,y+h-h*0.16,z); scene.add(cap); }
+function jitter(geo,a){ const p=geo.attributes.position; for(let i=0;i<p.count;i++){ if(p.getY(i)>0.1) p.setXYZ(i,p.getX(i)+(Math.random()-.5)*a,p.getY(i),p.getZ(i)+(Math.random()-.5)*a);} p.needsUpdate=true; geo.computeVertexNormals(); }
 
-// ===== 成功への道（ウェイポイント）=====
+// 大きな山並み（背後＝高く険しく、道沿いにも尾根）
+[[-30,-30,18],[-12,-38,22],[10,-40,24],[28,-34,20],[36,-18,15],[-36,-10,14],[34,6,13],[-34,12,12]].forEach(m=>mountain(m[0],m[1],m[2]));
+[[-16,2,7],[16,-3,8],[-12,-20,9],[14,-26,9]].forEach(m=>mountain(m[0],m[1],m[2])); // 道の近くの尾根＝難所
+// 密な森
+for(let i=0;i<150;i++){ const a=Math.random()*6.28, r=8+Math.random()*40; const x=Math.cos(a)*r, z=Math.sin(a)*r; if(z<-34) continue; tree(x,z,0.9+Math.random()*0.8); }
+
+// ===== 成功への道（各チェックポイント＝丘の上の“関門”＝越える課題）=====
 const WP=[
- {x:0,  y:0.2, z:22, n:'現在地（スタート）', s:'まだ何も始めていない自社', cls:'cyan'},
- {x:-7, y:0.5, z:14, n:'① 最初の1人', s:'ファーストペンギン（経営者ならベスト）', cls:'ok'},
- {x:7,  y:0.9, z:6,  n:'② 痛みを探す', s:'使うことを目的にせず現場のペインへ', cls:'ok'},
- {x:-7, y:1.4, z:-2, n:'③ 適材適所', s:'作る人／使う人／知らず触れる人', cls:'ok'},
- {x:6,  y:2.2, z:-9, n:'④ 情報を俯瞰', s:'全部覚えず“自社のカテゴリ”を見極める', cls:'ok'},
- {x:-5, y:3.2, z:-15,n:'⑤ 小さな成功＋風土', s:'反対派より一つの成果と改革の空気', cls:'ok'},
- {x:2,  y:4.4, z:-20,n:'⑥ 最後の壁＝土台', s:'セキュリティ／アーキテクチャを地図で越える', cls:'amber'},
+ {x:0,  z:24, lift:0.6, n:'現在地（スタート）', s:'まだ何も始めていない自社', cls:'cyan', gate:false},
+ {x:-8, z:15, lift:1.6, n:'関門① 最初の1人', s:'ファーストペンギン（経営者ならベスト）', cls:'ok'},
+ {x:8,  z:7,  lift:2.6, n:'関門② 痛みを探す', s:'使うことを目的にせず現場のペインへ', cls:'ok'},
+ {x:-8, z:-2, lift:3.8, n:'関門③ 適材適所', s:'作る人／使う人／知らず触れる人', cls:'ok'},
+ {x:7,  z:-10,lift:5.2, n:'関門④ 情報を俯瞰', s:'全部覚えず“自社のカテゴリ”を見極める', cls:'ok'},
+ {x:-6, z:-16,lift:6.8, n:'関門⑤ 小さな成功＋風土', s:'反対派より一つの成果と改革の空気', cls:'ok'},
+ {x:2,  z:-21,lift:8.4, n:'関門⑥ 最後の壁＝土台', s:'セキュリティ／アーキテクチャを地図で越える', cls:'amber'},
 ];
-// 道のカーブ
-const pts=WP.map(w=>new THREE.Vector3(w.x,w.y+0.05,w.z));
-const goalPos=new THREE.Vector3(0,7.4,-26);
-pts.push(new THREE.Vector3(1,5.6,-23)); pts.push(goalPos.clone().setY(5.0));
+WP.forEach(w=>{ w.y=hAt(w.x,w.z)+w.lift; });
+
+// チェックポイントの丘（盛り土）＋関門ゲート
+function gate(w){
+  const col = w.cls==='cyan'?0x5cc2ff : w.cls==='amber'?0xffd166 : 0x4fe0a6;
+  // 丘（円錐の盛り土）
+  const hill=new THREE.Mesh(new THREE.ConeGeometry(2.6,w.lift+1.2,18,1,false),new THREE.MeshStandardMaterial({color:0x3c6b3b,roughness:1,flatShading:true}));
+  hill.position.set(w.x,hAt(w.x,w.z)+(w.lift+1.2)/2-0.6,w.z); scene.add(hill);
+  // 旗ポール＋光球
+  const post=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,1.3,6),new THREE.MeshStandardMaterial({color:0x7a5a36})); post.position.set(w.x,w.y+0.65,w.z); scene.add(post);
+  const orb=new THREE.Mesh(new THREE.SphereGeometry(0.26,16,16),new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:1.1})); orb.position.set(w.x,w.y+1.4,w.z); scene.add(orb);
+  glow(w.x,w.y+1.4,w.z,2.4);
+  if(w.gate!==false){ // 関門（鳥居状の門）＝越える課題
+    const pm=new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:.5,metalness:.3,roughness:.4});
+    [-1.1,1.1].forEach(dx=>{ const pl=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,2.4,8),pm); pl.position.set(w.x+dx,w.y+1.2,w.z); scene.add(pl); });
+    const bar=new THREE.Mesh(new THREE.BoxGeometry(2.7,0.22,0.22),pm); bar.position.set(w.x,w.y+2.3,w.z); scene.add(bar);
+  }
+  label(w.n,w.s,w.cls,w.x,w.y+ (w.gate!==false?3.0:2.0),w.z);
+}
+WP.forEach(gate);
+
+// 道のカーブ（起伏に沿って登る）＋城へ
+const pts=WP.map(w=>new THREE.Vector3(w.x,w.y+0.1,w.z));
+const goalPos=new THREE.Vector3(0,0,-27);
+pts.push(new THREE.Vector3(1,9.8,-24)); pts.push(new THREE.Vector3(0,10.6,-26.5));
 const curve=new THREE.CatmullRomCurve3(pts,false,'catmullrom',0.3);
-// 金色の道
-const road=new THREE.Mesh(new THREE.TubeGeometry(curve,160,0.55,8,false),
+const road=new THREE.Mesh(new THREE.TubeGeometry(curve,200,0.55,8,false),
   new THREE.MeshStandardMaterial({color:0xe7c266,emissive:0xb8860b,emissiveIntensity:.4,metalness:.3,roughness:.5,transparent:true,opacity:.92}));
 scene.add(road);
-// 進行方向に流れる矢印
-const ARN=14, arrows=[]; const _up=new THREE.Vector3(0,1,0);
-for(let i=0;i<ARN;i++){ const a=new THREE.Mesh(new THREE.ConeGeometry(0.3,0.9,4),
-   new THREE.MeshStandardMaterial({color:0xfff0b0,emissive:0xffd24a,emissiveIntensity:1.1,roughness:.3})); scene.add(a); arrows.push(a); }
-function animArrows(t){ for(let i=0;i<ARN;i++){ const u=((t*0.05)+i/ARN)%1; const p=curve.getPointAt(u), tan=curve.getTangentAt(u).normalize();
+const ARN=16, arrows=[]; const _up=new THREE.Vector3(0,1,0);
+for(let i=0;i<ARN;i++){ const a=new THREE.Mesh(new THREE.ConeGeometry(0.3,0.9,4),new THREE.MeshStandardMaterial({color:0xfff0b0,emissive:0xffd24a,emissiveIntensity:1.1,roughness:.3})); scene.add(a); arrows.push(a); }
+function animArrows(t){ for(let i=0;i<ARN;i++){ const u=((t*0.045)+i/ARN)%1; const p=curve.getPointAt(u), tan=curve.getTangentAt(u).normalize();
   arrows[i].position.copy(p).addScaledVector(_up,0.5); arrows[i].quaternion.setFromUnitVectors(_up,tan); } }
-// ウェイポイントの道標
-WP.forEach(w=>{
-  const post=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,1.1,6),new THREE.MeshStandardMaterial({color:0x7a5a36})); post.position.set(w.x,w.y+0.55,w.z); scene.add(post);
-  const col = w.cls==='cyan'?0x5cc2ff : w.cls==='amber'?0xffd166 : 0x4fe0a6;
-  const orb=new THREE.Mesh(new THREE.SphereGeometry(0.22,16,16),new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:1.1})); orb.position.set(w.x,w.y+1.2,w.z); scene.add(orb);
-  glow(w.x,w.y+1.2,w.z,2.0);
-  label(w.n,w.s,w.cls,w.x,w.y+2.1,w.z);
-});
 
 // ===== 失敗の罠 =====
-const sparks=[]; const sparkTex=glowTex([[0,'rgba(200,255,180,1)'],[1,'rgba(120,220,90,0)']]);
-function swamp(x,z,name,sub){ // 毒の沼
-  const pool=new THREE.Mesh(new THREE.CircleGeometry(3,28),new THREE.MeshStandardMaterial({color:0x4a2d63,emissive:0x6a2f8a,emissiveIntensity:.5,roughness:.4,metalness:.3}));
-  pool.rotation.x=-Math.PI/2; pool.position.set(x,0.06,z); scene.add(pool);
-  const bubbles=[]; for(let i=0;i<7;i++){ const b=new THREE.Mesh(new THREE.SphereGeometry(0.18+Math.random()*0.16,10,10),new THREE.MeshStandardMaterial({color:0x9b59b6,emissive:0x7a2f9a,emissiveIntensity:.8,transparent:true,opacity:.85}));
-    b.position.set(x+(Math.random()-.5)*4,0.2,z+(Math.random()-.5)*4); scene.add(b); bubbles.push({b,ph:Math.random()*6.28,base:b.position.x,bz:b.position.z}); }
-  swampList.push({bubbles}); label(name,sub,'red',x,1.6,z);
-}
 const swampList=[];
-function volcano(x,z,name,sub){ // マグマ／火山
-  const cone=new THREE.Mesh(new THREE.ConeGeometry(2.6,3.4,9,1),new THREE.MeshStandardMaterial({color:0x4a2520,roughness:1,flatShading:true})); cone.position.set(x,1.7,z); scene.add(cone);
+function swamp(x,z,name,sub){ const y=hAt(x,z);
+  const pool=new THREE.Mesh(new THREE.CircleGeometry(3,28),new THREE.MeshStandardMaterial({color:0x4a2d63,emissive:0x6a2f8a,emissiveIntensity:.5,roughness:.4,metalness:.3}));
+  pool.rotation.x=-Math.PI/2; pool.position.set(x,y+0.08,z); scene.add(pool);
+  const bub=[]; for(let i=0;i<7;i++){ const b=new THREE.Mesh(new THREE.SphereGeometry(0.18+Math.random()*0.16,10,10),new THREE.MeshStandardMaterial({color:0x9b59b6,emissive:0x7a2f9a,emissiveIntensity:.8,transparent:true,opacity:.85}));
+    b.position.set(x+(Math.random()-.5)*4,y+0.2,z+(Math.random()-.5)*4); scene.add(b); bub.push({b,ph:Math.random()*6.28,by:y}); }
+  swampList.push({bubbles:bub}); label(name,sub,'red',x,y+1.7,z); }
+function volcano(x,z,name,sub){ const y=hAt(x,z);
+  const cone=new THREE.Mesh(new THREE.ConeGeometry(2.8,3.8,9,1),new THREE.MeshStandardMaterial({color:0x4a2520,roughness:1,flatShading:true})); cone.position.set(x,y+1.9,z); jitter(cone.geometry,0.4); scene.add(cone);
   const crater=new THREE.Mesh(new THREE.CircleGeometry(1.0,18),new THREE.MeshStandardMaterial({color:0xff5a20,emissive:0xff5a20,emissiveIntensity:1.6}));
-  crater.rotation.x=-Math.PI/2; crater.position.set(x,3.42,z); scene.add(crater);
-  glow(x,3.6,z,4.2, glowTex([[0,'rgba(255,180,80,1)'],[0.4,'rgba(255,90,40,0.7)'],[1,'rgba(200,40,20,0)']]));
-  label(name,sub,'red',x,4.4,z);
-}
-swamp(11,16,'毒沼：全員に丸ごと使わせる','使い道なく沈む');
-swamp(-13,3,'毒沼：個人に丸投げ','属人化して残らない');
-swamp(-10,-12,'毒沼：反対派に飲まれる','全員説得で前に進めない');
-volcano(13,-6,'火山：経営者が無関心','トップが本気でないと現場も動かない');
+  crater.rotation.x=-Math.PI/2; crater.position.set(x,y+3.85,z); scene.add(crater);
+  glow(x,y+4.0,z,4.4, glowTex([[0,'rgba(255,180,80,1)'],[0.4,'rgba(255,90,40,0.7)'],[1,'rgba(200,40,20,0)']]));
+  label(name,sub,'red',x,y+4.8,z); }
+swamp(12,16,'毒沼：全員に丸ごと使わせる','使い道なく沈む');
+swamp(-14,4,'毒沼：個人に丸投げ','属人化して残らない');
+swamp(-11,-13,'毒沼：反対派に飲まれる','全員説得で前に進めない');
+volcano(14,-7,'火山：経営者が無関心','トップが本気でないと現場も動かない');
 
 // ===== ゴール：成功＝天空の城（断崖の上）=====
-const cliff=new THREE.Mesh(new THREE.CylinderGeometry(3.2,4.6,8,9,1),new THREE.MeshStandardMaterial({color:0x4a4250,roughness:1,flatShading:true})); cliff.position.set(0,4,-26); scene.add(cliff);
-const castle=new THREE.Group(); castle.position.set(0,8.1,-26); scene.add(castle);
+const cliff=new THREE.Mesh(new THREE.CylinderGeometry(3.4,5.0,10,9,1),new THREE.MeshStandardMaterial({color:0x4a4250,roughness:1,flatShading:true})); cliff.position.set(0,hAt(0,-27)+5,-27); jitter(cliff.geometry,0.5); scene.add(cliff);
+const cTop=hAt(0,-27)+10;
+const castle=new THREE.Group(); castle.position.set(0,cTop,-27); scene.add(castle);
 const keep=new THREE.Mesh(new THREE.BoxGeometry(2.2,2.4,2.2),new THREE.MeshStandardMaterial({color:0xb9c4d2,roughness:.6})); keep.position.y=1.2; castle.add(keep);
 const roof=new THREE.Mesh(new THREE.ConeGeometry(1.9,1.6,4),new THREE.MeshStandardMaterial({color:0x8a3b3b})); roof.position.y=3.2; roof.rotation.y=Math.PI/4; castle.add(roof);
 [[-1.6,-1.6],[1.6,-1.6],[-1.6,1.6],[1.6,1.6]].forEach(p=>{ const tw=new THREE.Mesh(new THREE.CylinderGeometry(0.55,0.65,2.8,12),new THREE.MeshStandardMaterial({color:0xc7d1de})); tw.position.set(p[0],1.1,p[1]); castle.add(tw);
   const rf=new THREE.Mesh(new THREE.ConeGeometry(0.78,1.2,12),new THREE.MeshStandardMaterial({color:0x9b4242})); rf.position.set(p[0],3.1,p[1]); castle.add(rf); });
 const crown=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.5,0.55,12),new THREE.MeshStandardMaterial({color:0xffd45a,emissive:0x8a5e12,emissiveIntensity:1.3,metalness:.95,roughness:.12})); crown.position.y=4.0; castle.add(crown);
-glow(0,12,-26,6.5); label('成功（天空の城）','道標どおり進めば、ここへ','amber',0,14.2,-26);
+glow(0,cTop+4,-27,7); label('成功（天空の城）','道標どおり、罠を避けて越えれば','amber',0,cTop+6.2,-27);
 
-// 花火（成功の祝祭）
+// 花火
 const fwTex=[glowTex([[0,'rgba(255,255,255,1)'],[0.3,'rgba(255,170,210,0.9)'],[1,'rgba(255,90,150,0)']]),
  glowTex([[0,'rgba(255,255,255,1)'],[0.3,'rgba(180,225,255,0.9)'],[1,'rgba(90,160,255,0)']]),
  glowTex([[0,'rgba(255,255,255,1)'],[0.3,'rgba(255,235,150,0.9)'],[1,'rgba(255,190,60,0)']])];
 const bursts=[];
-for(let b=0;b<4;b++){ const tex=fwTex[b%3]; const center=new THREE.Vector3((Math.random()-.5)*9,15+Math.random()*5,-26+(Math.random()-.5)*8); const sp=[];
+for(let b=0;b<4;b++){ const tex=fwTex[b%3]; const center=new THREE.Vector3((Math.random()-.5)*9,cTop+7+Math.random()*4,-27+(Math.random()-.5)*8); const sp=[];
   for(let i=0;i<20;i++){ const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,opacity:0}));
     const th=Math.random()*6.28, ph=Math.acos(2*Math.random()-1), v=2.4+Math.random()*1.2;
     const dir=new THREE.Vector3(Math.sin(ph)*Math.cos(th),Math.cos(ph)*0.8,Math.sin(ph)*Math.sin(th)).multiplyScalar(v); s.scale.set(0.5,0.5,1); scene.add(s); sp.push({s,dir}); }
@@ -177,9 +192,9 @@ function animFireworks(t){ for(const b of bursts){ const u=((t*0.14)+b.phase)%1;
     sp.s.material.opacity=Math.max(0,1-life)*0.95; const sc=0.5+life*0.6; sp.s.scale.set(sc,sc,1); } } }
 
 // ===== カメラ =====
-controls.target.set(0,2,-2);
-camera.position.set(2,16,34);
-if(innerWidth<600){ camera.position.set(2,20,44); }
+controls.target.set(0,4,-4);
+camera.position.set(3,18,38);
+if(innerWidth<600){ camera.position.set(3,22,48); }
 
 addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
   renderer.setSize(innerWidth,innerHeight); labelRenderer.setSize(innerWidth,innerHeight); });
@@ -188,7 +203,7 @@ const loadingEl=document.getElementById('loading'); if(loadingEl) loadingEl.remo
 let t=0;
 (function loop(){ requestAnimationFrame(loop); t+=0.012;
   animArrows(t); animFireworks(t);
-  for(const s of swampList){ for(const o of s.bubbles){ o.b.position.y=0.2+Math.abs(Math.sin(t*1.6+o.ph))*0.5; o.b.material.opacity=0.5+Math.abs(Math.sin(t*1.6+o.ph))*0.4; } }
+  for(const s of swampList){ for(const o of s.bubbles){ o.b.position.y=o.by+0.2+Math.abs(Math.sin(t*1.6+o.ph))*0.5; o.b.material.opacity=0.5+Math.abs(Math.sin(t*1.6+o.ph))*0.4; } }
   controls.update(); renderer.render(scene,camera); labelRenderer.render(scene,camera);
 })();
 </script>

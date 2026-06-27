@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIアーキテクチャ 全体地図（簡易版） ─ 6層＋4横断面</title>
+<style>
+:root{--ink:#eef4fb;--sub:#a8bccf;--line:#2e4258;}
+*{box-sizing:border-box} html,body{margin:0;height:100%;overflow:hidden;background:#0a1626;
+  font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Yu Gothic UI",Meiryo,sans-serif;color:var(--ink)}
+#app{position:fixed;inset:0}
+.lbl{font-size:13px;font-weight:700;padding:3px 9px;border-radius:8px;white-space:nowrap;
+  background:rgba(7,14,26,.74);border:1px solid var(--line);box-shadow:0 3px 12px rgba(0,0,0,.5);pointer-events:none;backdrop-filter:blur(2px)}
+.lbl small{display:block;color:var(--sub);font-weight:400;font-size:11px;margin-top:1px}
+.lbl.cross{border-color:#5a6fa0;color:#cfe6ff;background:rgba(10,18,34,.8)}
+#title{position:fixed;left:16px;top:12px;z-index:5;text-shadow:0 2px 8px rgba(0,0,0,.7);max-width:62%}
+#title h1{font-size:1.15rem;margin:0 0 4px} #title .desc{margin:0;color:var(--sub);font-size:.84rem;line-height:1.5}
+#title .ops{margin:4px 0 0;color:var(--sub);font-size:.8rem}
+footer{position:fixed;left:16px;bottom:10px;z-index:5;color:var(--sub);font-size:.74rem;text-shadow:0 1px 4px rgba(0,0,0,.85)}
+#loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#8fb4d6;z-index:9}
+@media(max-width:600px){
+  #title{max-width:82%} #title h1{font-size:1.05rem} #title .desc{display:none} #title .ops{font-size:.72rem}
+  .lbl{font-size:11px} .lbl small{display:none}
+  footer{font-size:.64rem}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="loading">地図を描いています･･･</div>
+<div id="title">
+  <h1>AIアーキテクチャ 全体地図（簡易版）</h1>
+  <p class="desc">6つの層（下＝土台 → 上＝窓口）と、それを貫く4つの横断面。「どこに何があり、どこにAIが効くか」を1枚で。</p>
+  <p class="ops">ドラッグで回転／ホイール・2本指で拡大。</p>
+</div>
+<footer>制作：AI内製化工房 MITA ｜ 公式チャンネル：https://note.com/ai_naiseika ｜ 全体像の簡易版（詳細は別途）</footer>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+const app=document.getElementById('app');
+const scene=new THREE.Scene();
+scene.fog=new THREE.FogExp2(0x0a1626,0.018);
+const camera=new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.1, 200);
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));
+renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.2;
+app.appendChild(renderer.domElement);
+const labelRenderer=new CSS2DRenderer(); labelRenderer.setSize(innerWidth,innerHeight);
+labelRenderer.domElement.style.position='fixed'; labelRenderer.domElement.style.top='0'; labelRenderer.domElement.style.pointerEvents='none';
+app.appendChild(labelRenderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true; controls.autoRotate=true; controls.autoRotateSpeed=0.55; controls.minDistance=8; controls.maxDistance=44;
+
+scene.add(new THREE.HemisphereLight(0xbfe0ff,0x16243a,1.1));
+const key=new THREE.DirectionalLight(0xffffff,0.7); key.position.set(9,18,12); scene.add(key);
+
+const sky=new THREE.Mesh(new THREE.SphereGeometry(130,16,10), new THREE.ShaderMaterial({side:THREE.BackSide,
+  uniforms:{top:{value:new THREE.Color(0x0a1626)},bot:{value:new THREE.Color(0x16314f)}},
+  vertexShader:'varying float h;void main(){h=normalize(position).y;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+  fragmentShader:'varying float h;uniform vec3 top;uniform vec3 bot;void main(){gl_FragColor=vec4(mix(bot,top,smoothstep(-0.35,0.65,h)),1.0);}'}));
+scene.add(sky);
+
+function label(text,sub,cls,x,y,z){ const d=document.createElement('div'); d.className='lbl '+(cls||'');
+  d.innerHTML=text+(sub?`<small>${sub}</small>`:''); const o=new CSS2DObject(d); o.position.set(x,y,z); scene.add(o); return o; }
+
+// ===== 6層（下＝土台 → 上＝窓口）=====
+const LAYERS=[
+ {n:'① インフラ層（土台）', r:'どこで動かすか', c:0x5a86d6},
+ {n:'② データ層（素材）', r:'何を・どう持つか', c:0x36c8d8},
+ {n:'③ 統合・連携層（つなぐ）', r:'既存システムと繋ぐ', c:0x33d49a},
+ {n:'④ AIエンジン層（頭脳）', r:'AIを使うか／どれを', c:0x86d63c},
+ {n:'⑤ アプリ層（仕事）', r:'どんな仕事をさせる', c:0xf0b82e},
+ {n:'⑥ インターフェース層（窓口）', r:'人がどこで触れる', c:0xf0792e},
+];
+const W=7, D=5, H=1.1, GAP=0.7, N=LAYERS.length;
+LAYERS.forEach((L,i)=>{
+  const y=i*(H+GAP);
+  const slab=new THREE.Mesh(new THREE.BoxGeometry(W,H,D),
+    new THREE.MeshStandardMaterial({color:L.c,transparent:true,opacity:.82,metalness:.2,roughness:.45,emissive:L.c,emissiveIntensity:.22,flatShading:true}));
+  slab.position.y=y; scene.add(slab);
+  const edge=new THREE.LineSegments(new THREE.EdgesGeometry(slab.geometry), new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.22}));
+  edge.position.y=y; scene.add(edge);
+  label(L.n,L.r,'',W/2+0.55,y,0);
+});
+
+// ===== 4横断面＝全層を貫く柱 =====
+const baseY=-H/2, topY=(N-1)*(H+GAP)+H/2, totalH=topY-baseY;
+const CROSS=[
+ {n:'🛡 セキュリティ', c:0xff6b8a, sx:-1, sz:-1},
+ {n:'運用', c:0x8a9bff, sx:1, sz:-1},
+ {n:'⚖ ガバナンス', c:0xc0a0ff, sx:-1, sz:1},
+ {n:'コスト', c:0xffd166, sx:1, sz:1},
+];
+const cx=W/2*0.84, cz=D/2*0.84;
+CROSS.forEach(C=>{
+  const px=C.sx*cx, pz=C.sz*cz;
+  const pillar=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,totalH+1.4,12),
+    new THREE.MeshStandardMaterial({color:C.c,transparent:true,opacity:.5,emissive:C.c,emissiveIntensity:.6}));
+  pillar.position.set(px,(baseY+topY)/2,pz); scene.add(pillar);
+  const cap=new THREE.Mesh(new THREE.SphereGeometry(0.28,16,16), new THREE.MeshStandardMaterial({color:C.c,emissive:C.c,emissiveIntensity:.9}));
+  cap.position.set(px,topY+0.7,pz); scene.add(cap);
+  label(C.n,'全層を貫く','cross',px,topY+1.4,pz);
+});
+
+const CTRY=(N-1)*(H+GAP)/2;
+controls.target.set(0,CTRY,0);
+camera.position.set(12,CTRY+6,16);
+if(innerWidth<600){ camera.position.set(14,CTRY+7,20); }
+
+addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight); labelRenderer.setSize(innerWidth,innerHeight); });
+
+const loadingEl=document.getElementById('loading'); if(loadingEl) loadingEl.remove();
+(function loop(){ requestAnimationFrame(loop); controls.update(); renderer.render(scene,camera); labelRenderer.render(scene,camera); })();
+</script>
+</body>
+</html>

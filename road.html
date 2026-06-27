@@ -31,7 +31,7 @@ footer{position:fixed;left:16px;bottom:10px;z-index:5;color:var(--sub);font-size
 <div id="loading">道のりを描いています･･･</div>
 <div id="title">
   <h1>成功への道のり ─ AI内製化ロードマップ</h1>
-  <p class="desc">手前は低く、奥へ登るほど傾斜と山。毒沼・闇の魔の森・落とし穴・絶壁を流れるマグマ ―― 罠をよけ、起伏を登り、崖を越えて “成功＝天空の城” へ。緑の関門＝越える6課題。</p>
+  <p class="desc">手前は低く、奥へ登るほど傾斜と山。毒沼・闇の魔の森・落とし穴をよけ、崖の手前を流れるマグマの川に橋を架け（関門⑥）、険しい崖を登って “成功＝天空の城” へ。緑の関門＝越える6課題。</p>
   <p class="ops">ドラッグで回転／ホイール・2本指で拡大。</p>
 </div>
 <footer>制作：AI内製化工房 MITA ｜ 公式チャンネル：https://note.com/ai_naiseika</footer>
@@ -78,14 +78,32 @@ function label(text,sub,cls,x,y,z){ const d=document.createElement('div'); d.cla
   d.innerHTML=text+(sub?`<small>${sub}</small>`:''); const o=new CSS2DObject(d); o.position.set(x,y,z); scene.add(o); return o; }
 function jitter(geo,a){ const p=geo.attributes.position; for(let i=0;i<p.count;i++){ if(p.getY(i)>0.1) p.setXYZ(i,p.getX(i)+(Math.random()-.5)*a,p.getY(i),p.getZ(i)+(Math.random()-.5)*a);} p.needsUpdate=true; geo.computeVertexNormals(); }
 
-// ===== 地形：手前(z大)低く → 奥(z小)へ単調に登る。手前に盛り上がりを作らない =====
-function ramp(z){ const a=Math.max(0,Math.min(1,(20-z)/38)); return Math.pow(a,1.6)*7.0; }   // z>=20で0、z<=-18で7
+// ===== 地形：手前低→奥高（寝かせたPlaneは world z=-localY なので hAt(x,-y) で合わせる）=====
+function ramp(z){ const a=Math.max(0,Math.min(1,(20-z)/38)); return Math.pow(a,1.6)*7.0; }
 function hAt(x,z){ const amp=z>10?0.3:0.85; return ramp(z) + Math.sin(x*0.15)*amp + Math.cos((x*0.4+z)*0.12)*amp*0.8; }
 const GSEG=130, GSIZE=130;
 const groundGeo=new THREE.PlaneGeometry(GSIZE,GSIZE,GSEG,GSEG);
-{ const p=groundGeo.attributes.position; for(let i=0;i<p.count;i++){ const x=p.getX(i), y=p.getY(i); p.setZ(i, hAt(x,-y)); } groundGeo.computeVertexNormals(); }  // rotation.x=-90°で world z=-(local y) になるため符号を合わせ、地面とオブジェクト(hAt(x,z))を一致させる
+{ const p=groundGeo.attributes.position; for(let i=0;i<p.count;i++){ const x=p.getX(i), y=p.getY(i); p.setZ(i, hAt(x,-y)); } groundGeo.computeVertexNormals(); }
 const ground=new THREE.Mesh(groundGeo, new THREE.MeshStandardMaterial({color:0x356235,roughness:1,flatShading:true}));
 ground.rotation.x=-Math.PI/2; scene.add(ground);
+
+// ===== 地形に沿わせる汎用ジオメトリ =====
+function terrainRibbon(curve2D, halfW, yoff, N=300){ const pos=[], idx=[];
+  for(let i=0;i<=N;i++){ const t=i/N; const p=curve2D.getPoint(t); const tg=curve2D.getTangent(t);
+    let ux=-tg.z, uz=tg.x; const l=Math.hypot(ux,uz)||1; ux/=l; uz/=l;
+    for(const s of [-1,1]){ const ex=p.x+ux*halfW*s, ez=p.z+uz*halfW*s; pos.push(ex, hAt(ex,ez)+yoff, ez); } }
+  for(let i=0;i<N;i++){ const a=i*2; idx.push(a,a+1,a+2, a+1,a+3,a+2); }
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setIndex(idx); g.computeVertexNormals(); return g; }
+function curveRibbon(curve3D, halfW, yoff, N=90){ const pos=[], idx=[];
+  for(let i=0;i<=N;i++){ const t=i/N; const p=curve3D.getPoint(t); const tg=curve3D.getTangent(t);
+    let ux=-tg.z, uz=tg.x; const l=Math.hypot(ux,uz)||1; ux/=l; uz/=l;
+    for(const s of [-1,1]){ pos.push(p.x+ux*halfW*s, p.y+yoff, p.z+uz*halfW*s); } }
+  for(let i=0;i<N;i++){ const a=i*2; idx.push(a,a+1,a+2, a+1,a+3,a+2); }
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setIndex(idx); g.computeVertexNormals(); return g; }
+function terrainDisc(cx,cz,r,seg,yoff){ const v=[cx,hAt(cx,cz)+yoff,cz], idx=[];
+  for(let i=0;i<=seg;i++){ const a=i/seg*Math.PI*2; const x=cx+Math.cos(a)*r, z=cz+Math.sin(a)*r; v.push(x,hAt(x,z)+yoff,z); }
+  for(let i=1;i<=seg;i++) idx.push(0,i,i+1);
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(v,3)); g.setIndex(idx); g.computeVertexNormals(); return g; }
 
 function tree(x,z,s=1,dark=false){ const y=hAt(x,z); const g=new THREE.Group();
   const tr=new THREE.Mesh(new THREE.CylinderGeometry(0.12*s,0.18*s,1.1*s,6),new THREE.MeshStandardMaterial({color:dark?0x2a1830:0x5a4326})); tr.position.y=0.55*s; g.add(tr);
@@ -94,55 +112,55 @@ function tree(x,z,s=1,dark=false){ const y=hAt(x,z); const g=new THREE.Group();
 function mountain(x,z,h){ const y=hAt(x,z); const m=new THREE.Mesh(new THREE.ConeGeometry(h*0.6,h,7,1),new THREE.MeshStandardMaterial({color:0x55684f,roughness:1,flatShading:true}));
   m.position.set(x,y+h/2,z); jitter(m.geometry,0.5); scene.add(m);
   const cap=new THREE.Mesh(new THREE.ConeGeometry(h*0.26,h*0.32,7),new THREE.MeshStandardMaterial({color:0xeef3f6,roughness:.9,flatShading:true})); cap.position.set(x,y+h-h*0.16,z); scene.add(cap); }
+[[-34,-30,17],[-16,-40,22],[13,-40,22],[31,-26,17],[-40,-8,13],[40,-8,13]].forEach(m=>mountain(m[0],m[1],m[2]));
+for(let i=0;i<150;i++){ const a=Math.random()*6.28, r=11+Math.random()*44; const x=Math.cos(a)*r, z=Math.sin(a)*r; if(z<-30) continue; if(z>6 && Math.abs(x)<9) continue; tree(x,z,0.9+Math.random()*0.8); }
 
-// 山は奥(z<-10)と遠い側だけ・奥ほど高く（手前は開ける）
-[[-30,-24,15],[-13,-32,21],[13,-34,22],[31,-26,17],[-36,-12,12],[36,-12,12]].forEach(m=>mountain(m[0],m[1],m[2]));
-// 木：手前中央は避け、側方と奥に
-for(let i=0;i<150;i++){ const a=Math.random()*6.28, r=11+Math.random()*44; const x=Math.cos(a)*r, z=Math.sin(a)*r; if(z<-28) continue; if(z>6 && Math.abs(x)<9) continue; tree(x,z,0.9+Math.random()*0.8); }
+// ===== マグマの川（崖の手前を横切り道を寸断）=====
+const lavaMat=new THREE.MeshStandardMaterial({color:0xff5a20,emissive:0xff5a20,emissiveIntensity:1.6,roughness:.5,side:THREE.DoubleSide});
+const riverCurve=new THREE.CatmullRomCurve3([new THREE.Vector3(-17,0,-12.4),new THREE.Vector3(-7,0,-13.4),new THREE.Vector3(3,0,-12.6),new THREE.Vector3(13,0,-13.6),new THREE.Vector3(18,0,-12.8)],false,'catmullrom',0.4);
+const river=new THREE.Mesh(terrainRibbon(riverCurve,1.7,0.12,160), lavaMat); scene.add(river);
+glow(0,hAt(0,-13)+1,-13,9, glowTex([[0,'rgba(255,180,80,0.85)'],[0.4,'rgba(255,90,40,0.55)'],[1,'rgba(200,40,20,0)']]));
+label('マグマの川：経営者が無関心','道を寸断する。トップが本気でないと渡れない','red',-7,hAt(-7,-13)+2.4,-13);
 
-// ===== ゴール：絶壁の上の天空の城＋崖を流れるマグマ（地形に根付かせる）=====
-const cbX=0, cbZ=-22, cbY=hAt(cbX,cbZ);             // 崖の足元の地形高さ（奥なので高い ~7）
-const cliff=new THREE.Mesh(new THREE.CylinderGeometry(3.2,6.0,14,10,1),new THREE.MeshStandardMaterial({color:0x4a4250,roughness:1,flatShading:true}));
-cliff.position.set(cbX, cbY+5, cbZ); jitter(cliff.geometry,0.7); scene.add(cliff);   // 足元を地形に埋め、上へ
-const cTop=cbY+12;
-const lavaMat=new THREE.MeshStandardMaterial({color:0xff5a20,emissive:0xff5a20,emissiveIntensity:1.7,roughness:.5});
-const lavaStreams=[];
-[-1.2,0.2,1.4].forEach(dx=>{ const st=new THREE.Mesh(new THREE.BoxGeometry(0.8,11,0.4),lavaMat); st.position.set(cbX+dx,cbY+5.5,cbZ+4.6); st.rotation.x=-0.14; scene.add(st); lavaStreams.push(st); });
-const lavaPool=new THREE.Mesh(new THREE.CircleGeometry(3.8,30),lavaMat); lavaPool.rotation.x=-Math.PI/2; lavaPool.position.set(cbX,hAt(cbX,cbZ+7)+0.15,cbZ+7); scene.add(lavaPool);
-glow(cbX,cbY+5,cbZ+5,8, glowTex([[0,'rgba(255,180,80,0.9)'],[0.4,'rgba(255,90,40,0.6)'],[1,'rgba(200,40,20,0)']]));
-label('マグマ：経営者が無関心','絶壁を流れ落ちる。トップが本気でないと全部溶ける','red',cbX-6,cbY+5,cbZ+6);
-
+// ===== ゴール：絶壁の上の天空の城 =====
+const cbX=0, cbZ=-22, cbY=hAt(cbX,cbZ);
+const cliff=new THREE.Mesh(new THREE.CylinderGeometry(3.2,6.4,15,10,1),new THREE.MeshStandardMaterial({color:0x4a4250,roughness:1,flatShading:true}));
+cliff.position.set(cbX, cbY+6.5, cbZ); jitter(cliff.geometry,0.7); scene.add(cliff);
+const cTop=cbY+14;
 const castle=new THREE.Group(); castle.position.set(cbX,cTop,cbZ); scene.add(castle);
 const keep=new THREE.Mesh(new THREE.BoxGeometry(2.2,2.4,2.2),new THREE.MeshStandardMaterial({color:0xb9c4d2,roughness:.6})); keep.position.y=1.2; castle.add(keep);
 const roof=new THREE.Mesh(new THREE.ConeGeometry(1.9,1.6,4),new THREE.MeshStandardMaterial({color:0x8a3b3b})); roof.position.y=3.2; roof.rotation.y=Math.PI/4; castle.add(roof);
 [[-1.6,-1.6],[1.6,-1.6],[-1.6,1.6],[1.6,1.6]].forEach(p=>{ const tw=new THREE.Mesh(new THREE.CylinderGeometry(0.55,0.65,2.8,12),new THREE.MeshStandardMaterial({color:0xc7d1de})); tw.position.set(p[0],1.1,p[1]); castle.add(tw);
   const rf=new THREE.Mesh(new THREE.ConeGeometry(0.78,1.2,12),new THREE.MeshStandardMaterial({color:0x9b4242})); rf.position.set(p[0],3.1,p[1]); castle.add(rf); });
 const crown=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.5,0.55,12),new THREE.MeshStandardMaterial({color:0xffd45a,emissive:0x8a5e12,emissiveIntensity:1.3,metalness:.95,roughness:.12})); crown.position.y=4.0; castle.add(crown);
-glow(cbX,cTop+4,cbZ,7.5); label('成功（天空の城）','罠をよけ、起伏を登り、崖を越えた先','amber',cbX,cTop+6,cbZ);
+glow(cbX,cTop+4,cbZ,7.5); label('成功（天空の城）','橋を渡り、険しい崖を登った先','amber',cbX,cTop+6,cbZ);
 
-// ===== 成功への道（地表を這って登る・各オブジェクトは起伏に密着）=====
+// ===== 道：カーペット状の平らなリボン（地形に沿って這う）=====
+const roadMat=new THREE.MeshStandardMaterial({color:0xe7c266,emissive:0xb8860b,emissiveIntensity:.35,metalness:.2,roughness:.6,side:THREE.DoubleSide});
+const GWP=[[0,22],[-7,14],[6,8],[-5,2],[7,-4],[-3,-9],[0,-11]];  // start→①〜⑤→橋の手前
+const groundCurve=new THREE.CatmullRomCurve3(GWP.map(p=>new THREE.Vector3(p[0],0,p[1])),false,'catmullrom',0.3);
+scene.add(new THREE.Mesh(terrainRibbon(groundCurve,0.75,0.09,300), roadMat));
+// 崖を登る道（橋の先→城の足元）
+const climbCurve=new THREE.CatmullRomCurve3([new THREE.Vector3(0,hAt(0,-15)+0.4,-15),new THREE.Vector3(0,cbY+3,-17),new THREE.Vector3(0,cbY+8,-19),new THREE.Vector3(0,cbY+12.5,-20.6)],false,'catmullrom',0.2);
+scene.add(new THREE.Mesh(curveRibbon(climbCurve,0.7,0.05,90), roadMat));
+
+// 矢印（地表の道＋崖を登る）
+const _up=new THREE.Vector3(0,1,0); const arrows=[];
+function addArrows(curve, n, onTerrain){ for(let i=0;i<n;i++){ const a=new THREE.Mesh(new THREE.ConeGeometry(0.28,0.85,4),new THREE.MeshStandardMaterial({color:0xfff0b0,emissive:0xffd24a,emissiveIntensity:1.1,roughness:.3})); scene.add(a); arrows.push({m:a,curve,n,i,onTerrain}); } }
+addArrows(groundCurve,14,true); addArrows(climbCurve,5,false);
+function animArrows(t){ for(const o of arrows){ const u=((t*0.04)+o.i/o.n)%1; const p=o.curve.getPointAt(u), tan=o.curve.getTangentAt(u).normalize();
+  const y=o.onTerrain?hAt(p.x,p.z)+0.4:p.y+0.35; o.m.position.set(p.x,y,p.z); o.m.quaternion.setFromUnitVectors(_up,tan); } }
+
+// ===== 関門①〜⑤（地表の鳥居）＋⑥（マグマに架ける橋）=====
 const WP=[
  {x:0,  z:22, n:'現在地（スタート）', s:'まだ何も始めていない自社', cls:'cyan', gate:false},
  {x:-7, z:14, n:'関門① 最初の1人', s:'ファーストペンギン（経営者ならベスト）', cls:'ok'},
  {x:6,  z:8,  n:'関門② 痛みを探す', s:'使うことを目的にせず現場のペインへ', cls:'ok'},
  {x:-5, z:2,  n:'関門③ 適材適所', s:'作る人／使う人／知らず触れる人', cls:'ok'},
  {x:7,  z:-4, n:'関門④ 情報を俯瞰', s:'全部覚えず“自社のカテゴリ”を見極める', cls:'ok'},
- {x:-3, z:-10,n:'関門⑤ 小さな成功＋風土', s:'反対派より一つの成果と改革の空気', cls:'ok'},
- {x:0,  z:-15,n:'関門⑥ 最後の壁＝土台', s:'セキュリティ／アーキテクチャを地図で越える', cls:'amber'},
+ {x:-3, z:-9, n:'関門⑤ 小さな成功＋風土', s:'反対派より一つの成果と改革の空気', cls:'ok'},
 ];
-const flat=WP.map(w=>new THREE.Vector3(w.x,0,w.z));
-const curve2=new THREE.CatmullRomCurve3(flat,false,'catmullrom',0.3);
-const M=260, gpts=[];
-for(let i=0;i<=M;i++){ const v=curve2.getPoint(i/M); gpts.push(new THREE.Vector3(v.x, hAt(v.x,v.z)+0.3, v.z)); }
-const curve=new THREE.CatmullRomCurve3(gpts,false,'catmullrom',0.5);
-const road=new THREE.Mesh(new THREE.TubeGeometry(curve,360,0.42,8,false),
-  new THREE.MeshStandardMaterial({color:0xe7c266,emissive:0xb8860b,emissiveIntensity:.4,metalness:.3,roughness:.5}));
-scene.add(road);
-const ARN=18, arrows=[]; const _up=new THREE.Vector3(0,1,0);
-for(let i=0;i<ARN;i++){ const a=new THREE.Mesh(new THREE.ConeGeometry(0.28,0.85,4),new THREE.MeshStandardMaterial({color:0xfff0b0,emissive:0xffd24a,emissiveIntensity:1.1,roughness:.3})); scene.add(a); arrows.push(a); }
-function animArrows(t){ for(let i=0;i<ARN;i++){ const u=((t*0.04)+i/ARN)%1; const p=curve.getPointAt(u), tan=curve.getTangentAt(u).normalize();
-  arrows[i].position.copy(p).addScaledVector(_up,0.42); arrows[i].quaternion.setFromUnitVectors(_up,tan); } }
-WP.forEach(w=>{ const y=hAt(w.x,w.z); const col=w.cls==='cyan'?0x5cc2ff:w.cls==='amber'?0xffd166:0x4fe0a6;
+WP.forEach(w=>{ const y=hAt(w.x,w.z); const col=w.cls==='cyan'?0x5cc2ff:0x4fe0a6;
   const post=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,1.3,6),new THREE.MeshStandardMaterial({color:0x7a5a36})); post.position.set(w.x,y+0.65,w.z); scene.add(post);
   const orb=new THREE.Mesh(new THREE.SphereGeometry(0.26,16,16),new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:1.1})); orb.position.set(w.x,y+1.45,w.z); scene.add(orb);
   glow(w.x,y+1.45,w.z,2.3);
@@ -151,27 +169,36 @@ WP.forEach(w=>{ const y=hAt(w.x,w.z); const col=w.cls==='cyan'?0x5cc2ff:w.cls===
     const bar=new THREE.Mesh(new THREE.BoxGeometry(2.7,0.22,0.22),pm); bar.position.set(w.x,y+2.5,w.z); scene.add(bar); }
   label(w.n,w.s,w.cls,w.x,y+(w.gate!==false?3.2:2.0),w.z);
 });
+// 関門⑥＝マグマの川に架ける橋
+const bridgeY=hAt(0,-13)+1.0;
+const plank=new THREE.Mesh(new THREE.BoxGeometry(2.4,0.22,5.2),new THREE.MeshStandardMaterial({color:0x8a6a3e,roughness:.8})); plank.position.set(0,bridgeY,-13); scene.add(plank);
+for(let i=0;i<4;i++){ const rail=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,1.0,6),new THREE.MeshStandardMaterial({color:0x6b4f30})); rail.position.set(i<2?-1.1:1.1, bridgeY+0.5, -15.2+(i%2)*4.4); scene.add(rail); }
+const amber=new THREE.MeshStandardMaterial({color:0xffd166,emissive:0xffd166,emissiveIntensity:.5,metalness:.3,roughness:.4});
+[-1.25,1.25].forEach(dx=>{ const pl=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.13,2.8,8),amber); pl.position.set(dx,bridgeY+1.3,-13); scene.add(pl); });
+const top=new THREE.Mesh(new THREE.BoxGeometry(2.9,0.24,0.24),amber); top.position.set(0,bridgeY+2.6,-13); scene.add(top);
+glow(0,bridgeY+1.2,-13,2.6);
+label('関門⑥ 最後の壁＝土台','マグマの川に橋を架ける＝セキュリティ／アーキテクチャを地図で越える','amber',0,bridgeY+3.3,-13);
 
-// ===== 失敗の罠（地表に密着）=====
+// ===== 失敗の罠（地形に沿わせて埋まり解消）=====
 const swampList=[];
 function bigSwamp(x,z,r,name,sub){ const y=hAt(x,z);
-  const pool=new THREE.Mesh(new THREE.CircleGeometry(r,44),new THREE.MeshStandardMaterial({color:0x4a2d63,emissive:0x6a2f8a,emissiveIntensity:.55,roughness:.35,metalness:.3})); pool.rotation.x=-Math.PI/2; pool.position.set(x,y+0.1,z); scene.add(pool);
-  const ring=new THREE.Mesh(new THREE.RingGeometry(r,r+0.9,44),new THREE.MeshBasicMaterial({color:0x9b59b6,transparent:true,opacity:.4,side:THREE.DoubleSide})); ring.rotation.x=-Math.PI/2; ring.position.set(x,y+0.11,z); scene.add(ring);
-  const bub=[]; for(let i=0;i<14;i++){ const a=Math.random()*6.28, rr=Math.random()*r*0.85; const b=new THREE.Mesh(new THREE.SphereGeometry(0.22+Math.random()*0.2,10,10),new THREE.MeshStandardMaterial({color:0x9b59b6,emissive:0x7a2f9a,emissiveIntensity:.8,transparent:true,opacity:.85}));
-    b.position.set(x+Math.cos(a)*rr,y+0.3,z+Math.sin(a)*rr); scene.add(b); bub.push({b,ph:Math.random()*6.28,by:y}); }
-  swampList.push({bubbles:bub}); label(name,sub,'red',x,y+2.2,z); }
-function pitfall(x,z,name,sub){ const y=hAt(x,z); const r=2.4;
-  const hole=new THREE.Mesh(new THREE.CircleGeometry(r,28),new THREE.MeshBasicMaterial({color:0x05070c})); hole.rotation.x=-Math.PI/2; hole.position.set(x,y+0.06,z); scene.add(hole);
-  const rim=new THREE.Mesh(new THREE.TorusGeometry(r,0.2,8,28),new THREE.MeshStandardMaterial({color:0x6a5a44,roughness:1})); rim.rotation.x=-Math.PI/2; rim.position.set(x,y+0.1,z); scene.add(rim);
-  for(let k=0;k<5;k++){ const a=k/5*6.28; const sp=new THREE.Mesh(new THREE.ConeGeometry(0.15,0.8,5),new THREE.MeshStandardMaterial({color:0xcfd6de,roughness:.6})); sp.position.set(x+Math.cos(a)*r*0.45,y-0.25,z+Math.sin(a)*r*0.45); scene.add(sp); }
-  label(name,sub,'red',x,y+1.6,z); }
+  const pool=new THREE.Mesh(terrainDisc(x,z,r,48,0.1),new THREE.MeshStandardMaterial({color:0x4a2d63,emissive:0x6a2f8a,emissiveIntensity:.55,roughness:.35,metalness:.3,side:THREE.DoubleSide})); scene.add(pool);
+  const bub=[]; for(let i=0;i<14;i++){ const a=Math.random()*6.28, rr=Math.random()*r*0.82; const bx=x+Math.cos(a)*rr, bz=z+Math.sin(a)*rr; const b=new THREE.Mesh(new THREE.SphereGeometry(0.22+Math.random()*0.2,10,10),new THREE.MeshStandardMaterial({color:0x9b59b6,emissive:0x7a2f9a,emissiveIntensity:.8,transparent:true,opacity:.85}));
+    b.position.set(bx,hAt(bx,bz)+0.3,bz); scene.add(b); bub.push({b,ph:Math.random()*6.28,by:hAt(bx,bz)}); }
+  swampList.push({bubbles:bub}); label(name,sub,'red',x,y+2.0,z); }
+function pitfall(x,z,name,sub){ const y=hAt(x,z); const r=2.3;
+  const hole=new THREE.Mesh(terrainDisc(x,z,r,28,0.04),new THREE.MeshBasicMaterial({color:0x05070c,side:THREE.DoubleSide})); scene.add(hole);
+  const rim=new THREE.Mesh(terrainDisc(x,z,r,28,0.12),new THREE.MeshBasicMaterial({color:0x000000,wireframe:false,transparent:true,opacity:0})); // placeholder unused
+  for(let k=0;k<8;k++){ const a=k/8*6.28; const ex=x+Math.cos(a)*r, ez=z+Math.sin(a)*r; const st=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.4,0.18),new THREE.MeshStandardMaterial({color:0x6a5a44,roughness:1})); st.position.set(ex,hAt(ex,ez)+0.2,ez); scene.add(st); }
+  for(let k=0;k<5;k++){ const a=k/5*6.28; const sp=new THREE.Mesh(new THREE.ConeGeometry(0.14,0.7,5),new THREE.MeshStandardMaterial({color:0xcfd6de,roughness:.6})); sp.position.set(x+Math.cos(a)*r*0.45,y-0.35,z+Math.sin(a)*r*0.45); scene.add(sp); }
+  label(name,sub,'red',x,y+1.5,z); }
 function darkForest(x,z,name,sub){ const y=hAt(x,z);
   for(let i=0;i<14;i++){ const a=Math.random()*6.28, rr=Math.random()*3.2; tree(x+Math.cos(a)*rr,z+Math.sin(a)*rr,1.0+Math.random()*0.7,true); }
   glow(x,y+1.6,z,6, glowTex([[0,'rgba(150,60,200,0.5)'],[0.5,'rgba(90,30,140,0.25)'],[1,'rgba(60,20,100,0)']]));
   label(name,sub,'red',x,y+3.4,z); }
-bigSwamp(11,16,5.2,'毒沼：全員に丸投げ／個人に丸投げ','手前で広く沈む。使い道なく属人化');
+bigSwamp(12,16,5.0,'毒沼：全員に丸投げ／個人に丸投げ','手前で広く沈む。使い道なく属人化');
 pitfall(-11,9,'落とし穴：旗を振る人がいない','ファーストペンギン不在で踏み抜く');
-darkForest(13,0,'闇の魔の森：反対派に飲まれる','全員説得しようとして迷い込む');
+darkForest(13,-1,'闇の魔の森：反対派に飲まれる','全員説得しようとして迷い込む');
 
 // 花火
 const fwTex=[glowTex([[0,'rgba(255,255,255,1)'],[0.3,'rgba(255,170,210,0.9)'],[1,'rgba(255,90,150,0)']]),
@@ -188,7 +215,7 @@ function animFireworks(t){ for(const b of bursts){ const u=((t*0.14)+b.phase)%1;
     sp.s.position.set(b.center.x+sp.dir.x*r,b.center.y+sp.dir.y*r-life*life*2,b.center.z+sp.dir.z*r);
     sp.s.material.opacity=Math.max(0,1-life)*0.95; const sc=0.5+life*0.6; sp.s.scale.set(sc,sc,1); } } }
 
-controls.target.set(0,8,-8);   // 高めの俯角＋遠めで、手前の空き地を画面外に圧縮しマップを縦いっぱいに
+controls.target.set(0,8,-8);
 camera.position.set(3,30,52);
 if(innerWidth<600){ camera.position.set(3,42,72); }
 
@@ -199,7 +226,7 @@ const loadingEl=document.getElementById('loading'); if(loadingEl) loadingEl.remo
 let t=0;
 (function loop(){ requestAnimationFrame(loop); t+=0.012;
   animArrows(t); animFireworks(t);
-  for(const st of lavaStreams){ st.material.emissiveIntensity=1.4+Math.abs(Math.sin(t*2+st.position.x))*0.7; }
+  river.material.emissiveIntensity=1.3+Math.abs(Math.sin(t*1.8))*0.6;
   for(const s of swampList){ for(const o of s.bubbles){ o.b.position.y=o.by+0.3+Math.abs(Math.sin(t*1.6+o.ph))*0.5; o.b.material.opacity=0.5+Math.abs(Math.sin(t*1.6+o.ph))*0.4; } }
   controls.update(); renderer.render(scene,camera); labelRenderer.render(scene,camera);
 })();

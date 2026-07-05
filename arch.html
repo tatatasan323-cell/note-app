@@ -15,6 +15,7 @@
 #tip{position:fixed;z-index:8;display:none;max-width:320px;color:#eef4fb;font-size:1.05rem;line-height:1.5;
   background:rgba(7,14,26,.94);border:1px solid #3a5575;border-radius:10px;padding:10px 13px;box-shadow:0 6px 22px rgba(0,0,0,.6);pointer-events:none;backdrop-filter:blur(2px)}
 #tip b{display:block;margin-bottom:3px;font-size:1.1rem}
+#tip .ex{display:block;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.18);color:#8fd0ff;font-size:.86rem;line-height:1.45}
 #title{position:fixed;left:16px;top:12px;z-index:5;text-shadow:0 2px 8px rgba(0,0,0,.7);max-width:64%}
 #title h1{font-size:1.15rem;margin:0 0 4px} #title .desc{margin:0;color:var(--sub);font-size:.84rem;line-height:1.5}
 #title .ops{margin:4px 0 0;color:var(--sub);font-size:.8rem}
@@ -92,12 +93,12 @@ function label(text,cls,x,y,z){ const d=document.createElement('div'); d.classNa
   const o=new CSS2DObject(d); o.position.set(x,y,z); scene.add(o); return o; }
 
 const LAYERS=[
- {n:'① インフラ層（土台）', c:0x5a86d6, d:'どこで動かすか。クラウドか社内か。ここの選択が、上の全層に波及する“土台”。'},
- {n:'② データ層（素材）', c:0x36c8d8, d:'AIの賢さは「食わせるデータ」で決まる。何を・どう持ち、どう渡すか。'},
+ {n:'① インフラ層（土台）', c:0x5a86d6, d:'どこで動かすか。クラウドか社内か。ここの選択が、上の全層に波及する“土台”。<span class="ex">実例（#14）: GitHubは“設計図の出版元”で、システムが動く場所ではない。動くのは各自のPCの上（GitHub Pagesの体験版も、計算しているのは開いた人のブラウザ）。</span>'},
+ {n:'② データ層（素材）', c:0x36c8d8, d:'AIの賢さは「食わせるデータ」で決まる。何を・どう持ち、どう渡すか。<span class="ex">実例（#13）: 数字の住所を1か所に＝SQLite1ファイル。住所が1つなら“転記”は存在できない。</span>'},
  {n:'③ 統合・連携層（つなぐ）', c:0x33d49a, d:'ゼロから作るより、既にある道具（表計算・会計・在庫）と繋ぐのが中小の主戦場。'},
  {n:'④ AIエンジン層（頭脳）', c:0x86d63c, d:'そもそもAIを使うか。使うならどれを・どこで。賢さ・コスト・機密のトレードオフが最も濃い。'},
- {n:'⑤ アプリ層（仕事）', c:0xf0b82e, d:'AIにどんな“仕事の形”をさせるか。欲張ると複雑、絞ると続く。'},
- {n:'⑥ インターフェース層（窓口）', c:0xf0792e, d:'人がどこで触れるか。中身が良くても、ここが使いにくいと使われない。'},
+ {n:'⑤ アプリ層（仕事）', c:0xf0b82e, d:'AIにどんな“仕事の形”をさせるか。欲張ると複雑、絞ると続く。<span class="ex">実例（#13/#14）: 一元管理システムの心臓部（Python）はここ。ブラウザの檻の外＝PC上に住むから、貯めて・書き出せる。</span>'},
+ {n:'⑥ インターフェース層（窓口）', c:0xf0792e, d:'人がどこで触れるか。中身が良くても、ここが使いにくいと使われない。<span class="ex">実例（#14）: “HTML1枚の道具”は、この層とアプリ層を1枚に畳んだ姿。ブラウザ＝檻の中だから安全と言い切れて、そのかわり貯められない。</span>'},
 ];
 const W=7, D=5, H=1.15, GAP=0.75, N=LAYERS.length;
 const hoverable=[];

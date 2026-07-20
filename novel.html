@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>未来の一日 ─ どこにでもある会社の朝</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- 本文の明朝体は、ここでネット越しに借りている（借りられない時は端末の明朝で組む） -->
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#211b14; --ink2:#4e4236;
+  --paper:#f4ecdb; --paper2:#e9ddc6;
+  --board:#5e2b2b; --board2:#3a1818; --foil:#d9b978;
+  --step:34px; --fs:17px; --pageH:600px; --padH:28px; --padV:30px;
+  --leafW:520px; --bookW:1040px; --bookH:660px; --board-pad:14px;
+  --coverW:480px; --coverH:660px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  background:radial-gradient(1200px 720px at 50% 6%,#3b3630 0%,#221f1c 55%,#15130f 100%);
+  font-family:"Shippori Mincho B1","Yu Mincho","YuMincho","Hiragino Mincho ProN",serif;
+  color:#e9e2d4;overflow:hidden;touch-action:none;-webkit-tap-highlight-color:transparent;
+}
+.stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;perspective:2600px;}
+
+/* ── 表紙（閉じた本） ───────────────────────── */
+.cover{position:relative;cursor:pointer;transform-origin:right center;transform-style:preserve-3d;
+  transition:transform .95s cubic-bezier(.6,.02,.2,1),opacity .95s;width:var(--coverW);height:var(--coverH);}
+.cover.open{transform:rotateY(172deg);opacity:0;pointer-events:none;}
+.board{position:absolute;inset:0;border-radius:5px 12px 12px 5px;
+  background:linear-gradient(105deg,rgba(255,255,255,.10) 0%,rgba(255,255,255,0) 34%),
+             linear-gradient(160deg,var(--board) 0%,var(--board2) 100%);
+  box-shadow:0 34px 70px rgba(0,0,0,.72),0 6px 16px rgba(0,0,0,.5),
+             inset 0 0 0 1px rgba(255,255,255,.09),inset 0 2px 0 rgba(255,255,255,.12);}
+.board::after{content:"";position:absolute;inset:0;border-radius:inherit;opacity:.30;mix-blend-mode:overlay;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.10) 0 1px,transparent 1px 3px),
+             repeating-linear-gradient(90deg,rgba(0,0,0,.14) 0 1px,transparent 1px 3px);}
+.spine{position:absolute;top:0;bottom:0;right:0;width:26px;border-radius:0 12px 12px 0;
+  background:linear-gradient(90deg,rgba(0,0,0,.45),rgba(255,255,255,.10) 45%,rgba(0,0,0,.55));}
+.edge{position:absolute;top:7px;bottom:7px;left:-9px;width:9px;border-radius:3px 0 0 3px;
+  background:repeating-linear-gradient(180deg,#efe6d2 0 1px,#cdbf9f 1px 2.4px);
+  box-shadow:inset -3px 0 6px rgba(0,0,0,.35);}
+.cover-in{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:26px;}
+.foil{writing-mode:vertical-rl;font-weight:600;letter-spacing:.30em;color:var(--foil);
+  text-shadow:0 1px 0 rgba(255,255,255,.42),0 -1px 0 rgba(0,0,0,.55),0 0 16px rgba(217,185,120,.32);}
+.foil.t{font-size:calc(var(--fs)*2.1);}
+.foil.s{font-size:calc(var(--fs)*.92);letter-spacing:.22em;color:#c9ad84;opacity:.9;}
+.foil-rule{width:1px;height:96px;background:linear-gradient(180deg,transparent,var(--foil),transparent);opacity:.7;}
+.cover-brand{position:absolute;left:0;right:26px;bottom:20px;text-align:center;
+  font-size:calc(var(--fs)*.72);letter-spacing:.24em;color:#c9ad84;opacity:.72;}
+.hint{position:absolute;left:0;right:0;bottom:-40px;text-align:center;font-size:13px;
+  letter-spacing:.18em;color:#9a9184;animation:bre 2.6s ease-in-out infinite;}
+@keyframes bre{0%,100%{opacity:.42}50%{opacity:.95}}
+
+/* ── 見開き ─────────────────────────────── */
+.book{position:relative;display:none;}
+.book.show{display:block;}
+.boards{position:absolute;inset:calc(var(--board-pad)*-1);border-radius:6px;
+  background:linear-gradient(160deg,var(--board) 0%,var(--board2) 100%);
+  box-shadow:0 36px 80px rgba(0,0,0,.75),inset 0 0 0 1px rgba(255,255,255,.08);}
+.leaves{position:relative;width:var(--bookW);height:var(--bookH);}
+.leaf{position:absolute;top:0;width:var(--leafW);height:var(--bookH);}
+.leaf.r{right:0;} .leaf.l{left:0;}
+.paper{position:absolute;inset:0;overflow:hidden;
+  background:linear-gradient(180deg,var(--paper) 0%,var(--paper2) 100%);
+  box-shadow:inset 0 0 42px rgba(120,95,60,.20);}
+.paper::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.42;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");}
+.leaf.r .paper .gutter{position:absolute;top:0;bottom:0;left:0;width:56px;pointer-events:none;
+  background:linear-gradient(90deg,rgba(88,64,34,.32),transparent);}
+.leaf.l .paper .gutter{position:absolute;top:0;bottom:0;right:0;width:56px;pointer-events:none;
+  background:linear-gradient(270deg,rgba(88,64,34,.32),transparent);}
+
+.win{position:absolute;right:var(--padH);top:var(--padV);width:var(--pageW);height:var(--pageH);overflow:hidden;}
+.flow{position:absolute;right:0;top:0;height:var(--pageH);width:max-content;
+  writing-mode:vertical-rl;font-size:var(--fs);color:var(--ink);
+  text-combine-upright:digits 2;will-change:transform;}
+.flow p{line-height:var(--step);text-indent:1em;}
+.flow p.n{text-indent:0;}
+.flow p.sep{text-indent:0;letter-spacing:.5em;color:var(--ink2);text-align:center;}
+.flow p.h{font-size:calc(var(--fs)*1.5);font-weight:600;letter-spacing:.16em;text-indent:0;}
+.flow p.h2{font-size:calc(var(--fs)*.95);color:var(--ink2);letter-spacing:.1em;text-indent:0;}
+.flow p.end{text-indent:0;color:var(--ink2);}
+.flow .tcy{text-combine-upright:all;}
+/* 縦書きで “ ” は寝てしまうので、太字で強調する（和文は太くしても字送りが変わらない） */
+.flow em.bt{font-style:normal;font-weight:700;}
+.flow .gap{height:100%;}
+.folio{position:absolute;bottom:9px;font-size:11px;letter-spacing:.14em;color:#8a7a5e;opacity:.85;}
+.leaf.r .folio{right:18px;} .leaf.l .folio{left:18px;}
+
+.sheet{position:absolute;top:0;left:0;width:var(--leafW);height:var(--bookH);
+  transform-style:preserve-3d;display:none;z-index:5;}
+.sheet.on{display:block;}
+/* 紙は平らな板ではない。短冊に分けて少しずつ角度をずらし、たわみを作る */
+.strip{position:absolute;top:0;right:0;height:100%;transform-origin:right center;
+  transform-style:preserve-3d;will-change:transform;}
+.sf,.sb{position:absolute;inset:0;overflow:hidden;-webkit-backface-visibility:hidden;backface-visibility:hidden;}
+.sb{transform:rotateY(180deg);}
+.slice{position:absolute;top:0;width:var(--leafW);height:100%;}
+.sh{position:absolute;inset:0;pointer-events:none;}
+
+.bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;align-items:center;justify-content:center;
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom));font-family:system-ui,sans-serif;font-size:12px;
+  color:#b9b0a1;background:linear-gradient(0deg,rgba(12,10,8,.86),transparent);
+  opacity:0;transition:opacity .3s;pointer-events:none;}
+.bar.show{opacity:1;pointer-events:auto;}
+.bar button{font:inherit;color:#e6dfd0;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);
+  border-radius:8px;padding:6px 12px;cursor:pointer;letter-spacing:.06em;}
+.bar button:hover{background:rgba(255,255,255,.17);}
+.bar .pos{min-width:118px;text-align:center;letter-spacing:.08em;}
+.measure{position:absolute;visibility:hidden;left:-99999px;top:0;}
+@media (max-width:560px){
+  .bar{gap:5px;padding:7px 6px calc(7px + env(safe-area-inset-bottom));font-size:11px;}
+  .bar button{padding:5px 9px;white-space:nowrap;}
+  .bar .pos{min-width:auto;}
+}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="cover" id="cover">
+    <div class="edge"></div><div class="board"></div><div class="spine"></div>
+    <div class="cover-in">
+      <div class="foil t">未来の一日</div>
+      <div class="foil-rule"></div>
+      <div class="foil s">どこにでもある会社の朝</div>
+    </div>
+    <div class="cover-brand">AI内製化工房 ／ MITA</div>
+    <div class="hint">― 表紙にふれて、ひらく ―</div>
+  </div>
+
+  <div class="book" id="book">
+    <div class="boards"></div>
+    <div class="leaves" id="leaves">
+      <div class="leaf l"><div class="paper" id="pL"><div class="gutter"></div></div><div class="folio" id="fL"></div></div>
+      <div class="leaf r"><div class="paper" id="pR"><div class="gutter"></div></div><div class="folio" id="fR"></div></div>
+      <div class="sheet" id="sheet"></div>
+    </div>
+  </div>
+</div>
+
+<div class="bar" id="bar">
+  <button id="prev">前へ</button>
+  <span class="pos" id="pos"></span>
+  <button id="next">次へ</button>
+  <button id="size">文字 中</button>
+  <button id="snd">音 ON</button>
+</div>
+
+<div class="measure"><div class="flow" id="master" style="right:auto;left:0"></div></div>
+
+<script>
+const T = [
+ ['h','未来の一日'],
+ ['h2','どこにでもある会社の朝'],
+ ['b',''],
+ ['b',''],
+ ['b',''],
+ ['p','目を覚ますと、もう会社は動いていた。'],
+ ['b',''],
+ ['p','真一（しんいち）が寝ているあいだに、昨日の売上は締まり、仕入れは補充され、来週の予定は組み直されていた。'],
+ ['p','誰かが寝ずに夜中働いたわけではない。'],
+ ['p','でも24時間、会社が動いていたのも確かだ。'],
+ ['p','ただ、今はそれが当たり前の時代なのだ。'],
+ ['b',''],
+ ['p','彼は小さな食品の会社をやっている。'],
+ ['p','と言っても年商は数十億円ある会社だ。'],
+ ['p','従業員は、６人。'],
+ ['p','かつては、その６人分の一日の大半を伝票とPC作業に費やさなければ同じ売上は維持できなかったらしい。'],
+ ['p','製造する従業員ももっとたくさん雇わなければならなかったからだ。'],
+ ['p','請求書。在庫表。シフト。報告書。'],
+ ['n','「仕入れたもの、作ったものを、数える仕事」なんてものが当たり前にあった。'],
+ ['b',''],
+ ['p','それもいまは、変わった。'],
+ ['b',''],
+ ['p','ダイニングテーブルで朝食をとりながら、真一は視界の端をちらりと見た。'],
+ ['p','見た、というより ―― 思っただけだ。'],
+ ['n','「昨日は、どうだった？」と。'],
+ ['p','すると、耳の後ろに付けているモバイル端末が、知りたかったことだけを、静かに空中へ、会社のステータスとして映し出した。'],
+ ['p','よく売れた商品と、少しだけ余った材料。'],
+ ['p','それらをどのように処理し、リサイクルに回しているか。'],
+ ['p','顧客が何を望み、どう評価したか。'],
+ ['p','次の入荷は、明後日の朝。'],
+ ['p','数字や状況は、もう “報告” ではなく、常に “現在” としてそこにあるのだ。'],
+ ['b',''],
+ ['p','彼は視界を戻し、残りの朝食を口に運んだ。'],
+ ['p','数字を確認する時間は、三十秒もいらない。'],
+ ['p','問題は、そこから先だ。'],
+ ['b',''],
+ ['n','「さて」と、真一は声に出した。'],
+ ['n','「今度は、どんな価値を作ろうか」'],
+ ['s','＊'],
+ ['b',''],
+ ['p','同じころ、若い従業員の美咲（みさき）は、通勤電車にも乗らず、近所の川べりを歩いていた。'],
+ ['p','“事務所” という概念が無くなって久しい。'],
+ ['p','企画営業である彼女は、工場には行っても行かなくてもいい。'],
+ ['p','会社という形が物理的に不要になり、今あるのは、価値が生まれる場所と、人だけ。'],
+ ['b',''],
+ ['p','彼女が今日考えているのは、たった一つ。'],
+ ['n','「あのお客さんに、どうやって喜んでもらおうか」と。'],
+ ['b',''],
+ ['p','先週、常連の老夫婦が、こぼしていた。'],
+ ['p','歳をとって、固いものが噛みづらくなってきた、と。'],
+ ['p','美咲は歩きながら、その顔を思い出す。'],
+ ['p','やわらかくて、でも食べ応えのある食事。'],
+ ['p','あの人たちの食卓に、もう一度 “おいしい” を戻せないだろうか。'],
+ ['b',''],
+ ['p','思いついたことを、彼女はその場でつぶやいた。'],
+ ['p','キラ ―― 彼女はAIをそう呼んでいる ―― は、すぐに応えた。'],
+ ['p','似た悩みを持つ人が、この町にどれだけいるか。'],
+ ['p','どんな作り方があり得るか。'],
+ ['p','試作の材料は、いつ、いくらで届くか。'],
+ ['p','考えるための手がかりが、歩いている数分のあいだに、ぜんぶ揃った。'],
+ ['b',''],
+ ['p','あとは、作って、届けて、顔を見るだけだ。'],
+ ['p','もちろんその段取りもすでに整っている。'],
+ ['p','その “だけ” が、美咲の仕事のすべてになった。'],
+ ['p','報告書なんてものは書いたことがない。'],
+ ['p','彼女が動いたことは、もう会社の “現在” の中に溶けて、社長以下全員に共有されている。'],
+ ['s','＊'],
+ ['b',''],
+ ['p','工場は、街のはずれにある。'],
+ ['p','重いものを運び、熱いものを扱う場所には、もう人はいない。'],
+ ['p','危ないところ、しんどいところは、AIを積んだ機械が引き受けた。'],
+ ['p','人が届かない高い棚のあいだを、小さな機械が静かに行き来している。'],
+ ['p','その正確で丁寧な繰り返しが、顧客に届く製品を作り続けている。'],
+ ['b',''],
+ ['p','屋根の上では、配送を待つ小型の機体が、朝の光を浴びていた。'],
+ ['p','真一は、工場を一度だけ見回して、また社内のステータスを伏せた。'],
+ ['p','早朝起こったトラブルは部下がすでに処理している。'],
+ ['p','彼がここでやることは、もう何もない。'],
+ ['b',''],
+ ['p','ちゃんと回っている、と確認することさえ、本来は不要なことだ。'],
+ ['p','ただ実際に確かめないと、済まない性分だから来ただけだった。'],
+ ['p','回っていなければ、すぐさま向こうから声がかかる。'],
+ ['b',''],
+ ['p','だから彼は、いつも “その先” を見ている。'],
+ ['p','半年後、この町の食卓は、どう変わっているだろう。'],
+ ['p','一年後、五年後、十年後、うちは誰を、どんなふうに喜ばせているだろう。'],
+ ['p','明日の価値は、どこにあるのか ―― それを考えるのが、社長という仕事の、たった一つの中身になった。'],
+ ['s','＊'],
+ ['b',''],
+ ['p','昼、真一と美咲は、川べりのベンチで落ち合った。'],
+ ['p','会議ではない。ただ、話すためだ。'],
+ ['b',''],
+ ['n','「固いものが、噛みづらいって」と美咲が言う。'],
+ ['n','「あの二人だけじゃ、ないと思うんです」'],
+ ['b',''],
+ ['n','「うちの町、そういう歳の人、多いもんな」と真一。'],
+ ['n','「―― やってみよう。うまくいったら、それは “商品” じゃなくて、“居場所” になるかもしれないからな」'],
+ ['b',''],
+ ['p','二人は笑いながら雑談をして過ごした。'],
+ ['p','仕事の話ではあったが、数字の話は、一言も出なかった。'],
+ ['p','数字は、勝手についてくるもの。'],
+ ['p','今は時代がそうなったからだ。'],
+ ['b',''],
+ ['p','本来、こんな話をするのに直接会う必要はなかった。'],
+ ['p','でも、顔を合わせないとわからない温度感もある。'],
+ ['p','どうやら彼女は順調らしい。'],
+ ['p','真一は安堵した。'],
+ ['b',''],
+ ['p','ふと、思う。'],
+ ['p','昔、人はこの一日のすべてを “働く” と呼んでいた。'],
+ ['p','作業を分け合い、役割を背負い、疲れて眠る、その繰り返しを。'],
+ ['b',''],
+ ['p','でも今、目の前で美咲がしているのは、たぶん “働く” ではない。'],
+ ['p','もっと近い言葉があるとすれば ―― それは、“生きる” だ。'],
+ ['p','彼女は、彼女の生き方で、誰かの食卓に手を伸ばしている。'],
+ ['p','ただ、それだけのことをしているのだと思う。'],
+ ['s','＊'],
+ ['b',''],
+ ['p','仕事が消える、と昔の人は怖がっていた。'],
+ ['p','消えた仕事も、確かにあった。'],
+ ['p','数える仕事。運ぶ仕事。夜中に働く仕事。'],
+ ['b',''],
+ ['p','けれど、無くなった分と同じだけ ―― いや、人の数だけ ―― 誰も名前を知らなかった仕事が、静かに生まれていた。'],
+ ['n','「あの人の食卓を、どうしたいか」を考える仕事に、決まった名前なんてものは無い。'],
+ ['p','でもそれは、かつて仕事と呼んだ価値を確かに持っている。'],
+ ['p','美咲は、それを自分自身の生き方としてやっているだけなのだ。'],
+ ['b',''],
+ ['p','真一は、若いころに誰かから聞いた言葉を、久しぶりに思い出した。'],
+ ['b',''],
+ ['n','―― 「人は、オギャーと生まれた瞬間から、経営者なんだ」'],
+ ['n','―― 「会社なんて無かった大昔から、みんな “自分” という人生を、自分で経営して、生き抜いてきたじゃないか」と。'],
+ ['b',''],
+ ['p','長いあいだ、その力は、会社という大きな箱に預けられていた。'],
+ ['p','分けて、束ねて、効率よく。'],
+ ['p','それが今、また ―― 一人ひとりの手のなかに、戻ってきた。'],
+ ['p','そういうことなのではないか、と真一は思っている。'],
+ ['b',''],
+ ['p','真一は立ち上がり、伸びをした。'],
+ ['p','空を、小さな機体が横切っていく。'],
+ ['n','「さて」と、彼はまた同じことを言った。'],
+ ['p','誰にともなく、けれど確かに、明日へ向けて。'],
+ ['b',''],
+ ['n','「今度は、どんな価値を作ろうか」'],
+ ['b',''],
+ ['b',''],
+ ['e','（了）'],
+];
+const CLS={h:'h',h2:'h2',p:'',n:'n',s:'sep',e:'end',b:'n'};
+function fmt(s){
+  s = s.replace(/[“"]([^”"]*)[”"]/g, '$1');   // “強調” → 傍点
+  s = s.replace(/[0-9]+|[A-Za-z]+/g, m => ''+m+'');            // 数字・英字 → 縦中横
+  s = s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  return s.replace(//g,'<em class="bt">').replace(//g,'</em>')
+          .replace(//g,'<span class="tcy">').replace(//g,'</span>');
+}
+// 場面（＊）ごとに区切る。場面が変わったら改ページする
+const SECTIONS=[[]];
+T.forEach(t => t[0]==='s' ? SECTIONS.push([]) : SECTIONS[SECTIONS.length-1].push(t));
+function secHTML(sec,i){
+  return (i>0 ? '<p class="sep">＊</p><p class="n">　</p>' : '')
+       + sec.map(([k,s]) => '<p class="'+CLS[k]+'">'+(k==='b'?'　':fmt(s))+'</p>').join('');
+}
+let FLOW='';
+function buildFlow(){
+  let html='', acc=0;
+  SECTIONS.forEach((sec,i)=>{
+    if(i>0){                                   // 次の場面は必ずページの頭から始める
+      const to=Math.ceil(acc/pageW)*pageW;
+      if(to>acc){ html+='<div class="gap" style="width:'+(to-acc)+'px"></div>'; acc=to; }
+    }
+    const h=secHTML(sec,i);
+    master.innerHTML=h; acc+=master.offsetWidth;
+    html+=h;
+  });
+  FLOW=html; master.innerHTML=FLOW;
+}
+
+/* ── 紙の音（音源ファイルを持たず、その場で合成する） ── */
+let AC=null, sound=true;
+const ac=()=>AC||(AC=new (window.AudioContext||window.webkitAudioContext)());
+function noise(ctx,sec){
+  const n=Math.floor(ctx.sampleRate*sec), b=ctx.createBuffer(1,n,ctx.sampleRate), d=b.getChannelData(0);
+  for(let i=0;i<n;i++) d[i]=Math.random()*2-1;
+  return b;
+}
+// 紙の音は「連続した風」ではなく、繊維が離れる無数の微小な破裂音の集まり。
+// 帯域を滑らかに掃引すると棒を振ったような風切り音になるので、粒を撒いて作る。
+function paperBuf(ctx,dur,dens,bright){
+  const sr=ctx.sampleRate, n=Math.floor(sr*dur);
+  const buf=ctx.createBuffer(1,n,sr), d=buf.getChannelData(0);
+  const grains=Math.floor(dens*dur*1000);
+  for(let g=0; g<grains; g++){
+    const u=Math.random();
+    const pos=Math.floor((.04+.92*Math.pow(u,.75))*n);          // 中盤に密度が寄る
+    const len=Math.max(2, Math.floor(sr*(.0004+Math.random()*.0026*bright)));
+    const amp=(.2+Math.random()*.8)*Math.max(.15, 1-Math.abs(pos/n-.42)*1.5);
+    for(let i=0;i<len && pos+i<n;i++)
+      d[pos+i]+=(Math.random()*2-1)*Math.exp(-i/len*4.2)*amp*.6;
+  }
+  for(let i=0;i<n;i++){                                          // 下地の薄い擦れ
+    const t=i/n;
+    d[i]+=(Math.random()*2-1)*.05*Math.min(1,t*10)*Math.pow(1-t,1.5);
+  }
+  let pk=0; for(let i=0;i<n;i++) pk=Math.max(pk,Math.abs(d[i]));
+  if(pk>0) for(let i=0;i<n;i++) d[i]/=pk;
+  return buf;
+}
+function sTurn(k){
+  if(!sound) return;
+  const ctx=ac(), t=ctx.currentTime, dur=.17*(1+(Math.random()-.5)*.2), v=.17*(k||1);
+  const src=ctx.createBufferSource(); src.buffer=paperBuf(ctx,dur,.30,.9);
+  const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=300;
+  const pk=ctx.createBiquadFilter(); pk.type='peaking';           // 紙の胴鳴り（掃引しない）
+  pk.frequency.value=1400; pk.Q.value=.8; pk.gain.value=4;
+  const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=5000;
+  const g=ctx.createGain();
+  g.gain.setValueAtTime(.0001,t);
+  g.gain.exponentialRampToValueAtTime(v,t+.008);
+  g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  src.connect(hp); hp.connect(pk); pk.connect(lp); lp.connect(g); g.connect(ctx.destination);
+  src.start(t); src.stop(t+dur);
+  // 紙が重なりに落ちる、低く鈍い音（正弦波だと電子音になるので雑音を濾す）
+  const t2=t+dur*.66, ts=.10;
+  const s2=ctx.createBufferSource(); s2.buffer=noise(ctx,ts);
+  const l2=ctx.createBiquadFilter(); l2.type='lowpass'; l2.frequency.value=380; l2.Q.value=.7;
+  const g2=ctx.createGain();
+  g2.gain.setValueAtTime(.0001,t2);
+  g2.gain.exponentialRampToValueAtTime(.06*(k||1),t2+.006);
+  g2.gain.exponentialRampToValueAtTime(.0001,t2+ts);
+  s2.connect(l2); l2.connect(g2); g2.connect(ctx.destination);
+  s2.start(t2); s2.stop(t2+ts);
+}
+function sOpen(){
+  if(!sound) return;
+  const ctx=ac(), t=ctx.currentTime;
+  const o=ctx.createOscillator(), g=ctx.createGain();
+  o.type='sine'; o.frequency.setValueAtTime(96,t); o.frequency.exponentialRampToValueAtTime(52,t+.22);
+  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.22,t+.02);
+  g.gain.exponentialRampToValueAtTime(.0001,t+.34);
+  o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+.35);
+  setTimeout(()=>sTurn(1.25),70);
+}
+
+/* ── 組版・ページ分割 ───────────────────── */
+const el=id=>document.getElementById(id);
+const master=el('master'), leaves=el('leaves');
+let spread=true, pageW=0, leafPx=0, pages=1, cur=0, fsIdx=1, busy=false, opened=false;
+const ASPECT=0.70;   // 1ページの縦横比。文庫本に近づける（正方形にしない）
+const FS=[15,17,20], FSN=['小','中','大'];
+const stepN=()=>spread?2:1;
+
+function layout(){
+  const vw=innerWidth, vh=innerHeight;
+  spread = vw>=900;
+  const narrow=vw<560;
+  const fs=FS[fsIdx];
+  const padH=Math.round(fs*(narrow?1.9:2.6)), padV=Math.round(fs*(narrow?1.9:2.4)), pad=narrow?10:16;
+  const availH=Math.min(vh-(narrow?122:152), 860);
+  let chars=Math.max(14, Math.min(narrow?24:32, Math.floor((availH-padV*2)/fs)));  // 1行の字数を抑える
+  let pageH=chars*fs, bookH=pageH+padV*2;
+
+  const r=document.documentElement.style;
+  r.setProperty('--fs',fs+'px');
+  r.setProperty('--pageH',pageH+'px');
+  // 傍点は行の幅を押し広げる。全行が同じ送りになるまで実測を繰り返す
+  // （でないと頁の境界が行を切って、半分だけの列ができる）
+  // 行の送りは実測して確定させる（頁の境界が行を切らないように）
+  const probe = c => { master.innerHTML='<p class="'+c+'">'+'あ'.repeat(6)+'</p>'; return master.offsetWidth; };
+  let step=Math.round(fs*1.95);   // 行間はやや詰める
+  r.setProperty('--step',step+'px');
+  step=Math.max(step, Math.ceil(Math.max(probe('n'),probe('h'),probe('h2'),probe('sep'),probe('end'))));
+  r.setProperty('--step',step+'px');
+
+  // 幅は「縦横比」から決める。行数から決めると1ページが正方形になってしまう
+  const availW=Math.min(vw-(narrow?20:44), spread?1280:600)-pad*2;
+  let N, leafW;
+  for(;;){
+    pageH=chars*fs; bookH=pageH+padV*2;
+    N=Math.max(5, Math.floor((Math.round(bookH*ASPECT)-padH*2)/step));
+    pageW=N*step; leafW=pageW+padH*2;
+    if(leafW*(spread?2:1)<=availW || chars<=16) break;
+    chars--;
+  }
+  leafPx=leafW;
+  const bookW=leafW*(spread?2:1);
+  r.setProperty('--pageH',pageH+'px');
+
+  r.setProperty('--padH',padH+'px');   r.setProperty('--padV',padV+'px');
+  r.setProperty('--pageW',pageW+'px'); r.setProperty('--leafW',leafW+'px');
+  r.setProperty('--bookW',bookW+'px'); r.setProperty('--bookH',bookH+'px');
+  r.setProperty('--board-pad',pad+'px');
+  r.setProperty('--coverW',Math.round(leafW*.94)+'px'); r.setProperty('--coverH',bookH+'px');
+
+  buildFlow();
+  pages=Math.max(1, Math.ceil(master.offsetWidth/pageW));
+  cur=Math.min(cur, Math.max(0,(Math.ceil(pages/stepN())-1)*stepN()));
+  cur=Math.floor(cur/stepN())*stepN();
+  render();
+}
+
+function fill(node,idx){
+  node.innerHTML = (idx<0||idx>=pages) ? '<div class="gutter"></div>'
+    : '<div class="gutter"></div><div class="win"><div class="flow" style="transform:translateX('+(idx*pageW)+'px)">'+FLOW+'</div></div>';
+}
+function folio(node,idx){ node.textContent = (idx>=0&&idx<pages) ? (idx+1)+' / '+pages : ''; }
+
+function render(){
+  fill(el('pR'),cur); folio(el('fR'),cur);
+  fill(el('pL'), spread?cur+1:-1); folio(el('fL'), spread?cur+1:-1);
+  const last=Math.min(pages,cur+stepN());
+  el('pos').textContent=(cur+1)+(last>cur+1?' 〜 '+last:'')+' ／ '+pages+' 頁';
+  try{ localStorage.setItem('mirai_page',cur); }catch(e){}
+}
+
+/* ── めくる（紙をたわませる） ───────────────── */
+const sheet=el('sheet');
+const NS=8;                     // 短冊の数。多いほど滑らかだが重くなる
+const CURL=30;                  // たわみの量（度）
+let CURLSIGN=-1;                // たわむ向き（-1で読者側に膨らむ）
+let angle=0, strips=[], stripW=0;
+
+function pageHTML(idx){
+  if(idx<0||idx>=pages) return '<div class="paper"></div>';
+  return '<div class="paper"><div class="gutter"></div><div class="win">'
+       + '<div class="flow" style="transform:translateX('+(idx*pageW)+'px)">'+FLOW+'</div></div></div>';
+}
+function buildSheet(frontIdx, backIdx){
+  stripW=Math.ceil(leafPx/NS);
+  const f=pageHTML(frontIdx), bk=pageHTML(backIdx);
+  let h='';
+  for(let i=0;i<NS;i++){
+    h+='<div class="strip" style="width:'+(stripW+1)+'px">'
+      +  '<div class="sf"><div class="slice" style="right:'+(-i*stripW)+'px">'+f+'</div><div class="sh"></div></div>'
+      +  '<div class="sb"><div class="slice" style="left:'+(-i*stripW)+'px">'+bk+'</div><div class="sh"></div></div>'
+      + '</div>';
+  }
+  sheet.innerHTML=h;
+  strips=[...sheet.querySelectorAll('.strip')];
+}
+function setAngle(a){
+  angle=a;
+  const rad=Math.PI/180;
+  // 綴じ目と自由端は元の角度のまま、中ほどだけを起こす＝紙が弓なりにたわむ
+  const amp=CURLSIGN*CURL*Math.sin(Math.min(180,Math.abs(a))*rad);
+  let x=0, z=0;
+  for(let i=0;i<NS;i++){
+    const s=strips[i]; if(!s) break;
+    const ang=a+amp*Math.sin(Math.PI*(i+.5)/NS);
+    s.style.transform='translate3d('+x.toFixed(2)+'px,0,'+z.toFixed(2)+'px) rotateY('+ang.toFixed(2)+'deg)';
+    const lit=Math.cos((ang-26)*rad);                        // 左上からの光に対する向き
+    s.children[0].children[1].style.background='rgba(28,18,6,'+Math.max(0,Math.min(.58,.24-lit*.30)).toFixed(3)+')';
+    s.children[1].children[1].style.background='rgba(28,18,6,'+Math.max(0,Math.min(.58,.24+lit*.30)).toFixed(3)+')';
+    x-=stripW*Math.cos(ang*rad); z+=stripW*Math.sin(ang*rad);
+  }
+}
+const canNext=()=>cur+stepN()<pages;
+const canPrev=()=>cur>0;
+
+function begin(dir){
+  const st=stepN();
+  if(dir>0 && !canNext()) return false;
+  if(dir<0 && !canPrev()) return false;
+  if(dir>0){
+    buildSheet(spread?cur+1:cur, cur+st);
+    fill(el('pR'),cur); folio(el('fR'),cur);
+    if(spread){ fill(el('pL'),cur+3); folio(el('fL'),cur+3); }
+  }else{
+    buildSheet(cur-1, cur);
+    fill(el('pR'),cur-st); folio(el('fR'),cur-st);
+    if(spread){ fill(el('pL'),cur+1); folio(el('fL'),cur+1); }
+  }
+  sheet.classList.add('on');
+  strips.forEach(s=>s.style.transition='none');
+  setAngle(dir>0?0:180);
+  return true;
+}
+function finish(dir,go){
+  busy=true;
+  strips.forEach(s=>s.style.transition='transform .52s cubic-bezier(.4,.05,.25,1)');
+  requestAnimationFrame(()=>setAngle(go?(dir>0?180:0):(dir>0?0:180)));
+  if(go) sTurn(1);
+  setTimeout(()=>{
+    if(go) cur+=dir*stepN();
+    sheet.classList.remove('on'); sheet.innerHTML=''; strips=[];
+    render(); busy=false;
+  },540);
+}
+function turn(dir){ if(busy||!begin(dir)) return; requestAnimationFrame(()=>finish(dir,true)); }
+
+/* ── スワイプ／タップ／キー（右綴じ：左へ進む） ── */
+let drag=null;
+leaves.addEventListener('pointerdown',e=>{
+  if(busy) return;
+  drag={x:e.clientX,live:false,moved:false,dir:0};
+  try{ leaves.setPointerCapture(e.pointerId); }catch(err){}
+});
+leaves.addEventListener('pointermove',e=>{
+  if(!drag||busy) return;
+  const dx=e.clientX-drag.x;
+  if(!drag.live){
+    if(Math.abs(dx)<14) return;
+    drag.dir = dx>0?1:-1;               // 左→右へ払う＝次の頁（右綴じの本と同じ手つき）
+    if(!begin(drag.dir)){ drag=null; return; }
+    drag.live=true; drag.moved=true; drag.x=e.clientX;
+  }
+  const p=Math.max(0,Math.min(1,Math.abs(e.clientX-drag.x)/(leafPx*.9)));
+  setAngle(drag.dir>0 ? p*180 : 180-p*180);
+});
+function release(){
+  if(!drag) return;
+  if(drag.live){
+    const p = drag.dir>0 ? angle/180 : 1-angle/180;
+    finish(drag.dir, p>.34);
+  }
+  drag=null;
+}
+leaves.addEventListener('pointerup',e=>{
+  if(drag && !drag.moved){
+    const r=leaves.getBoundingClientRect();
+    drag=null;
+    turn(e.clientX < r.left+r.width/2 ? 1 : -1);   // 左半分にふれる＝次へ
+    return;
+  }
+  release();
+});
+leaves.addEventListener('pointercancel',release);
+addEventListener('keydown',e=>{
+  if(!opened) return;
+  if(['ArrowLeft',' ','PageDown'].includes(e.key)){ e.preventDefault(); turn(1); }
+  if(['ArrowRight','PageUp'].includes(e.key)){ e.preventDefault(); turn(-1); }
+});
+el('next').onclick=()=>turn(1);
+el('prev').onclick=()=>turn(-1);
+el('size').onclick=()=>{ fsIdx=(fsIdx+1)%3; el('size').textContent='文字 '+FSN[fsIdx]; layout(); };
+el('snd').onclick=()=>{ sound=!sound; el('snd').textContent='音 '+(sound?'ON':'OFF'); if(sound) sTurn(.7); };
+
+el('cover').addEventListener('click',()=>{
+  if(opened) return;
+  opened=true; sOpen(); el('cover').classList.add('open');
+  setTimeout(()=>{
+    el('cover').style.display='none';          // 場所を明け渡す（本の中央寄せが崩れる）
+    el('book').classList.add('show'); el('bar').classList.add('show');
+    try{ const p=parseInt(localStorage.getItem('mirai_page')||'0',10);
+         if(p>0&&p<pages) cur=Math.floor(p/stepN())*stepN(); }catch(e){}
+    render();
+  },560);
+});
+
+let rt=null;
+addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(layout,180); });
+layout();
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(layout);
+</script>
+</body>
+</html>

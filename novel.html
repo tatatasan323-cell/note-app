@@ -101,6 +101,10 @@ body{
 .sb{transform:rotateY(180deg);}
 .slice{position:absolute;top:0;width:var(--leafW);height:100%;}
 .sh{position:absolute;inset:0;pointer-events:none;}
+/* ── モバイルの横スライド用（めくり目の陰影で紙の風情を残す） ── */
+.sheet .crease{position:absolute;left:0;top:0;bottom:0;width:46px;pointer-events:none;
+  background:linear-gradient(90deg,rgba(20,12,4,.34),rgba(20,12,4,.05) 60%,transparent);}
+.sheet.on .paper{box-shadow:0 0 44px rgba(0,0,0,.40),inset 0 0 42px rgba(120,95,60,.20);}
 
 .bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;align-items:center;justify-content:center;
   padding:10px 12px calc(10px + env(safe-area-inset-bottom));font-family:system-ui,sans-serif;font-size:12px;
@@ -474,7 +478,7 @@ const sheet=el('sheet');
 const NS=8;                     // 短冊の数。多いほど滑らかだが重くなる
 const CURL=30;                  // たわみの量（度）
 let CURLSIGN=-1;                // たわむ向き（-1で読者側に膨らむ）
-let angle=0, strips=[], stripW=0;
+let angle=0, strips=[], stripW=0, slideDir=0;
 
 function pageHTML(idx){
   if(idx<0||idx>=pages) return '<div class="paper"></div>';
@@ -495,6 +499,7 @@ function buildSheet(frontIdx, backIdx){
   strips=[...sheet.querySelectorAll('.strip')];
 }
 function setAngle(a){
+  if(!spread){ angle=a; slideSet(slideDir>0 ? a/180 : (180-a)/180); return; }
   angle=a;
   const rad=Math.PI/180;
   // 綴じ目と自由端は元の角度のまま、中ほどだけを起こす＝紙が弓なりにたわむ
@@ -514,6 +519,7 @@ const canNext=()=>cur+stepN()<pages;
 const canPrev=()=>cur>0;
 
 function begin(dir){
+  if(!spread) return slideBegin(dir);
   const st=stepN();
   if(dir>0 && !canNext()) return false;
   if(dir<0 && !canPrev()) return false;
@@ -532,6 +538,7 @@ function begin(dir){
   return true;
 }
 function finish(dir,go){
+  if(!spread) return slideFinish(dir,go);
   busy=true;
   strips.forEach(s=>s.style.transition='transform .52s cubic-bezier(.4,.05,.25,1)');
   requestAnimationFrame(()=>setAngle(go?(dir>0?180:0):(dir>0?0:180)));
@@ -543,6 +550,39 @@ function finish(dir,go){
   },540);
 }
 function turn(dir){ if(busy||!begin(dir)) return; requestAnimationFrame(()=>finish(dir,true)); }
+
+/* ── モバイル（単ページ）：3Dめくりは映えないので横スライドで見せる ── */
+function slideBegin(dir){
+  if(dir>0 && !canNext()) return false;
+  if(dir<0 && !canPrev()) return false;
+  slideDir=dir;
+  if(dir>0){ sheet.innerHTML=pageHTML(cur)+'<div class="crease"></div>';
+             fill(el('pR'),cur+1); folio(el('fR'),cur+1); }
+  else     { sheet.innerHTML=pageHTML(cur-1)+'<div class="crease"></div>';
+             fill(el('pR'),cur);   folio(el('fR'),cur); }
+  sheet.classList.add('on');
+  sheet.style.transition='none';
+  slideSet(0);
+  return true;
+}
+function slideSet(p){
+  const x = slideDir>0 ? p*leafPx : (1-p)*leafPx;
+  sheet.style.transform='translateX('+x.toFixed(1)+'px)';
+  const cr=sheet.querySelector('.crease');
+  if(cr) cr.style.opacity=(0.35+0.65*(1-Math.abs(0.5-p)*2)).toFixed(2);
+}
+function slideFinish(dir,go){
+  busy=true;
+  sheet.style.transition='transform .42s cubic-bezier(.33,.02,.28,1)';
+  requestAnimationFrame(()=>slideSet(go?1:0));
+  if(go) sTurn(1);
+  setTimeout(()=>{
+    if(go) cur+=dir;
+    sheet.classList.remove('on'); sheet.innerHTML='';
+    sheet.style.transition='none'; sheet.style.transform='';
+    render(); busy=false;
+  },430);
+}
 
 /* ── スワイプ／タップ／キー（右綴じ：左へ進む） ── */
 let drag=null;

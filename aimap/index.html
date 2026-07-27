@@ -510,20 +510,36 @@ const SUN_POS=SUN_DIR.clone().multiplyScalar(2400);
 /* 空 */
 const sky=new THREE.Mesh(new THREE.SphereGeometry(3200,48,32), new THREE.ShaderMaterial({
   side:THREE.BackSide, depthWrite:false, fog:false,
-  uniforms:{ uSun:{value:SUN_DIR} },
+  uniforms:{ uSun:{value:SUN_DIR}, uSunY:{value:.42} },
   vertexShader:`varying vec3 vW; void main(){ vW=(modelMatrix*vec4(position,1.)).xyz;
     gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);} `,
   fragmentShader:`
-    varying vec3 vW; uniform vec3 uSun;
+    varying vec3 vW; uniform vec3 uSun; uniform float uSunY;
+    float starField(vec3 d){
+      vec3 p=d*230.0, i=floor(p), f=fract(p)-0.5;
+      float h=fract(sin(dot(i,vec3(12.9898,78.233,37.719)))*43758.5453);
+      if(h<0.9955) return 0.0;
+      return smoothstep(0.36,0.0,length(f))*(0.35+0.65*fract(h*137.0));
+    }
     void main(){
       vec3 d=normalize(vW);
       float h=pow(smoothstep(-0.22,0.62,d.y),0.72);
-      vec3 horizon=vec3(0.36,0.235,0.235), mid=vec3(0.065,0.145,0.245), zen=vec3(0.014,0.026,0.070);
+      // 昼・薄暮・夜を、太陽の高さで混ぜる
+      vec3 hDay=vec3(0.46,0.59,0.78), mDay=vec3(0.16,0.35,0.66), zDay=vec3(0.05,0.15,0.42);
+      vec3 hDsk=vec3(0.60,0.30,0.23), mDsk=vec3(0.075,0.145,0.255), zDsk=vec3(0.015,0.028,0.075);
+      vec3 hNgt=vec3(0.045,0.055,0.105), mNgt=vec3(0.016,0.022,0.055), zNgt=vec3(0.004,0.006,0.020);
+      float day=smoothstep(0.04,0.42,uSunY);
+      float ngt=smoothstep(0.07,-0.16,uSunY);
+      vec3 horizon=mix(mix(hDsk,hDay,day),hNgt,ngt);
+      vec3 mid    =mix(mix(mDsk,mDay,day),mNgt,ngt);
+      vec3 zen    =mix(mix(zDsk,zDay,day),zNgt,ngt);
       vec3 col=mix(horizon,mid,smoothstep(0.0,0.42,h));
       col=mix(col,zen,smoothstep(0.34,1.0,h));
+      col += vec3(0.86,0.92,1.0)*starField(d)*ngt;
       float sd=max(dot(d,normalize(uSun)),0.0);
-      vec3 sc=vec3(1.0,0.80,0.55);
-      col += sc*pow(sd,900.0)*12.0 + sc*pow(sd,26.0)*0.85 + sc*pow(sd,4.0)*0.16;
+      vec3 sc=mix(vec3(1.0,0.62,0.34), vec3(1.0,0.94,0.82), day);
+      float vis=smoothstep(-0.12,0.03,uSunY);
+      col += (sc*pow(sd,900.0)*12.0 + sc*pow(sd,26.0)*0.85 + sc*pow(sd,4.0)*0.16)*vis;
       gl_FragColor=vec4(col,1.0);
     }`
 }));
@@ -540,10 +556,30 @@ if(!LOW){
   s.near=1800; s.far=3200; sun.shadow.bias=-0.0016; sun.shadow.normalBias=1.2;
 }
 scene.add(sun);
-scene.add(new THREE.HemisphereLight(0x8ec4ff,0x2e4c68,.66));
-scene.add(new THREE.AmbientLight(0x2a3f66,.16));
+const hemi=new THREE.HemisphereLight(0x8ec4ff,0x2e4c68,.66); scene.add(hemi);
+const amb=new THREE.AmbientLight(0x2a3f66,.16); scene.add(amb);
 const u1=new THREE.DirectionalLight(0x59a9dd,.85); u1.position.set(-30,-70,25); scene.add(u1);
 const u2=new THREE.DirectionalLight(0x7f6ad0,.40); u2.position.set(40,-60,-30); scene.add(u2);
+
+/* 時間の巡り。空も光も霧も、すべて太陽の高さから導く */
+const DAY_LEN=220;                                   // 1日の長さ（秒）
+function updateDaylight(t){
+  const ang=(t/DAY_LEN)%1 * Math.PI*2;
+  SUN_DIR.set(Math.cos(ang)*.78, Math.sin(ang), -.42).normalize();
+  SUN_POS.copy(SUN_DIR).multiplyScalar(2400);
+  sun.position.copy(SUN_POS);
+  const y=SUN_DIR.y;
+  const day=THREE.MathUtils.smoothstep(y,.02,.42);
+  const low=1-THREE.MathUtils.smoothstep(y,0,.35);    // 低いほど赤くなる
+  sun.intensity = Math.max(0,y)*3.1 + .04;
+  sun.color.setRGB(1, .88-low*.24, .74-low*.42);
+  hemi.intensity = .13 + day*.58;
+  amb.intensity  = .05 + day*.15;
+  u1.intensity   = .16 + day*.72;
+  u2.intensity   = .09 + day*.33;
+  sky.material.uniforms.uSunY.value = y;
+  scene.fog.color.setRGB(.055+day*.10, .075+day*.145, .125+day*.175);
+}
 
 /* 雲海 */
 const clouds=[];
@@ -1250,7 +1286,7 @@ const ROADMAP = {
      t:'ファーストペンギン不在で踏み抜く。', b:[]},
     {h:'闇の魔の森：反対派に飲まれる', rx:13, rz:-1, kind:'trap',
      t:'全員を説得しようとして迷い込む。', b:[]},
-    {h:'マグマ：経営者の無関心', rx:18, rz:-25, kind:'volcano',
+    {h:'マグマ：経営者の無関心', rx:18, rz:-25, kind:'volcano', topDown:true,
      t:'これが最大の災害。組織を焼き、流し去る。', b:[]},
     {h:'育つはずの人材が燃える', rx:-15, rz:-4, kind:'burn',
      t:'大きく育とうとする才能（木々）を、無関心が焼く。', b:[]},
@@ -1456,12 +1492,24 @@ function buildContinent(){
   th.shape.chan=null;                      // 谷は地形を測ってから彫る
   const sh=makeShape(11, th.shape, R_CONT);
 
-  // 彫る前の高さを測り、始点から終点へ単調に下る谷底を決める（川が坂を登らないように）
-  const cpts=LAVA_PTS.map(p=>rw(p[0],p[1]));
-  const yTop=sh.surfaceY(cpts[0][0],cpts[0][1]);
+  // 火口の縁から末端まで「ひと続きの谷」として彫る。
+  // 山肌の部分を彫り忘れると、そこだけ生の地形をなぞって坂を登ってしまう。
+  const LV0=rw(LAVA_PTS[0][0],LAVA_PTS[0][1]);
+  const d0x=LV0[0]-V[0], d0z=LV0[1]-V[1], dl0=Math.hypot(d0x,d0z)||1;
+  const lip=[V[0]+d0x/dl0*20, V[1]+d0z/dl0*20];          // 火口の溢れ口
+  const cpts=[lip].concat(LAVA_PTS.map(p=>rw(p[0],p[1])));
+  const yTop=sh.surfaceY(lip[0],lip[1]);
   const yBot=sh.surfaceY(cpts[cpts.length-1][0],cpts[cpts.length-1][1]);
-  const chan={ pts:cpts, w:27, y0:yTop-9, y1:Math.min(yBot, yTop-9)-19 };
-  th.shape.chan=[chan];
+  const chan={ pts:cpts, w:27, y0:yTop-5, y1:Math.min(yBot,yTop-5)-24 };
+
+  // 裏側：火口の反対側から、大陸の外へ流れ落ちる筋
+  const bk=[V[0]-d0x/dl0*20, V[1]-d0z/dl0*20];
+  const oa=Math.atan2(V[1],V[0]), orr=sh.rimR(oa)*0.99;
+  const rimP=[Math.cos(oa)*orr, Math.sin(oa)*orr];
+  const yb0=sh.surfaceY(bk[0],bk[1]);
+  const chanB={ pts:[bk, [(bk[0]+rimP[0])/2,(bk[1]+rimP[1])/2], rimP],
+                w:19, y0:yb0-5, y1:yb0-5-30 };
+  th.shape.chan=[chan, chanB];
   const dChan=(x,z)=>{ let b=Infinity;
     for(let i=0;i<chan.pts.length-1;i++){
       const a=chan.pts[i], q=chan.pts[i+1], vx=q[0]-a[0], vz=q[1]-a[1], L2=vx*vx+vz*vz;
@@ -1477,7 +1525,7 @@ function buildContinent(){
   const grp=new THREE.Group(), mat=makeRockMat(th);
   buildTerrain(sh, th, mat, grp, LOW?56:96, LOW?116:192, R_CONT);
   const fx={flows:[], curtains:[], rise:null, bolts:null, spin:null,
-            lavas:[], arrows:[], bubbles:null};
+            lavas:[], arrows:[], bubbles:null, floaters:[]};
   const dm=new THREE.Object3D(), col=new THREE.Color();
   const P3=(rx,rz,lift)=>{ const a=rw(rx,rz);
     return new THREE.Vector3(a[0], sh.surfaceY(a[0],a[1])+(lift||0), a[1]); };
@@ -1505,16 +1553,36 @@ function buildContinent(){
   const craterY=sh.surfaceY(V[0],V[1]);
   const pool=new THREE.Mesh(new THREE.CircleGeometry(13,28), lavaMat);
   pool.rotation.set(-Math.PI/2,0,0); pool.position.set(V[0], craterY+3.0, V[1]); grp.add(pool);
-  // 溢れ口は火口の縁。そこから山肌を伝って流れ下る
-  const LV0=rw(14.5,-18);
-  const dirx=LV0[0]-V[0], dirz=LV0[1]-V[1], dl=Math.hypot(dirx,dirz)||1;
-  const lipX=V[0]+dirx/dl*19, lipZ=V[1]+dirz/dl*19;
-  const fallCurve=new THREE.CatmullRomCurve3([
-    new THREE.Vector3(lipX, sh.surfaceY(lipX,lipZ), lipZ),
-    P3(16.6,-21.5,0), P3(14.5,-18,0)], false,'catmullrom',.3);
-  grp.add(new THREE.Mesh(terrainRibbon(fallCurve,6.4,1.0,140,sh), lavaMat));
-  const lavaCurve=new THREE.CatmullRomCurve3(LAVA_PTS.map(p=>P3(p[0],p[1],1.0)),false,'catmullrom',0.4);
-  grp.add(new THREE.Mesh(terrainRibbon(lavaCurve,11.5,1.0,340,sh), lavaMat));
+  // 溶岩は、彫った谷（火口の縁 → 末端）をひと続きでなぞる
+  const lavaCurve=new THREE.CatmullRomCurve3(
+    chan.pts.map(q=>new THREE.Vector3(q[0], sh.surfaceY(q[0],q[1])+1.0, q[1])),
+    false,'catmullrom',0.4);
+  grp.add(new THREE.Mesh(terrainRibbon(lavaCurve,11.5,1.0,380,sh), lavaMat));
+  // 裏側の流れ。大陸の縁で途切れ、そこから外へ落ちる
+  const backCurve=new THREE.CatmullRomCurve3(
+    chanB.pts.map(q=>new THREE.Vector3(q[0], sh.surfaceY(q[0],q[1])+1.0, q[1])),
+    false,'catmullrom',0.4);
+  grp.add(new THREE.Mesh(terrainRibbon(backCurve,8.5,1.0,200,sh), lavaMat));
+  {
+    const h=44, m=fallCurtain(9.5,h, 0xffc060, 0xff3a08, .50, .62);
+    m.position.set(rimP[0]*1.01, sh.surfaceY(rimP[0],rimP[1])-h/2+2, rimP[1]*1.01);
+    m.lookAt(0,m.position.y,0); m.rotateY(Math.PI);
+    grp.add(m); fx.curtains.push(m);
+    const mist=makeFlow(LOW?60:150, 0xff6a2a,
+      {r:26, y0:sh.surfaceY(rimP[0],rimP[1])-10, y1:sh.surfaceY(rimP[0],rimP[1])-70,
+       speed:.10, size:9, op:.5});
+    mist.position.set(rimP[0], 0, rimP[1]); grp.add(mist); fx.flows.push(mist);
+  }
+  // 大陸の他の崖からは水が落ちる
+  for(let i=0;i<(LOW?2:4);i++){
+    const t2=oa + Math.PI*(0.55 + i*0.42);
+    const rr2=sh.rimR(t2)*0.99, wx=Math.cos(t2)*rr2, wz=Math.sin(t2)*rr2;
+    const h=38+Math.random()*26;
+    const m=fallCurtain(7.0,h, 0xffffff, 0x6fa8d8, 1.35, .34);
+    m.position.set(wx*1.01, sh.surfaceY(wx,wz)-h/2+2, wz*1.01);
+    m.lookAt(0,m.position.y,0); m.rotateY(Math.PI);
+    grp.add(m); fx.curtains.push(m);
+  }
   const NB2=LOW?10:18;
   const bub=new THREE.InstancedMesh(new THREE.SphereGeometry(.85,10,10),
     new THREE.MeshStandardMaterial({color:0xff7a22, emissive:0xff4808, emissiveIntensity:2.2}), NB2);
@@ -1782,6 +1850,11 @@ function buildContinent(){
 
     scn.position.set(a[0], base, a[1]);
     g2.position.set(a[0], base, a[1]);
+    // 浮いているものは、それぞれ別の周期で漂わせる
+    if(sec.kind==='castle') fx.floaters.push({o:scn, y:base, a:2.2, w:.085, p:0.4},
+                                             {o:g2,  y:base, a:2.2, w:.085, p:0.4});
+    if(sec.kind==='github') fx.floaters.push({o:scn, y:base, a:3.0, w:.135, p:2.9},
+                                             {o:g2,  y:base, a:3.0, w:.135, p:2.9});
 
     const isGoal=(sec.kind==='castle');
     const gcol = (sec.kind==='trap'||sec.kind==='volcano'||sec.kind==='burn') ? 0xff6a6a : th.glow;
@@ -2089,6 +2162,13 @@ function animate(){
   const dt=Math.min(rawDt,.05), t=clock.elapsedTime;
 
   clouds.forEach(c=>c.material.uniforms.uT.value=t);
+  updateDaylight(t);                       // 昼夜の巡り（空・光・霧・星）
+  islands.forEach(I=>{                     // 島も大陸も、それぞれの周期で浮き沈みする
+    if(I.bob) I.grp.position.y = I.baseY + Math.sin(t*I.bob.w + I.bob.p)*I.bob.a;
+    if(I.fx.floaters) I.fx.floaters.forEach(f=>{
+      f.o.position.y = f.y + Math.sin(t*f.w + f.p)*f.a;
+    });
+  });
   RISERS.forEach(r=>{
     if(r.kind==='flow'){  r.o.material.uniforms.uT.value=t; return; }
     if(r.kind==='flame'){ r.tube.material.uniforms.uT.value=t; return; }
@@ -2240,6 +2320,8 @@ const load=document.getElementById('load'), bar=load.querySelector('i'), sub=loa
     const I=buildIsland(i);
     const [gx,gy,gz]=LAYOUT[i];
     I.grp.position.set(gx*SPACING, gy, gz);
+    I.baseY=gy;
+    I.bob={a:1.8+Math.random()*2.4, w:.10+Math.random()*.09, p:Math.random()*6.28};
     scene.add(I.grp); islands.push(I);
   }
   // 5島の上空に、内製化ロードマップの大陸を架ける
@@ -2247,6 +2329,7 @@ const load=document.getElementById('load'), bar=load.querySelector('i'), sub=loa
   await new Promise(r=>requestAnimationFrame(()=>setTimeout(r,0)));
   const C=buildContinent();
   C.grp.position.set(0, 178, -25);
+  C.baseY=178; C.bob={a:2.6, w:.055, p:1.7};      // 大陸はゆっくり大きく
   scene.add(C.grp); islands.push(C);
 
   // 5島 → 大陸。島の性質そのものが昇っていく形にする

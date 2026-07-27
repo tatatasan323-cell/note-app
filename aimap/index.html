@@ -286,7 +286,12 @@ function channelCarve(c,x,z,y){
     if(dd<best){ best=dd; bestT=(c._len[i]+t*Math.sqrt(L2))/c._total; }
   }
   if(best>=c.w) return y;
-  const target=c.y0+(c.y1-c.y0)*bestT;            // 始点から終点へ単調に下る
+  // prof=地形に追従して掘った谷底の実測プロファイル。直線で結ぶと窪地は峡谷、尾根は彫り残しになる
+  let target;
+  if(c.prof){
+    const f=bestT*(c.prof.length-1), i=Math.min(c.prof.length-2, Math.max(0,Math.floor(f)));
+    target=c.prof[i]+(c.prof[i+1]-c.prof[i])*(f-i);
+  } else target=c.y0+(c.y1-c.y0)*bestT;
   const w=Math.pow(1-best/c.w,1.5);
   // 目標高さそのものに寄せる。min にすると窪地では彫られず、その先で上り坂になる
   return y*(1-w) + target*w;
@@ -1356,10 +1361,11 @@ function lavaFlowMat(){
       void main(){
         vec2 p  = vec2(vU.x*2.4 - uT*0.16, vU.y*2.6);
         float f = fb(p), f2 = fb(p*2.9+7.0);
-        float crust = smoothstep(0.38, 0.66, f*0.65 + f2*0.35);
-        vec3 hot   = mix(vec3(1.0,0.94,0.60), vec3(1.0,0.32,0.04), smoothstep(0.0,0.6,crust));
+        float crust = smoothstep(0.34, 0.62, f*0.65 + f2*0.35);
+        vec3 hot   = mix(vec3(1.0,0.90,0.50), vec3(1.0,0.30,0.04), smoothstep(0.0,0.6,crust));
         vec3 shell = mix(vec3(0.19,0.085,0.065), vec3(0.05,0.03,0.03), f2);
-        vec3 c = mix(hot*2.0, shell, smoothstep(0.28, 0.76, crust));
+        // 発光を上げすぎるとブルームで白飛びして「輝く塊」になる
+        vec3 c = mix(hot*1.25, shell, smoothstep(0.22, 0.72, crust));
         float edge = smoothstep(0.0,0.18,vU.y)*smoothstep(1.0,0.82,vU.y);
         c = mix(shell*0.45, c, edge);
         gl_FragColor = vec4(mix(c, fogColor, clamp(vFog,0.0,1.0)), 1.0);
@@ -1499,24 +1505,40 @@ function buildContinent(){
   // 山肌の部分を彫り忘れると、そこだけ生の地形をなぞって坂を登ってしまう。
   const LV0=rw(LAVA_PTS[0][0],LAVA_PTS[0][1]);
   const d0x=LV0[0]-V[0], d0z=LV0[1]-V[1], dl0=Math.hypot(d0x,d0z)||1;
-  const lip=[V[0]+d0x/dl0*20, V[1]+d0z/dl0*20];          // 火口の溢れ口
+  const lip=[V[0]+d0x/dl0*23, V[1]+d0z/dl0*23];          // 火口の溢れ口（縁の外から彫り始める）
   const cpts=[lip].concat(LAVA_PTS.map(p=>rw(p[0],p[1])));
-  // 溝は浅く。地形が持つ高低差ぶんだけ下らせる（深く掘ると峡谷になって溶岩が沈む）
-  const CUT=2.6;
-  const yTop=sh.surfaceY(lip[0],lip[1]);
-  let yBot=sh.surfaceY(cpts[cpts.length-1][0],cpts[cpts.length-1][1]);
-  if(yBot > yTop-12) yBot = yTop-12;                     // 必ず下るように最低限の落差を確保
-  const chan={ pts:cpts, w:22, y0:yTop-CUT, y1:yBot-CUT };
+  // 谷底は「地形から一定の深さ下げ、かつ絶対に上らせない」で決める（累積最小）。
+  // 始点と終点を直線で結ぶと、窪地では峡谷になり尾根では彫り残して溶岩が坂を登る。
+  const carveProfile=(pts,depth,slope,n)=>{
+    const seg=[]; let total=0;
+    for(let i=0;i<pts.length-1;i++){
+      const L=Math.hypot(pts[i+1][0]-pts[i][0], pts[i+1][1]-pts[i][1]); seg.push(L); total+=L;
+    }
+    total=total||1;
+    const at=t=>{ let d=t*total;
+      for(let i=0;i<seg.length;i++){
+        if(d<=seg[i] || i===seg.length-1){ const f=seg[i]?Math.min(1,d/seg[i]):0;
+          return [pts[i][0]+(pts[i+1][0]-pts[i][0])*f, pts[i][1]+(pts[i+1][1]-pts[i][1])*f]; }
+        d-=seg[i];
+      } };
+    const prof=new Array(n); let y=Infinity, prev=null;
+    for(let i=0;i<n;i++){
+      const q=at(i/(n-1));
+      const step=prev?Math.hypot(q[0]-prev[0], q[1]-prev[1]):0; prev=q;
+      y=Math.min(y-step*slope, sh.surfaceY(q[0],q[1])-depth);
+      prof[i]=y;
+    }
+    return prof;
+  };
+  const chan={ pts:cpts, w:15, prof:carveProfile(cpts,12,.05,140) };
 
   // 裏側：火口の反対側から、大陸の外へ流れ落ちる筋
-  const bk=[V[0]-d0x/dl0*20, V[1]-d0z/dl0*20];
+  // 起点は火口の縁（21）の外に置く。縁の内側から彫ると火口が食い欠けたようになる
+  const bk=[V[0]-d0x/dl0*26, V[1]-d0z/dl0*26];
   const oa=Math.atan2(V[1],V[0]), orr=sh.rimR(oa)*0.99;
   const rimP=[Math.cos(oa)*orr, Math.sin(oa)*orr];
-  const yb0=sh.surfaceY(bk[0],bk[1]);
-  let yb1=sh.surfaceY(rimP[0],rimP[1]);
-  if(yb1 > yb0-10) yb1 = yb0-10;
-  const chanB={ pts:[bk, [(bk[0]+rimP[0])/2,(bk[1]+rimP[1])/2], rimP],
-                w:16, y0:yb0-CUT, y1:yb1-CUT };
+  const bkPts=[bk, [(bk[0]+rimP[0])/2,(bk[1]+rimP[1])/2], rimP];
+  const chanB={ pts:bkPts, w:11, prof:carveProfile(bkPts,8,.05,80) };
   th.shape.chan=[chan, chanB];
   const dChan=(x,z)=>{ let b=Infinity;
     for(let i=0;i<chan.pts.length-1;i++){
@@ -1558,27 +1580,29 @@ function buildContinent(){
   /* ── 溶岩：火口の湖 → 山肌 → 彫った谷を流れる川 ── */
   const lavaMat=lavaFlowMat(); fx.lavas.push(lavaMat);
   // 火口の湖は、窪んだ火口の底に張る
-  // 火口は溶岩湖として満たす。底に小さく敷くと沈んだ皿に見える
-  const craterY=sh.surfaceY(V[0],V[1]);
-  let craterRim=-Infinity;
-  for(let i=0;i<12;i++){ const q=i/12*Math.PI*2;
-    craterRim=Math.max(craterRim, sh.surfaceY(V[0]+Math.cos(q)*21, V[1]+Math.sin(q)*21)); }
-  const poolY=craterY + (craterRim-craterY)*0.72;
-  const pool=new THREE.Mesh(new THREE.CircleGeometry(16.5,30), lavaMat);
+  // 火口は溶岩湖として満たす。水面は「湖の縁で最も低い地形」より必ず下（でないと宙に浮く）
+  const P_R=18, exitA=Math.atan2(lip[1]-V[1], lip[0]-V[0]);
+  let lowLip=Infinity;
+  for(let i=0;i<32;i++){ const q=i/32*Math.PI*2;
+    // 溢れ口の方角は彫ってあるので、そこを縁の高さとして採ると湖が底に沈む
+    if(Math.abs(((q-exitA+Math.PI*3)%(Math.PI*2))-Math.PI) < 1.0) continue;
+    lowLip=Math.min(lowLip, sh.surfaceY(V[0]+Math.cos(q)*P_R, V[1]+Math.sin(q)*P_R)); }
+  const poolY=Math.max(sh.surfaceY(V[0],V[1])+1.0, lowLip-1.6);
+  const pool=new THREE.Mesh(new THREE.CircleGeometry(P_R,34), lavaMat);
   pool.rotation.set(-Math.PI/2,0,0); pool.position.set(V[0], poolY, V[1]); grp.add(pool);
   // 溶岩は、彫った谷（火口の縁 → 末端）をひと続きでなぞる
   const lavaCurve=new THREE.CatmullRomCurve3(
     chan.pts.map(q=>new THREE.Vector3(q[0], sh.surfaceY(q[0],q[1])+1.0, q[1])),
     false,'catmullrom',0.4);
-  grp.add(new THREE.Mesh(terrainRibbon(lavaCurve,9.5,1.1,380,sh,1,true), lavaMat));
+  grp.add(new THREE.Mesh(terrainRibbon(lavaCurve,7.5,3.0,380,sh,1,true), lavaMat));
   // 裏側の流れ。大陸の縁で途切れ、そこから外へ落ちる
   const backCurve=new THREE.CatmullRomCurve3(
     chanB.pts.map(q=>new THREE.Vector3(q[0], sh.surfaceY(q[0],q[1])+1.0, q[1])),
     false,'catmullrom',0.4);
-  grp.add(new THREE.Mesh(terrainRibbon(backCurve,7.0,1.1,200,sh,.94,true), lavaMat));
+  grp.add(new THREE.Mesh(terrainRibbon(backCurve,5.2,1.1,200,sh,.94,true), lavaMat));
   {
-    const h=44, m=fallCurtain(9.5,h, 0xffc060, 0xff3a08, .50, .62);
-    m.position.set(rimP[0]*1.01, sh.surfaceY(rimP[0],rimP[1])-h/2+2, rimP[1]*1.01);
+    const h=44, m=fallCurtain(6.5,h, 0xffc060, 0xff3a08, .50, .62);
+    m.position.set(rimP[0]*1.01, sh.surfaceY(rimP[0],rimP[1])-h/2-3, rimP[1]*1.01);
     m.lookAt(0,m.position.y,0); m.rotateY(Math.PI);
     grp.add(m); fx.curtains.push(m);
     const mist=makeFlow(LOW?60:150, 0xff6a2a,
@@ -1653,24 +1677,30 @@ function buildContinent(){
   const lp0=rw(LAVA_PTS[1][0],LAVA_PTS[1][1]), lp1=rw(LAVA_PTS[3][0],LAVA_PTS[3][1]);
   let cpx=-(lp1[1]-lp0[1]), cpz=lp1[0]-lp0[0];
   const cpl=Math.hypot(cpx,cpz)||1; cpx/=cpl; cpz/=cpl;         // 川に直交する向き
-  // 溝は浅いので、橋も低く架ける（谷底＋5.5 ＝ 岸から2〜3上）
-  const BRIDGE_Y=sh.surfaceY(BR[0],BR[1]) + 5.5;
+  // 板の上面を岸の高さに揃える。低い方の岸に合わせないと片側が宙に浮く
+  const BANK=Math.min(sh.surfaceY(BR[0]+cpx*(chan.w+3), BR[1]+cpz*(chan.w+3)),
+                      sh.surfaceY(BR[0]-cpx*(chan.w+3), BR[1]-cpz*(chan.w+3)));
+  const BRIDGE_Y=BANK-3.0;                       // 板は B ローカルで +3.0
   const BRIDGE_ANG=Math.atan2(cpx, cpz);
   // 道が来る側を調べ、矢印がその側から橋に入るようにする（逆だと一周してしまう）
   const rEnd=roadCurve.getPointAt(uRoad);
   const sideSign=((rEnd.x-BR[0])*cpx + (rEnd.z-BR[1])*cpz) >= 0 ? 1 : -1;
+  const CROSS=14;                                // 橋の半分。これ以上出すと崖に食い込む
+  const farEnd=[BR[0]-sideSign*cpx*CROSS, BR[1]-sideSign*cpz*CROSS];
 
-  /* ── 崖の細い足場。帯にはせず、通れる幅だけ ── */
-  const climb=[new THREE.Vector3(BR[0]-sideSign*cpx*(chan.w+9), BRIDGE_Y-1,
-                                 BR[1]-sideSign*cpz*(chan.w+9))];
-  for(let i=0;i<=9;i++){
-    const q=i/9;
-    const ang=Math.atan2(BR[1]-CB[1], BR[0]-CB[0]) + q*Math.PI*1.45;
-    const rr=40-q*9;
+  /* ── 崖の細い足場。橋を渡り切った所から始めないと、矢印が橋へ引き返す ── */
+  const climb=[new THREE.Vector3(farEnd[0], sh.surfaceY(farEnd[0],farEnd[1])+1.2, farEnd[1])];
+  const rr0=Math.hypot(farEnd[0]-CB[0], farEnd[1]-CB[1]);
+  const ang0=Math.atan2(farEnd[1]-CB[1], farEnd[0]-CB[0]);
+  for(let i=1;i<=13;i++){
+    const q=i/13;
+    const ang=ang0 + q*Math.PI*1.6;
+    const rr=rr0*(1-q)+4*q;                      // 麓を回り込みながら頂上直下へ寄せる
     const x=CB[0]+Math.cos(ang)*rr, z=CB[1]+Math.sin(ang)*rr;
     climb.push(new THREE.Vector3(x, sh.surfaceY(x,z)+1.2, z));
   }
-  climb.push(new THREE.Vector3(CB[0], cliffTop+1.2, CB[1]));
+  // 頂上の中心まで詰めない。城への螺旋の始点（半径14）に合わせて終える
+  climb.push(new THREE.Vector3(CB[0]+14, cliffTop+1.2, CB[1]));
   const climbCurve=new THREE.CatmullRomCurve3(climb,false,'catmullrom',.25);
   grp.add(new THREE.Mesh(terrainRibbon(climbCurve,1.9,.5,300,sh), trackMat));
 
@@ -1681,19 +1711,24 @@ function buildContinent(){
       const p=roadCurve.getPointAt((i/30)*uRoad);
       route.push(new THREE.Vector3(p.x, sh.surfaceY(p.x,p.z)+3.4, p.z));
     }
-    // 道の来る側 → 橋の中央 → 反対側、の順に渡る
-    route.push(new THREE.Vector3(BR[0]+sideSign*cpx*(chan.w+6), BRIDGE_Y+3.4,
-                                 BR[1]+sideSign*cpz*(chan.w+6)));
-    route.push(new THREE.Vector3(BR[0],                          BRIDGE_Y+3.4, BR[1]));
-    route.push(new THREE.Vector3(BR[0]-sideSign*cpx*(chan.w+6), BRIDGE_Y+3.4,
-                                 BR[1]-sideSign*cpz*(chan.w+6)));
-    for(let i=1;i<=24;i++){
+    // 板の上を一直線に渡る（手前側に点を足すと道から後戻りして宙返りになる）
+    route.push(new THREE.Vector3(BR[0]+sideSign*cpx*CROSS*.8, BANK+1.2,
+                                 BR[1]+sideSign*cpz*CROSS*.8));
+    route.push(new THREE.Vector3(BR[0],                        BANK+1.2, BR[1]));
+    for(let i=0;i<=24;i++){
       const p=climbCurve.getPointAt(i/24);
       route.push(new THREE.Vector3(p.x, p.y+3.0, p.z));
     }
-    route.push(new THREE.Vector3(CB[0]+11, cliffTop+24, CB[1]+7));
-    route.push(new THREE.Vector3(CB[0]-6,  cliffTop+44, CB[1]-4));
-    route.push(new THREE.Vector3(CB[0],    CASTLE_Y-20, CB[1]));
+    // 崖の上から城へは螺旋で昇る（ジグザグに置くと矢印が向きを180度変えてしまう）
+    for(let i=1;i<=7;i++){
+      const q=i/7, a=q*Math.PI*0.85, rr=14-q*8;   // 軸まで絞ると向きが定まらず暴れる
+      route.push(new THREE.Vector3(CB[0]+Math.cos(a)*rr,
+        cliffTop+(CASTLE_Y-20-cliffTop)*q, CB[1]+Math.sin(a)*rr));
+    }
+    // 不変条件：地中に潜る点は作らない。1点でも埋まると宙返りに見える
+    for(const p of route){
+      if(Math.hypot(p.x,p.z) < R_CONT) p.y=Math.max(p.y, sh.surfaceY(p.x,p.z)+2.2);
+    }
     addArrows(new THREE.CatmullRomCurve3(route,false,'catmullrom',.25), LOW?18:34, false);
   }
   const toriiGeo=buildTorii(), toriiMat=stoneMat(0xffffff,.72,0);
@@ -1724,20 +1759,20 @@ function buildContinent(){
       const ang = BRIDGE_ANG;
       const B=new THREE.Group(); B.rotation.y=ang; scn.add(B);
       const wood=new THREE.MeshStandardMaterial({color:0x7d5c34, roughness:.92});
-      for(let i=0;i<13;i++){                                   // 板
+      for(let i=0;i<10;i++){                                   // 板
         const pl=new THREE.Mesh(new THREE.BoxGeometry(12,.7,2.6), wood);
-        pl.position.set(0, 3.0, -18+i*3.0); pl.rotation.x=(Math.random()-.5)*.03;
+        pl.position.set(0, 3.0, -13.5+i*3.0); pl.rotation.x=(Math.random()-.5)*.03;
         pl.castShadow=!LOW; B.add(pl);
       }
       [-1,1].forEach(s=>{                                      // 縦桁
-        const beam=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.0,40), wood);
+        const beam=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.0,29), wood);
         beam.position.set(s*5.2, 2.3, 0); B.add(beam);
       });
-      for(let i=0;i<6;i++){ [-1,1].forEach(s=>{                // 欄干の柱
+      for(let i=0;i<5;i++){ [-1,1].forEach(s=>{                // 欄干の柱
         const po=new THREE.Mesh(new THREE.CylinderGeometry(.42,.5,5.4,7), wood);
-        po.position.set(s*5.6, 5.6, -16+i*6.4); B.add(po); }); }
+        po.position.set(s*5.6, 5.6, -12+i*6.0); B.add(po); }); }
       [-1,1].forEach(s=>{                                      // 手すり
-        const hr=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,38,6), wood);
+        const hr=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,27,6), wood);
         hr.rotation.x=Math.PI/2; hr.position.set(s*5.6, 8.0, 0); B.add(hr); });
       const amber=new THREE.MeshStandardMaterial({color:0xffd166, emissive:0xffd166,
         emissiveIntensity:.7, metalness:.3, roughness:.4});

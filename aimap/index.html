@@ -1501,17 +1501,22 @@ function buildContinent(){
   const d0x=LV0[0]-V[0], d0z=LV0[1]-V[1], dl0=Math.hypot(d0x,d0z)||1;
   const lip=[V[0]+d0x/dl0*20, V[1]+d0z/dl0*20];          // 火口の溢れ口
   const cpts=[lip].concat(LAVA_PTS.map(p=>rw(p[0],p[1])));
+  // 溝は浅く。地形が持つ高低差ぶんだけ下らせる（深く掘ると峡谷になって溶岩が沈む）
+  const CUT=2.6;
   const yTop=sh.surfaceY(lip[0],lip[1]);
-  const yBot=sh.surfaceY(cpts[cpts.length-1][0],cpts[cpts.length-1][1]);
-  const chan={ pts:cpts, w:27, y0:yTop-5, y1:Math.min(yBot,yTop-5)-24 };
+  let yBot=sh.surfaceY(cpts[cpts.length-1][0],cpts[cpts.length-1][1]);
+  if(yBot > yTop-12) yBot = yTop-12;                     // 必ず下るように最低限の落差を確保
+  const chan={ pts:cpts, w:22, y0:yTop-CUT, y1:yBot-CUT };
 
   // 裏側：火口の反対側から、大陸の外へ流れ落ちる筋
   const bk=[V[0]-d0x/dl0*20, V[1]-d0z/dl0*20];
   const oa=Math.atan2(V[1],V[0]), orr=sh.rimR(oa)*0.99;
   const rimP=[Math.cos(oa)*orr, Math.sin(oa)*orr];
   const yb0=sh.surfaceY(bk[0],bk[1]);
+  let yb1=sh.surfaceY(rimP[0],rimP[1]);
+  if(yb1 > yb0-10) yb1 = yb0-10;
   const chanB={ pts:[bk, [(bk[0]+rimP[0])/2,(bk[1]+rimP[1])/2], rimP],
-                w:19, y0:yb0-5, y1:yb0-5-30 };
+                w:16, y0:yb0-CUT, y1:yb1-CUT };
   th.shape.chan=[chan, chanB];
   const dChan=(x,z)=>{ let b=Infinity;
     for(let i=0;i<chan.pts.length-1;i++){
@@ -1560,12 +1565,12 @@ function buildContinent(){
   const lavaCurve=new THREE.CatmullRomCurve3(
     chan.pts.map(q=>new THREE.Vector3(q[0], sh.surfaceY(q[0],q[1])+1.0, q[1])),
     false,'catmullrom',0.4);
-  grp.add(new THREE.Mesh(terrainRibbon(lavaCurve,11.5,.6,380,sh,1,true), lavaMat));
+  grp.add(new THREE.Mesh(terrainRibbon(lavaCurve,9.5,1.1,380,sh,1,true), lavaMat));
   // 裏側の流れ。大陸の縁で途切れ、そこから外へ落ちる
   const backCurve=new THREE.CatmullRomCurve3(
     chanB.pts.map(q=>new THREE.Vector3(q[0], sh.surfaceY(q[0],q[1])+1.0, q[1])),
     false,'catmullrom',0.4);
-  grp.add(new THREE.Mesh(terrainRibbon(backCurve,8.5,.6,200,sh,.93,true), lavaMat));
+  grp.add(new THREE.Mesh(terrainRibbon(backCurve,7.0,1.1,200,sh,.94,true), lavaMat));
   {
     const h=44, m=fallCurtain(9.5,h, 0xffc060, 0xff3a08, .50, .62);
     m.position.set(rimP[0]*1.01, sh.surfaceY(rimP[0],rimP[1])-h/2+2, rimP[1]*1.01);

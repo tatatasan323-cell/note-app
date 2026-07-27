@@ -1558,9 +1558,14 @@ function buildContinent(){
   /* ── 溶岩：火口の湖 → 山肌 → 彫った谷を流れる川 ── */
   const lavaMat=lavaFlowMat(); fx.lavas.push(lavaMat);
   // 火口の湖は、窪んだ火口の底に張る
+  // 火口は溶岩湖として満たす。底に小さく敷くと沈んだ皿に見える
   const craterY=sh.surfaceY(V[0],V[1]);
-  const pool=new THREE.Mesh(new THREE.CircleGeometry(13,28), lavaMat);
-  pool.rotation.set(-Math.PI/2,0,0); pool.position.set(V[0], craterY+3.0, V[1]); grp.add(pool);
+  let craterRim=-Infinity;
+  for(let i=0;i<12;i++){ const q=i/12*Math.PI*2;
+    craterRim=Math.max(craterRim, sh.surfaceY(V[0]+Math.cos(q)*21, V[1]+Math.sin(q)*21)); }
+  const poolY=craterY + (craterRim-craterY)*0.72;
+  const pool=new THREE.Mesh(new THREE.CircleGeometry(16.5,30), lavaMat);
+  pool.rotation.set(-Math.PI/2,0,0); pool.position.set(V[0], poolY, V[1]); grp.add(pool);
   // 溶岩は、彫った谷（火口の縁 → 末端）をひと続きでなぞる
   const lavaCurve=new THREE.CatmullRomCurve3(
     chan.pts.map(q=>new THREE.Vector3(q[0], sh.surfaceY(q[0],q[1])+1.0, q[1])),
@@ -1648,12 +1653,16 @@ function buildContinent(){
   const lp0=rw(LAVA_PTS[1][0],LAVA_PTS[1][1]), lp1=rw(LAVA_PTS[3][0],LAVA_PTS[3][1]);
   let cpx=-(lp1[1]-lp0[1]), cpz=lp1[0]-lp0[0];
   const cpl=Math.hypot(cpx,cpz)||1; cpx/=cpl; cpz/=cpl;         // 川に直交する向き
-  // 高さは谷底から決める。両岸を測ると片側が近くの崖を拾って跳ね上がるため使わない
-  const BRIDGE_Y=sh.surfaceY(BR[0],BR[1]) + 17;
+  // 溝は浅いので、橋も低く架ける（谷底＋5.5 ＝ 岸から2〜3上）
+  const BRIDGE_Y=sh.surfaceY(BR[0],BR[1]) + 5.5;
   const BRIDGE_ANG=Math.atan2(cpx, cpz);
+  // 道が来る側を調べ、矢印がその側から橋に入るようにする（逆だと一周してしまう）
+  const rEnd=roadCurve.getPointAt(uRoad);
+  const sideSign=((rEnd.x-BR[0])*cpx + (rEnd.z-BR[1])*cpz) >= 0 ? 1 : -1;
 
   /* ── 崖の細い足場。帯にはせず、通れる幅だけ ── */
-  const climb=[new THREE.Vector3(BR[0]-cpx*(chan.w+9), BRIDGE_Y-1, BR[1]-cpz*(chan.w+9))];
+  const climb=[new THREE.Vector3(BR[0]-sideSign*cpx*(chan.w+9), BRIDGE_Y-1,
+                                 BR[1]-sideSign*cpz*(chan.w+9))];
   for(let i=0;i<=9;i++){
     const q=i/9;
     const ang=Math.atan2(BR[1]-CB[1], BR[0]-CB[0]) + q*Math.PI*1.45;
@@ -1672,9 +1681,12 @@ function buildContinent(){
       const p=roadCurve.getPointAt((i/30)*uRoad);
       route.push(new THREE.Vector3(p.x, sh.surfaceY(p.x,p.z)+3.4, p.z));
     }
-    route.push(new THREE.Vector3(BR[0]+cpx*(chan.w+6), BRIDGE_Y+4.2, BR[1]+cpz*(chan.w+6)));
-    route.push(new THREE.Vector3(BR[0],               BRIDGE_Y+4.2, BR[1]));
-    route.push(new THREE.Vector3(BR[0]-cpx*(chan.w+6), BRIDGE_Y+4.2, BR[1]-cpz*(chan.w+6)));
+    // 道の来る側 → 橋の中央 → 反対側、の順に渡る
+    route.push(new THREE.Vector3(BR[0]+sideSign*cpx*(chan.w+6), BRIDGE_Y+3.4,
+                                 BR[1]+sideSign*cpz*(chan.w+6)));
+    route.push(new THREE.Vector3(BR[0],                          BRIDGE_Y+3.4, BR[1]));
+    route.push(new THREE.Vector3(BR[0]-sideSign*cpx*(chan.w+6), BRIDGE_Y+3.4,
+                                 BR[1]-sideSign*cpz*(chan.w+6)));
     for(let i=1;i<=24;i++){
       const p=climbCurve.getPointAt(i/24);
       route.push(new THREE.Vector3(p.x, p.y+3.0, p.z));

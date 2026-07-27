@@ -288,7 +288,8 @@ function channelCarve(c,x,z,y){
   if(best>=c.w) return y;
   const target=c.y0+(c.y1-c.y0)*bestT;            // 始点から終点へ単調に下る
   const w=Math.pow(1-best/c.w,1.5);
-  return y*(1-w) + Math.min(y,target)*w;          // 掘るだけ。持ち上げない
+  // 目標高さそのものに寄せる。min にすると窪地では彫られず、その先で上り坂になる
+  return y*(1-w) + target*w;
 }
 
 const R_ISLE = 25, DEPTH = 50;
@@ -1245,7 +1246,7 @@ const ROADMAP = {
      t:'できあがったものを、静かに置いておく場所。城の隣に浮かんでいます。', b:[]},
     {h:'毒沼：全員に丸投げ／個人に丸投げ', rx:12, rz:16, kind:'trap',
      t:'手前で広く沈む。使い道なく属人化する。', b:[]},
-    {h:'落とし穴：旗を振る人がいない', rx:-11, rz:9, kind:'trap',
+    {h:'落とし穴：旗を振る人がいない', rx:-11, rz:9, kind:'trap', topDown:true,
      t:'ファーストペンギン不在で踏み抜く。', b:[]},
     {h:'闇の魔の森：反対派に飲まれる', rx:13, rz:-1, kind:'trap',
      t:'全員を説得しようとして迷い込む。', b:[]},
@@ -1440,6 +1441,9 @@ function buildCastle(){
 
 function buildContinent(){
   const th=LAND;
+  // 橋は必ずマグマの川の上に架ける。川を動かしたら橋も自動で追随する
+  const brSec=ROADMAP.sections.find(s=>s.kind==='bridge');
+  brSec.rx=LAVA_PTS[2][0]; brSec.rz=LAVA_PTS[2][1];
   const V=rw(18,-25), CB=rw(0,-22), S1=rw(12,16), S2=rw(-11,9), S3=rw(13,-1), BURN=rw(-15,-4);
   /* 造形は地形として彫る（置かない） */
   th.shape.feat=[
@@ -1456,7 +1460,7 @@ function buildContinent(){
   const cpts=LAVA_PTS.map(p=>rw(p[0],p[1]));
   const yTop=sh.surfaceY(cpts[0][0],cpts[0][1]);
   const yBot=sh.surfaceY(cpts[cpts.length-1][0],cpts[cpts.length-1][1]);
-  const chan={ pts:cpts, w:21, y0:yTop-9, y1:Math.min(yBot, yTop-9)-17 };
+  const chan={ pts:cpts, w:27, y0:yTop-9, y1:Math.min(yBot, yTop-9)-19 };
   th.shape.chan=[chan];
   const dChan=(x,z)=>{ let b=Infinity;
     for(let i=0;i<chan.pts.length-1;i++){
@@ -1907,7 +1911,13 @@ function flyTo(target,dist,elev=.36,azi=null){
    ・地面にめり込まないよう、その場の地表より上へ持ち上げる */
 function focusSection(I,k){
   const p=I.marks[k].pos.clone().add(I.grp.position); p.y+=1.4;
-  const sc=I.secScale||1, dist=(12+(k%3)*3.4)*sc, elev=.10+(k%4)*.055;
+  const sc=I.secScale||1;
+  const sec=I.data.sections[k];
+  if(sec && sec.topDown){                      // 穴の中は真上から覗く
+    camWant.set(p.x+2.5*sc, p.y+42*sc, p.z+2.5*sc);
+    tgtWant.copy(p); flying=true; controls.autoRotate=false; return;
+  }
+  const dist=(12+(k%3)*3.4)*sc, elev=.10+(k%4)*.055;
   const objs=I.grp.children.filter(o=>o.userData.occluder);
   let bestCam=null, bestScore=-Infinity;
   for(let i=0;i<10;i++){

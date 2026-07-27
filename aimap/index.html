@@ -1298,15 +1298,18 @@ const ROAD_PTS = [[0,22],[-7,14],[6,8],[-5,2],[7,-4],[-3,-9],[0,-11]];
 const LAVA_PTS = [[14.5,-18],[7,-15],[0,-13],[-8,-9],[-15,-4]];
 
 /* 地形に沿うリボン（道・溶岩の川）。彫った谷の底をなぞる */
-function terrainRibbon(curve, half, lift, segs, sh, uMax){
+/* level=true のときは「中心の高さ」で幅いっぱいを水平に張る。
+   端で測ると、谷の縁は彫りが浅いため面が谷底から浮き、地形の起伏でそのまま登ってしまう。 */
+function terrainRibbon(curve, half, lift, segs, sh, uMax, level){
   const pos=[], uv=[], idx=[];
   const UM = (uMax===undefined) ? 1 : uMax;
   for(let i=0;i<=segs;i++){
     const u=(i/segs)*UM, p=curve.getPointAt(u), tg=curve.getTangentAt(u);
     let nx=-tg.z, nz=tg.x; const L=Math.hypot(nx,nz)||1; nx/=L; nz/=L;
+    const cy = level ? sh.surfaceY(p.x,p.z)+lift : null;
     for(let s=-1;s<=1;s+=2){
       const x=p.x+nx*half*s, z=p.z+nz*half*s;
-      pos.push(x, sh.surfaceY(x,z)+lift, z);
+      pos.push(x, level ? cy : sh.surfaceY(x,z)+lift, z);
       uv.push(u*segs*0.02, (s+1)/2);
     }
   }
@@ -1557,12 +1560,12 @@ function buildContinent(){
   const lavaCurve=new THREE.CatmullRomCurve3(
     chan.pts.map(q=>new THREE.Vector3(q[0], sh.surfaceY(q[0],q[1])+1.0, q[1])),
     false,'catmullrom',0.4);
-  grp.add(new THREE.Mesh(terrainRibbon(lavaCurve,11.5,1.0,380,sh), lavaMat));
+  grp.add(new THREE.Mesh(terrainRibbon(lavaCurve,11.5,.6,380,sh,1,true), lavaMat));
   // 裏側の流れ。大陸の縁で途切れ、そこから外へ落ちる
   const backCurve=new THREE.CatmullRomCurve3(
     chanB.pts.map(q=>new THREE.Vector3(q[0], sh.surfaceY(q[0],q[1])+1.0, q[1])),
     false,'catmullrom',0.4);
-  grp.add(new THREE.Mesh(terrainRibbon(backCurve,8.5,1.0,200,sh), lavaMat));
+  grp.add(new THREE.Mesh(terrainRibbon(backCurve,8.5,.6,200,sh,.93,true), lavaMat));
   {
     const h=44, m=fallCurtain(9.5,h, 0xffc060, 0xff3a08, .50, .62);
     m.position.set(rimP[0]*1.01, sh.surfaceY(rimP[0],rimP[1])-h/2+2, rimP[1]*1.01);
@@ -2321,7 +2324,8 @@ const load=document.getElementById('load'), bar=load.querySelector('i'), sub=loa
     const [gx,gy,gz]=LAYOUT[i];
     I.grp.position.set(gx*SPACING, gy, gz);
     I.baseY=gy;
-    I.bob={a:1.8+Math.random()*2.4, w:.10+Math.random()*.09, p:Math.random()*6.28};
+    // 遠くから見て分かる振れ幅にする（±2程度では全景でまったく気づけない）
+    I.bob={a:7+Math.random()*5, w:.09+Math.random()*.07, p:Math.random()*6.28};
     scene.add(I.grp); islands.push(I);
   }
   // 5島の上空に、内製化ロードマップの大陸を架ける
@@ -2329,7 +2333,7 @@ const load=document.getElementById('load'), bar=load.querySelector('i'), sub=loa
   await new Promise(r=>requestAnimationFrame(()=>setTimeout(r,0)));
   const C=buildContinent();
   C.grp.position.set(0, 178, -25);
-  C.baseY=178; C.bob={a:2.6, w:.055, p:1.7};      // 大陸はゆっくり大きく
+  C.baseY=178; C.bob={a:9, w:.042, p:1.7};        // 大陸はいちばんゆっくり、大きく
   scene.add(C.grp); islands.push(C);
 
   // 5島 → 大陸。島の性質そのものが昇っていく形にする

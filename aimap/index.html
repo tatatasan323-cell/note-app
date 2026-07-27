@@ -267,16 +267,28 @@ function featureDelta(F,x,z){
   }
   return d;
 }
-function channelDelta(pts,x,z,w,dep){
-  let best=Infinity;
-  for(let i=0;i<pts.length-1;i++){
-    const a=pts[i], b=pts[i+1], vx=b[0]-a[0], vz=b[1]-a[1];
-    const L=vx*vx+vz*vz;
-    const t=L?Math.max(0,Math.min(1,((x-a[0])*vx+(z-a[1])*vz)/L)):0;
-    const dd=Math.hypot(x-(a[0]+vx*t), z-(a[1]+vz*t));
-    if(dd<best) best=dd;
+/* 谷を「単調に下る谷底」へ向けて彫る。相対的に掘るだけだと地形の起伏が残り、
+   川が坂を登ってしまうため、目標高さへ寄せる方式にする。 */
+function channelCarve(c,x,z,y){
+  const pts=c.pts;
+  if(!c._len){
+    let L=0; c._len=[0];
+    for(let i=1;i<pts.length;i++){
+      L+=Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]); c._len.push(L);
+    }
+    c._total=L||1;
   }
-  return best<w ? -dep*Math.pow(1-best/w,1.4) : 0;
+  let best=Infinity, bestT=0;
+  for(let i=0;i<pts.length-1;i++){
+    const a=pts[i], b=pts[i+1], vx=b[0]-a[0], vz=b[1]-a[1], L2=vx*vx+vz*vz;
+    const t=L2?Math.max(0,Math.min(1,((x-a[0])*vx+(z-a[1])*vz)/L2)):0;
+    const dd=Math.hypot(x-(a[0]+vx*t), z-(a[1]+vz*t));
+    if(dd<best){ best=dd; bestT=(c._len[i]+t*Math.sqrt(L2))/c._total; }
+  }
+  if(best>=c.w) return y;
+  const target=c.y0+(c.y1-c.y0)*bestT;            // 始点から終点へ単調に下る
+  const w=Math.pow(1-best/c.w,1.5);
+  return y*(1-w) + Math.min(y,target)*w;          // 掘るだけ。持ち上げない
 }
 
 const R_ISLE = 25, DEPTH = 50;
@@ -302,9 +314,7 @@ function makeShape(seed, sp, R=R_ISLE){
     let y = 1.7 + dome + n*sstep(1.0,.70,u)*.95;
     if(sp.terrace){ const t=sp.terrace; y = Math.round(y/t)*t + (y - Math.round(y/t)*t)*.32; }
     if(sp.feat) y += featureDelta(sp.feat, x, z);
-    if(sp.chan) for(let i=0;i<sp.chan.length;i++){
-      const c=sp.chan[i]; y += channelDelta(c.pts, x, z, c.w, c.d);
-    }
+    if(sp.chan) for(let i=0;i<sp.chan.length;i++) y = channelCarve(sp.chan[i], x, z, y);
     return y;
   }
   function botY(x,z,u){
@@ -708,6 +718,20 @@ function fallCurtain(w,h,cTop,cBot,spd,amp=.34){
 /* 島から大陸へ立ち上るもの。島の性質そのものが昇る形にする（色違いの筒にしない）
    結晶＝きらめく結晶の粒の川／地層＝風に舞う木の葉／火＝プロミネンス／
    鉱石＝せり上がる宝石と貴金属／雷＝そのまま放電して昇る大きな雷 */
+/* 木の葉：先の尖った輪郭を作り、軽く反らせる（角錐では葉に見えない） */
+function leafGeo(){
+  const s=new THREE.Shape();
+  s.moveTo(0,-1.0);
+  s.bezierCurveTo(.62,-.45, .52,.55, 0,1.15);
+  s.bezierCurveTo(-.52,.55, -.62,-.45, 0,-1.0);
+  const g=new THREE.ShapeGeometry(s, 14);
+  const p=g.attributes.position;
+  for(let i=0;i<p.count;i++){
+    const yy=p.getY(i), xx=p.getX(i);
+    p.setZ(i, (1-yy*yy*.7)*.20 + xx*xx*.35);      // 縦に反り、横に丸める
+  }
+  g.computeVertexNormals(); g.scale(.85,.85,.85); return g;
+}
 const RISERS=[];
 function makeRiser(kind, x, z, y0, h, hex){
   if(kind==='flame'){
@@ -729,13 +753,19 @@ function makeRiser(kind, x, z, y0, h, hex){
           float n1(vec2 p){ vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);
             return mix(mix(h1(i),h1(i+vec2(1,0)),u.x),mix(h1(i+vec2(0,1)),h1(i+vec2(1,1)),u.x),u.y); }
           void main(){
-            vec2 p=vec2(vU.x*7.0, vU.y*5.0 - uT*0.55);
-            float f=n1(p)*0.6+n1(p*2.7)*0.28+n1(p*6.1)*0.12;
-            float body=smoothstep(0.34,0.80,f);
-            float ring=smoothstep(0.0,0.30,vU.x)*smoothstep(1.0,0.70,vU.x);
-            float life=smoothstep(0.0,0.10,vU.y)*smoothstep(1.0,0.55,vU.y);
-            vec3 c=mix(vec3(1.0,0.30,0.05), vec3(1.0,0.90,0.55), pow(1.0-vU.y,1.6));
-            gl_FragColor=vec4(c*(0.8+body*1.6), body*ring*life*0.42);
+            // 炎は縦に伸びて千切れる。横に細かく、縦に引き伸ばした乱流を重ねる
+            vec2 p =vec2(vU.x*11.0, vU.y*3.2 - uT*0.85);
+            vec2 p2=vec2(vU.x*22.0, vU.y*6.4 - uT*1.55);
+            vec2 p3=vec2(vU.x*5.0,  vU.y*1.6 - uT*0.42);
+            float f=n1(p3)*0.42+n1(p)*0.36+n1(p2)*0.22;
+            float body=smoothstep(0.30,0.72,f);
+            float core=smoothstep(0.52,0.86,f);
+            float ring=smoothstep(0.0,0.34,vU.x)*smoothstep(1.0,0.66,vU.x);
+            float life=smoothstep(0.0,0.07,vU.y)*smoothstep(1.0,0.48,vU.y);
+            float flick=0.86+0.14*sin(uT*7.0+vU.y*9.0);
+            vec3 c=mix(vec3(1.0,0.22,0.03), vec3(1.0,0.72,0.24), body);
+            c=mix(c, vec3(1.0,0.96,0.80), core);
+            gl_FragColor=vec4(c*(0.7+body*1.9)*flick, (body*0.55+core*0.45)*ring*life*0.50);
           }`}));
     scene.add(tube); RISERS.push({kind:'flame', tube});
     const em=makeFlow(LOW?80:200, 0xff8a3a, {r:16, y0:0, y1:h, speed:.055, size:2.0, op:.6});
@@ -755,7 +785,7 @@ function makeRiser(kind, x, z, y0, h, hex){
     return;
   }
   const N=LOW?70:180;
-  const geo = kind==='leaf' ? new THREE.ConeGeometry(.64,1.6,4,1)
+  const geo = kind==='leaf' ? leafGeo()
             : kind==='gem'  ? new THREE.OctahedronGeometry(.68,0)
             :                 new THREE.CylinderGeometry(.11,.28,1.8,5);
   const im=new THREE.InstancedMesh(geo,
@@ -1223,10 +1253,11 @@ const ROAD_PTS = [[0,22],[-7,14],[6,8],[-5,2],[7,-4],[-3,-9],[0,-11]];
 const LAVA_PTS = [[14.5,-18],[7,-15],[0,-13],[-8,-9],[-15,-4]];
 
 /* 地形に沿うリボン（道・溶岩の川）。彫った谷の底をなぞる */
-function terrainRibbon(curve, half, lift, segs, sh){
+function terrainRibbon(curve, half, lift, segs, sh, uMax){
   const pos=[], uv=[], idx=[];
+  const UM = (uMax===undefined) ? 1 : uMax;
   for(let i=0;i<=segs;i++){
-    const u=i/segs, p=curve.getPointAt(u), tg=curve.getTangentAt(u);
+    const u=(i/segs)*UM, p=curve.getPointAt(u), tg=curve.getTangentAt(u);
     let nx=-tg.z, nz=tg.x; const L=Math.hypot(nx,nz)||1; nx/=L; nz/=L;
     for(let s=-1;s<=1;s+=2){
       const x=p.x+nx*half*s, z=p.z+nz*half*s;
@@ -1410,9 +1441,21 @@ function buildContinent(){
     {t:'pit',     x:S2[0], z:S2[1], r:14, d:26},                 // 落とし穴
     {t:'basin',   x:S3[0], z:S3[1], r:28, d:5},                  // 闇の魔の森の凹地
   ];
-  th.shape.chan=[{ pts: LAVA_PTS.map(p=>rw(p[0],p[1])), w:17, d:12 }];  // 溶岩の谷
-
+  th.shape.chan=null;                      // 谷は地形を測ってから彫る
   const sh=makeShape(11, th.shape, R_CONT);
+
+  // 彫る前の高さを測り、始点から終点へ単調に下る谷底を決める（川が坂を登らないように）
+  const cpts=LAVA_PTS.map(p=>rw(p[0],p[1]));
+  const yTop=sh.surfaceY(cpts[0][0],cpts[0][1]);
+  const yBot=sh.surfaceY(cpts[cpts.length-1][0],cpts[cpts.length-1][1]);
+  const chan={ pts:cpts, w:21, y0:yTop-9, y1:Math.min(yBot, yTop-9)-17 };
+  th.shape.chan=[chan];
+  const dChan=(x,z)=>{ let b=Infinity;
+    for(let i=0;i<chan.pts.length-1;i++){
+      const a=chan.pts[i], q=chan.pts[i+1], vx=q[0]-a[0], vz=q[1]-a[1], L2=vx*vx+vz*vz;
+      const t=L2?Math.max(0,Math.min(1,((x-a[0])*vx+(z-a[1])*vz)/L2)):0;
+      b=Math.min(b, Math.hypot(x-(a[0]+vx*t), z-(a[1]+vz*t)));
+    } return b; };
   const grp=new THREE.Group(), mat=makeRockMat(th);
   buildTerrain(sh, th, mat, grp, LOW?56:96, LOW?116:192, R_CONT);
   const fx={flows:[], curtains:[], rise:null, bolts:null, spin:null,
@@ -1421,18 +1464,22 @@ function buildContinent(){
   const P3=(rx,rz,lift)=>{ const a=rw(rx,rz);
     return new THREE.Vector3(a[0], sh.surfaceY(a[0],a[1])+(lift||0), a[1]); };
 
-  /* ── 道：彫った地形をなぞる黄金のリボン ── */
+  /* ── 道：黄色い帯ではなく、踏み固められたけもの道。道筋は矢印に任せる ── */
   const roadCurve=new THREE.CatmullRomCurve3(ROAD_PTS.map(p=>P3(p[0],p[1])),false,'catmullrom',0.3);
-  grp.add(new THREE.Mesh(terrainRibbon(roadCurve,4.8,1.3,460,sh),
-    new THREE.MeshStandardMaterial({color:0xe7c266, emissive:0xb8860b, emissiveIntensity:.42,
-      metalness:.2, roughness:.62, side:THREE.DoubleSide})));
+  let uRoad=1;                                  // 谷の手前で道は途切れる（渡るのは橋）
+  for(let i=460;i>=0;i--){
+    const u=i/460, p=roadCurve.getPointAt(u);
+    if(dChan(p.x,p.z) > chan.w*0.95){ uRoad=u; break; }
+  }
+  const trackMat=new THREE.MeshStandardMaterial({color:0x8b7a58, roughness:.99, metalness:0,
+    side:THREE.DoubleSide, transparent:true, opacity:.82});
+  grp.add(new THREE.Mesh(terrainRibbon(roadCurve,2.5,.55,440,sh,uRoad), trackMat));
   const arrowMat=new THREE.MeshStandardMaterial({color:0xfff0b0, emissive:0xffd24a,
-    emissiveIntensity:1.3, roughness:.3});
+    emissiveIntensity:1.4, roughness:.3});
   const addArrows=(curve,n,onTerrain)=>{
-    const im=new THREE.InstancedMesh(new THREE.ConeGeometry(1.6,5.0,4), arrowMat, n);
+    const im=new THREE.InstancedMesh(new THREE.ConeGeometry(1.7,5.4,4), arrowMat, n);
     grp.add(im); fx.arrows.push({mesh:im, curve, n, sh, onTerrain});
   };
-  addArrows(roadCurve, LOW?10:18, true);
 
   /* ── 溶岩：火口の湖 → 山肌 → 彫った谷を流れる川 ── */
   const lavaMat=lavaFlowMat(); fx.lavas.push(lavaMat);
@@ -1447,11 +1494,11 @@ function buildContinent(){
   const fallCurve=new THREE.CatmullRomCurve3([
     new THREE.Vector3(lipX, sh.surfaceY(lipX,lipZ), lipZ),
     P3(16.6,-21.5,0), P3(14.5,-18,0)], false,'catmullrom',.3);
-  grp.add(new THREE.Mesh(flowRibbon(fallCurve,6.4,140,sh,1.0), lavaMat));
+  grp.add(new THREE.Mesh(terrainRibbon(fallCurve,6.4,1.0,140,sh), lavaMat));
   const lavaCurve=new THREE.CatmullRomCurve3(LAVA_PTS.map(p=>P3(p[0],p[1],1.0)),false,'catmullrom',0.4);
-  grp.add(new THREE.Mesh(flowRibbon(lavaCurve,10.5,340,sh,1.0), lavaMat));
-  const NB2=LOW?14:28;
-  const bub=new THREE.InstancedMesh(new THREE.SphereGeometry(1.35,10,10),
+  grp.add(new THREE.Mesh(terrainRibbon(lavaCurve,11.5,1.0,340,sh), lavaMat));
+  const NB2=LOW?10:18;
+  const bub=new THREE.InstancedMesh(new THREE.SphereGeometry(.85,10,10),
     new THREE.MeshStandardMaterial({color:0xff7a22, emissive:0xff4808, emissiveIntensity:2.2}), NB2);
   const bubList=[];
   for(let i=0;i<NB2;i++){
@@ -1499,28 +1546,46 @@ function buildContinent(){
   const cliffTop=sh.surfaceY(CB[0],CB[1]);
   const CASTLE_Y=cliffTop+52;                       // 崖の上ではなく、さらに上空に浮く
 
-  /* ── 崖を登る道（螺旋）と、崖上から城へ昇る矢印 ── */
+  /* ── 橋の位置と向き（川に直交・岸の高さ）。矢印の道筋にも使う ── */
+  const BR=rw(0,-13);
+  const lp0=rw(LAVA_PTS[1][0],LAVA_PTS[1][1]), lp1=rw(LAVA_PTS[3][0],LAVA_PTS[3][1]);
+  let cpx=-(lp1[1]-lp0[1]), cpz=lp1[0]-lp0[0];
+  const cpl=Math.hypot(cpx,cpz)||1; cpx/=cpl; cpz/=cpl;         // 川に直交する向き
+  // 高さは谷底から決める。両岸を測ると片側が近くの崖を拾って跳ね上がるため使わない
+  const BRIDGE_Y=sh.surfaceY(BR[0],BR[1]) + 17;
+  const BRIDGE_ANG=Math.atan2(cpx, cpz);
+
+  /* ── 崖の細い足場。帯にはせず、通れる幅だけ ── */
+  const climb=[new THREE.Vector3(BR[0]-cpx*(chan.w+9), BRIDGE_Y-1, BR[1]-cpz*(chan.w+9))];
+  for(let i=0;i<=9;i++){
+    const q=i/9;
+    const ang=Math.atan2(BR[1]-CB[1], BR[0]-CB[0]) + q*Math.PI*1.45;
+    const rr=40-q*9;
+    const x=CB[0]+Math.cos(ang)*rr, z=CB[1]+Math.sin(ang)*rr;
+    climb.push(new THREE.Vector3(x, sh.surfaceY(x,z)+1.2, z));
+  }
+  climb.push(new THREE.Vector3(CB[0], cliffTop+1.2, CB[1]));
+  const climbCurve=new THREE.CatmullRomCurve3(climb,false,'catmullrom',.25);
+  grp.add(new THREE.Mesh(terrainRibbon(climbCurve,1.9,.5,300,sh), trackMat));
+
+  /* ── 道筋は矢印一本で通す：現在地 → 橋 → 崖 → 天空の城 ── */
   {
-    const climb=[P3(0,-11,1.4)];
-    for(let i=0;i<=9;i++){
-      const q=i/9, ang=Math.atan2(P3(0,-11,0).z-CB[1], P3(0,-11,0).x-CB[0]) + q*Math.PI*1.5;
-      const rr=42-q*10;
-      const x=CB[0]+Math.cos(ang)*rr, z=CB[1]+Math.sin(ang)*rr;
-      climb.push(new THREE.Vector3(x, sh.surfaceY(x,z)+1.4, z));
+    const route=[];
+    for(let i=0;i<=30;i++){
+      const p=roadCurve.getPointAt((i/30)*uRoad);
+      route.push(new THREE.Vector3(p.x, sh.surfaceY(p.x,p.z)+3.4, p.z));
     }
-    climb.push(new THREE.Vector3(CB[0], cliffTop+1.4, CB[1]));
-    const climbCurve=new THREE.CatmullRomCurve3(climb,false,'catmullrom',.25);
-    grp.add(new THREE.Mesh(terrainRibbon(climbCurve,3.6,1.5,300,sh),
-      new THREE.MeshStandardMaterial({color:0xd8b45e, emissive:0xa8790b,
-        emissiveIntensity:.40, roughness:.7, side:THREE.DoubleSide})));
-    addArrows(climbCurve, LOW?7:12, true);
-    // 崖上 → 天空の城
-    const asc=new THREE.CatmullRomCurve3([
-      new THREE.Vector3(CB[0], cliffTop+3, CB[1]),
-      new THREE.Vector3(CB[0]+11, cliffTop+22, CB[1]+7),
-      new THREE.Vector3(CB[0]-6, cliffTop+40, CB[1]-4),
-      new THREE.Vector3(CB[0], CASTLE_Y-20, CB[1])], false,'catmullrom',.3);
-    addArrows(asc, LOW?5:9, false);
+    route.push(new THREE.Vector3(BR[0]+cpx*(chan.w+6), BRIDGE_Y+4.2, BR[1]+cpz*(chan.w+6)));
+    route.push(new THREE.Vector3(BR[0],               BRIDGE_Y+4.2, BR[1]));
+    route.push(new THREE.Vector3(BR[0]-cpx*(chan.w+6), BRIDGE_Y+4.2, BR[1]-cpz*(chan.w+6)));
+    for(let i=1;i<=24;i++){
+      const p=climbCurve.getPointAt(i/24);
+      route.push(new THREE.Vector3(p.x, p.y+3.0, p.z));
+    }
+    route.push(new THREE.Vector3(CB[0]+11, cliffTop+24, CB[1]+7));
+    route.push(new THREE.Vector3(CB[0]-6,  cliffTop+44, CB[1]-4));
+    route.push(new THREE.Vector3(CB[0],    CASTLE_Y-20, CB[1]));
+    addArrows(new THREE.CatmullRomCurve3(route,false,'catmullrom',.25), LOW?18:34, false);
   }
   const toriiGeo=buildTorii(), toriiMat=stoneMat(0xffffff,.72,0);
   const castleMat=stoneMat(0xffffff,.66,.10);
@@ -1546,10 +1611,8 @@ function buildContinent(){
     } else if(sec.kind==='bridge'){
       // 橋は谷底ではなく岸の高さに架ける。谷の彫り込み量から決める
       // （周囲を全方位で測ると近くの崖を拾ってしまうので使わない）
-      base = sh.surfaceY(a[0],a[1]) + th.shape.chan[0].d + 1.2;
-      // 橋は川に直交させる（道の接線ではなく、溶岩の流れの向きから決める）
-      const lp0=rw(LAVA_PTS[1][0],LAVA_PTS[1][1]), lp1=rw(LAVA_PTS[3][0],LAVA_PTS[3][1]);
-      const ang=Math.atan2(-(lp1[1]-lp0[1]), lp1[0]-lp0[0]);
+      base = BRIDGE_Y;
+      const ang = BRIDGE_ANG;
       const B=new THREE.Group(); B.rotation.y=ang; scn.add(B);
       const wood=new THREE.MeshStandardMaterial({color:0x7d5c34, roughness:.92});
       for(let i=0;i<13;i++){                                   // 板
@@ -1671,7 +1734,18 @@ function buildContinent(){
           }
         }
         eyes.instanceMatrix.needsUpdate=true; scn.add(eyes);
-        orbY=24;
+        // 闇そのもので包む。木を暗くするだけでは「枯れ木」にしか見えない
+        const dome=new THREE.Mesh(
+          new THREE.SphereGeometry(34,22,14,0,Math.PI*2,0,Math.PI*0.58),
+          new THREE.MeshBasicMaterial({color:0x090414, transparent:true, opacity:.62,
+            side:THREE.DoubleSide, depthWrite:false, fog:false}));
+        dome.position.y=-4; scn.add(dome);
+        const dome2=new THREE.Mesh(
+          new THREE.SphereGeometry(24,20,12,0,Math.PI*2,0,Math.PI*0.60),
+          new THREE.MeshBasicMaterial({color:0x14082a, transparent:true, opacity:.55,
+            side:THREE.DoubleSide, depthWrite:false, fog:false}));
+        dome2.position.y=-3; scn.add(dome2);
+        orbY=30;
       } else if(sec.h.indexOf('毒沼')>=0){
         const pb=makeFlow(LOW?40:120, 0xb06adf, {r:20, y0:4, y1:26, speed:.06, size:7.14, op:.45});
         scn.add(pb); fx.flows.push(pb); orbY=16;
@@ -1708,7 +1782,8 @@ function buildContinent(){
     const num=new THREE.Sprite(new THREE.SpriteMaterial({map:numTex(k+1),transparent:true,fog:false,
       sizeAttenuation:false,depthTest:false}));
     num.scale.set(.030,.030,1); num.position.y=orbY; num.renderOrder=13; g2.add(num);
-    const hit=new THREE.Mesh(new THREE.SphereGeometry(isGoal?18:8,10,8),
+    // 当たり判定は大陸の縮尺に合わせて広く（スマホで押しにくかったため）
+    const hit=new THREE.Mesh(new THREE.SphereGeometry(isGoal?46:24,10,8),
       new THREE.MeshBasicMaterial({visible:false}));
     hit.position.y=orbY; hit.userData={isle:5, sec:k}; g2.add(hit);
     let ring=null, gate=null;
@@ -1934,7 +2009,7 @@ renderer.domElement.addEventListener('pointerdown',e=>{ down=[e.clientX,e.client
 renderer.domElement.addEventListener('pointerup',e=>{
   if(!down) return;
   const moved=Math.hypot(e.clientX-down[0],e.clientY-down[1]); down=null; idleAt=performance.now();
-  if(moved>6) return;
+  if(moved > (e.pointerType==='touch' ? 16 : 7)) return;   // 指は少し動くので甘めに
   setPtr(e); ray.setFromCamera(ptr,camera);
   if(focus>=0){
     const hits=ray.intersectObjects(islands[focus].marks.map(m=>m.hit),false);

@@ -667,8 +667,10 @@ function makeFlow(n, hex, o){
   g.setAttribute('position',new THREE.BufferAttribute(pos,3));
   g.setAttribute('aPhase',new THREE.BufferAttribute(ph,1));
   g.setAttribute('aSize',new THREE.BufferAttribute(sz,1));
+  // dark:true は「光を足す」のではなく「覆って暗くする」。霧や闇はこちらでないと逆効果
   return new THREE.Points(g,new THREE.ShaderMaterial({
-    transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, fog:false,
+    transparent:true, depthWrite:false, fog:false,
+    blending: o.dark ? THREE.NormalBlending : THREE.AdditiveBlending,
     uniforms:{uT:{value:0},uTex:{value:SPRITE},uPix:{value:renderer.getPixelRatio()},
       uC:{value:new THREE.Color(hex)},uY0:{value:o.y0},uY1:{value:o.y1},
       uSpd:{value:o.speed||.16},uDX:{value:o.dx||0},uDZ:{value:o.dz||0},uOp:{value:o.op||.7}},
@@ -763,9 +765,10 @@ function makeRiser(kind, x, z, y0, h, hex){
             float ring=smoothstep(0.0,0.34,vU.x)*smoothstep(1.0,0.66,vU.x);
             float life=smoothstep(0.0,0.07,vU.y)*smoothstep(1.0,0.48,vU.y);
             float flick=0.86+0.14*sin(uT*7.0+vU.y*9.0);
-            vec3 c=mix(vec3(1.0,0.22,0.03), vec3(1.0,0.72,0.24), body);
-            c=mix(c, vec3(1.0,0.96,0.80), core);
-            gl_FragColor=vec4(c*(0.7+body*1.9)*flick, (body*0.55+core*0.45)*ring*life*0.50);
+            // 明るくしすぎるとトーンマッピングで色が抜けて白い煙になる。炎の色域に留める
+            vec3 c=mix(vec3(1.0,0.16,0.02), vec3(1.0,0.55,0.10), body);
+            c=mix(c, vec3(1.0,0.86,0.42), core*0.7);
+            gl_FragColor=vec4(c*(0.45+body*0.55)*flick, (body*0.55+core*0.45)*ring*life*0.68);
           }`}));
     scene.add(tube); RISERS.push({kind:'flame', tube});
     const em=makeFlow(LOW?80:200, 0xff8a3a, {r:16, y0:0, y1:h, speed:.055, size:2.0, op:.6});
@@ -861,6 +864,11 @@ function buildTerrain(sh, th, mat, grp, nu, nt, R){
     c.lerp(cRockHi,  sstep(.42,1.15,slope));
     c.lerp(cGlow,    clamp(fbm(x*.22/sc,8.8,z*.22/sc,2),0,1)*.16*wet);
     c.multiplyScalar(.34+.66*sh.aoAt(x,z));
+    // 地面そのものを染める（半透明の被せ物は描画順に左右されるので使わない）
+    if(th.stains) for(let s2=0;s2<th.stains.length;s2++){
+      const st=th.stains[s2], dd=Math.hypot(x-st.x, z-st.z);
+      if(dd<st.r) c.lerp(st.c, st.a*Math.pow(1-dd/st.r, .65));
+    }
     return {x,y,z,c};
   },true), mat);
   top.receiveShadow=!LOW; top.castShadow=!LOW; grp.add(top);
@@ -1456,6 +1464,12 @@ function buildContinent(){
       const t=L2?Math.max(0,Math.min(1,((x-a[0])*vx+(z-a[1])*vz)/L2)):0;
       b=Math.min(b, Math.hypot(x-(a[0]+vx*t), z-(a[1]+vz*t)));
     } return b; };
+  // 地面を染める場所（闇の森・毒沼・燃えた跡）。頂点色に焼き込むので確実に効く
+  th.stains=[
+    {x:S3[0],   z:S3[1],   r:36, c:new THREE.Color(0x0b0814), a:.94},
+    {x:S1[0],   z:S1[1],   r:34, c:new THREE.Color(0x3b2450), a:.72},
+    {x:BURN[0], z:BURN[1], r:28, c:new THREE.Color(0x241310), a:.80},
+  ];
   const grp=new THREE.Group(), mat=makeRockMat(th);
   buildTerrain(sh, th, mat, grp, LOW?56:96, LOW?116:192, R_CONT);
   const fx={flows:[], curtains:[], rise:null, bolts:null, spin:null,
@@ -1525,6 +1539,9 @@ function buildContinent(){
     if(nearCurve(x,z,lavaCurve,26) || nearCurve(x,z,roadCurve,9)) continue;
     if((x-V[0])*(x-V[0])+(z-V[1])*(z-V[1]) < 5200) continue;
     if((x-CB[0])*(x-CB[0])+(z-CB[1])*(z-CB[1]) < 1300) continue;
+    if((x-S3[0])*(x-S3[0])+(z-S3[1])*(z-S3[1]) < 1300) continue;   // 闇の魔の森には生やさない
+    if((x-S1[0])*(x-S1[0])+(z-S1[1])*(z-S1[1]) < 1200) continue;   // 毒沼にも
+    if((x-BURN[0])*(x-BURN[0])+(z-BURN[1])*(z-BURN[1]) < 700) continue; // 燃える森にも
     const y=sh.surfaceY(x,z), s2=2.2+Math.random()*2.6;
     dm.position.set(x,y,z);
     dm.rotation.set((Math.random()-.5)*.14, Math.random()*6.28, (Math.random()-.5)*.14);
@@ -1715,9 +1732,11 @@ function buildContinent(){
         if(dk.instanceColor) dk.instanceColor.needsUpdate=true;
         dk.castShadow=!LOW; dk.userData.occluder=true; scn.add(dk);
         // 地を這う澱んだ靄（低く・濃く・遅く）
-        const mist=makeFlow(LOW?70:190, 0x4a2a6e, {r:27, y0:0, y1:11, speed:.022, size:17.64, op:.42});
+        const mist=makeFlow(LOW?70:190, 0x1a0f2c, {r:29, y0:0, y1:13, speed:.022,
+          size:20, op:.55, dark:true});
         scn.add(mist); fx.flows.push(mist);
-        const mist2=makeFlow(LOW?40:110, 0x180e28, {r:24, y0:0, y1:5, speed:.014, size:25.2, op:.5});
+        const mist2=makeFlow(LOW?40:110, 0x080410, {r:25, y0:0, y1:6, speed:.014,
+          size:28, op:.62, dark:true});
         scn.add(mist2); fx.flows.push(mist2);
         // 闇の中で光る目
         const NE=LOW?8:16;
@@ -1734,18 +1753,7 @@ function buildContinent(){
           }
         }
         eyes.instanceMatrix.needsUpdate=true; scn.add(eyes);
-        // 闇そのもので包む。木を暗くするだけでは「枯れ木」にしか見えない
-        const dome=new THREE.Mesh(
-          new THREE.SphereGeometry(34,22,14,0,Math.PI*2,0,Math.PI*0.58),
-          new THREE.MeshBasicMaterial({color:0x090414, transparent:true, opacity:.62,
-            side:THREE.DoubleSide, depthWrite:false, fog:false}));
-        dome.position.y=-4; scn.add(dome);
-        const dome2=new THREE.Mesh(
-          new THREE.SphereGeometry(24,20,12,0,Math.PI*2,0,Math.PI*0.60),
-          new THREE.MeshBasicMaterial({color:0x14082a, transparent:true, opacity:.55,
-            side:THREE.DoubleSide, depthWrite:false, fog:false}));
-        dome2.position.y=-3; scn.add(dome2);
-        orbY=30;
+        orbY=30;   // 地面の暗さは th.stains で頂点色に焼き込んでいる
       } else if(sec.h.indexOf('毒沼')>=0){
         const pb=makeFlow(LOW?40:120, 0xb06adf, {r:20, y0:4, y1:26, speed:.06, size:7.14, op:.45});
         scn.add(pb); fx.flows.push(pb); orbY=16;

@@ -1263,7 +1263,9 @@ const rw = (rx,rz) => [ (rx-R_CX)*R_SC, (rz-R_CZ)*R_SC ];
 
 const ROADMAP = {
   no:'ROADMAP', tag:'内製化ロードマップ', title:'内製化への道 ─ 天空の城まで',
-  theme:'land', img:'', url:'',
+  theme:'land', img:'',
+  url:'https://note.com/ai_naiseika/n/nbf98e9add127',   // 記事11（このロードマップの原典）
+  linkLabel:'原典の記事11を読む',
   full:'記事11「成功への道マップ3D」の再現。この大陸は、5つの島（＝5部作で得た理解）の上に立っています。',
   sections:[
     {h:'現在地（スタート）', rx:0, rz:22, kind:'start',
@@ -1284,7 +1286,8 @@ const ROADMAP = {
      t:'橋を渡り、険しい崖を登った先。内製化の先にある、自社のためのシステムです。', b:[],
      video:'https://youtu.be/c1A3KVXweG0'},
     {h:'GitHubの島', rx:-11, rz:-26, kind:'github',
-     t:'できあがったものを、静かに置いておく場所。城の隣に浮かんでいます。', b:[]},
+     t:'できあがったものを、静かに置いておく場所。城の隣に浮かんでいます。', b:[],
+     video:'https://youtu.be/c1A3KVXweG0'},
     {h:'毒沼：全員に丸投げ／個人に丸投げ', rx:12, rz:16, kind:'trap',
      t:'手前で広く沈む。使い道なく属人化する。', b:[]},
     {h:'落とし穴：旗を振る人がいない', rx:-11, rz:9, kind:'trap', topDown:true,
@@ -2110,7 +2113,7 @@ function openSec(i,k){
   $('.full').textContent=I.data.full;
   const a=$('.art'), link=sec.video||I.data.url;
   if(link){ a.href=link; a.classList.remove('off');
-    a.textContent = sec.video ? '▶ 解説動画を見る' : 'この回を読む'; }
+    a.textContent = sec.video ? '▶ 解説動画を見る' : (I.data.linkLabel||'この回を読む'); }
   else { a.removeAttribute('href'); a.classList.add('off'); a.textContent='この回は公開後にリンクします'; }
   document.getElementById('prev').disabled = k<=0;
   document.getElementById('next').disabled = k>=I.data.sections.length-1;

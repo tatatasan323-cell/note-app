@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Anthropicが Claude Code の内部指示を8割超削除。Claude 5世代（Opus 5 / Fable 5）で何が変わり、何を削ればよいか。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ＡＩ内製化時報 第001号 ─ システムプロンプト、八割削除">
+<meta property="og:description" content="削っても、性能は落ちなかった。Claude Code を使う場合に、いま指示書から何を削るか。">
+<meta property="og:image" content="https://tatatasan323-cell.github.io/note-app/jihou-001.png">
+<meta property="og:url" content="https://tatatasan323-cell.github.io/note-app/jihou-001.html">
+<meta name="twitter:card" content="summary_large_image">
+<style>html{-webkit-text-size-adjust:100%}body{margin:0}</style>
+</head>
+<body>
+<title>ＡＩ内製化時報 第001号 ─ システムプロンプト、八割削除</title>
+
+<style>
+:root{
+  --paper:#F1F2EE; --paper-2:#E6E7E0; --paper-3:#DCDDD4;
+  --ink:#17191A; --ink-2:#484C4C; --ink-3:#7B7F7B;
+  --shu:#BE3427; --ai:#27496D; --rule:#C4C5BC;
+  --gothic:"Yu Gothic UI","Yu Gothic",YuGothic,"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",Meiryo,sans-serif;
+  --mincho:"Yu Mincho",YuMincho,"Hiragino Mincho ProN","Noto Serif JP","MS PMincho",serif;
+  --mono:ui-monospace,"SFMono-Regular",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#131412; --paper-2:#1C1E1A; --paper-3:#24261F;
+    --ink:#E9E9E1; --ink-2:#B2B4AB; --ink-3:#82857C;
+    --shu:#E2594A; --ai:#8DB2D8; --rule:#35372F;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#131412; --paper-2:#1C1E1A; --paper-3:#24261F;
+  --ink:#E9E9E1; --ink-2:#B2B4AB; --ink-3:#82857C;
+  --shu:#E2594A; --ai:#8DB2D8; --rule:#35372F;
+}
+:root[data-theme="light"]{
+  --paper:#F1F2EE; --paper-2:#E6E7E0; --paper-3:#DCDDD4;
+  --ink:#17191A; --ink-2:#484C4C; --ink-3:#7B7F7B;
+  --shu:#BE3427; --ai:#27496D; --rule:#C4C5BC;
+}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);}
+.paper{
+  max-width:1120px; margin:0 auto; padding:28px 22px 90px;
+  font-family:var(--mincho); font-size:16.5px; line-height:1.95;
+  letter-spacing:.01em;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--ai)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--shu); outline-offset:3px}
+
+/* ── 題字 ───────────────────────── */
+.masthead{display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap}
+.logo{font-family:var(--mincho); font-weight:700; font-size:clamp(38px,7vw,68px); line-height:1;
+  letter-spacing:.14em; margin:0}
+.logo .dot{color:var(--shu)}
+.logo-sub{font-family:var(--gothic); font-size:11.5px; letter-spacing:.32em; color:var(--ink-3);
+  margin-top:12px}
+.issue{font-family:var(--gothic); font-size:11.5px; line-height:2; color:var(--ink-2); text-align:right;
+  font-variant-numeric:tabular-nums}
+.issue b{color:var(--ink); font-weight:700}
+.rule-double{border-top:4px solid var(--ink); border-bottom:1px solid var(--ink); height:5px; margin:14px 0 0}
+.strip{display:flex; gap:0; flex-wrap:wrap; font-family:var(--gothic); font-size:11.5px;
+  letter-spacing:.18em; color:var(--ink-2); border-bottom:1px solid var(--rule); padding:9px 0 10px}
+.strip span{padding-right:22px; margin-right:22px; border-right:1px solid var(--rule)}
+.strip span:last-child{border-right:0}
+
+/* ── 一面 ───────────────────────── */
+.hero{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:40px; padding:34px 0 8px; align-items:start}
+/* 両方に row/column を明示する。片方だけだと auto-placement が本文を2行目に落とし、
+   見出しの左に空の1行目ができる（＝紙面冒頭の巨大な余白の原因） */
+.hero-body{grid-column:1; grid-row:1}
+.hero-head{grid-column:2; grid-row:1}
+.vhead{
+  writing-mode:vertical-rl; font-family:var(--gothic); font-weight:900;
+  font-size:clamp(40px,6.6vw,74px); line-height:1.14; letter-spacing:.05em;
+  /* 縦組みでは height が行の長さ。ビューポート依存にすると1字あふれて語中で折れる */
+  height:max-content; margin:0;
+}
+.vhead em{font-style:normal; color:var(--shu)}
+.vsub{writing-mode:vertical-rl; font-family:var(--gothic); font-weight:700;
+  font-size:clamp(15px,1.7vw,19px); letter-spacing:.16em; color:var(--ink-2);
+  border-right:1px solid var(--rule); padding-right:20px; margin:0 20px 0 0; height:max-content}
+.hero-head{display:flex; flex-direction:row-reverse; gap:0}
+.eyebrow{display:inline-block; font-family:var(--gothic); font-weight:800; font-size:12px;
+  letter-spacing:.3em; color:var(--paper); background:var(--shu); padding:5px 14px 5px 18px; margin-bottom:18px}
+.lede{font-size:17.5px; line-height:2.1; margin:0 0 22px}
+.lede b{background:linear-gradient(transparent 62%, color-mix(in srgb,var(--shu) 26%, transparent) 62%)}
+.hero-body p{margin:0 0 18px}
+.byline{font-family:var(--gothic); font-size:11.5px; letter-spacing:.16em; color:var(--ink-3);
+  border-top:1px solid var(--rule); padding-top:12px; margin-top:6px}
+
+.stamp{
+  display:inline-block; font-family:var(--gothic); font-weight:900; font-size:14px; letter-spacing:.24em;
+  color:var(--shu); border:3px double var(--shu); border-radius:4px; padding:10px 14px 10px 18px;
+  transform:rotate(-7deg); margin:6px 0 22px;
+}
+
+/* ── 見出し体系 ───────────────── */
+.sec{margin:64px 0 0}
+.sec-no{font-family:var(--mono); font-size:12px; letter-spacing:.2em; color:var(--shu)}
+h2{font-family:var(--gothic); font-weight:900; font-size:clamp(24px,3.4vw,34px); line-height:1.4;
+  letter-spacing:.04em; margin:6px 0 4px}
+.sec-lead{font-family:var(--gothic); font-size:13px; letter-spacing:.1em; color:var(--ink-3); margin:0 0 22px}
+.hr-thick{border:0; border-top:3px solid var(--ink); margin:0 0 24px}
+h3{font-family:var(--gothic); font-weight:800; font-size:19px; letter-spacing:.03em;
+  margin:34px 0 10px; padding-left:13px; border-left:5px solid var(--shu)}
+h4{font-family:var(--gothic); font-weight:800; font-size:15px; letter-spacing:.05em; margin:24px 0 8px; color:var(--ink-2)}
+p{margin:0 0 16px}
+
+.cols2{columns:2; column-gap:44px; column-rule:1px solid var(--rule)}
+.cols2 p{margin:0 0 16px; break-inside:avoid}
+.cols2 h4{margin-top:0}
+
+/* ── 図解 ───────────────────────── */
+figure{margin:30px 0; padding:22px 20px 16px; background:var(--paper-2); border-top:2px solid var(--ink)}
+figure svg{display:block; width:100%; height:auto}
+/* SVG は presentation attribute だと var() が解決されないため、必ずクラスで着色する */
+figure svg text{font-family:var(--gothic)}
+figure svg .mono{font-family:var(--mono)}
+figure svg .f-ink{fill:var(--ink)}
+figure svg .f-ink2{fill:var(--ink-2)}
+figure svg .f-ink3{fill:var(--ink-3)}
+figure svg .f-paper{fill:var(--paper)}
+figure svg .f-shu{fill:var(--shu)}
+figure svg .f-ai{fill:var(--ai)}
+figure svg .f-none{fill:none}
+figure svg .s-ink{stroke:var(--ink)}
+figure svg .s-ink3{stroke:var(--ink-3)}
+figure svg .s-rule{stroke:var(--rule)}
+figure svg .s-shu{stroke:var(--shu)}
+figure svg .s-ai{stroke:var(--ai)}
+figcaption{font-family:var(--gothic); font-size:12.5px; line-height:1.85; color:var(--ink-2); margin-top:14px;
+  padding-top:10px; border-top:1px solid var(--rule)}
+figcaption b{color:var(--ink); font-weight:800}
+
+/* ── 表 ─────────────────────────── */
+.tablewrap{overflow-x:auto; margin:24px 0}
+table{border-collapse:collapse; width:100%; min-width:660px; font-size:14.5px}
+caption{font-family:var(--gothic); font-size:12.5px; letter-spacing:.14em; color:var(--ink-3);
+  text-align:left; padding-bottom:9px}
+th,td{border-bottom:1px solid var(--rule); padding:13px 12px; text-align:left; vertical-align:top; line-height:1.8}
+thead th{font-family:var(--gothic); font-size:12.5px; letter-spacing:.1em; background:var(--paper-2);
+  border-bottom:2px solid var(--ink); white-space:nowrap}
+tbody th{font-family:var(--mono); font-weight:400; color:var(--shu); width:2.6em; font-size:13px}
+td.was{color:var(--ink-3)}
+td.now{font-weight:600}
+tbody tr:hover{background:var(--paper-2)}
+
+/* ── 削除デモ ───────────────────── */
+.demo{display:grid; grid-template-columns:1fr 1fr; gap:0; border:1px solid var(--rule); margin:26px 0}
+.demo>div{padding:20px 22px}
+.demo>div+div{border-left:1px solid var(--rule)}
+.demo h4{margin-top:0}
+.demo ul{list-style:none; padding:0; margin:0; font-family:var(--gothic); font-size:13.5px; line-height:1.9}
+.demo li{padding:7px 0; border-bottom:1px dotted var(--rule)}
+.cut{position:relative; display:inline}
+.cut::after{content:""; position:absolute; left:0; top:52%; height:2px; background:var(--shu);
+  width:0; transition:width .55s cubic-bezier(.4,0,.2,1)}
+.is-vis .cut::after{width:100%}
+.demo .keep{color:var(--ink)}
+.demo .gone{color:var(--ink-3)}
+.demo-note{font-family:var(--gothic); font-size:12px; color:var(--ink-3); margin:10px 0 0}
+@media (prefers-reduced-motion:reduce){ .cut::after{transition:none} }
+
+/* ── 実践欄 ─────────────────────── */
+.todo{list-style:none; padding:0; margin:22px 0; counter-reset:t}
+.todo li{counter-increment:t; display:grid; grid-template-columns:auto 1fr; gap:18px;
+  padding:20px 0; border-bottom:1px solid var(--rule)}
+.todo li::before{content:counter(t,decimal-leading-zero); font-family:var(--mono); font-size:22px;
+  color:var(--shu); line-height:1.3}
+.todo h4{margin:0 0 6px}
+.todo p{margin:0; font-size:15.5px}
+
+/* ── 囲み ───────────────────────── */
+.box{background:var(--paper-2); border:1px solid var(--rule); border-top:6px solid var(--ai);
+  padding:22px 24px; margin:30px 0}
+.box h4{margin-top:0; color:var(--ai)}
+.box.scope{border-top-color:var(--shu)}
+.box.scope h4{color:var(--shu)}
+.box.scope p{margin-bottom:12px}
+.box.scope p:last-child{margin-bottom:0}
+.box dl{margin:0; font-size:14.5px}
+.box dt{font-family:var(--gothic); font-weight:800; margin-top:14px}
+.box dt:first-child{margin-top:0}
+.box dd{margin:3px 0 0}
+.box code,p code,li code,td code{font-family:var(--mono); font-size:.88em; background:var(--paper-3);
+  padding:2px 6px; border-radius:2px}
+
+pre{font-family:var(--mono); font-size:13px; line-height:1.75; background:var(--paper-3);
+  padding:16px 18px; overflow-x:auto; border-left:4px solid var(--ai); margin:16px 0}
+
+.column{border:1px solid var(--ink); padding:24px 26px; margin:36px 0; background:var(--paper)}
+.column .tag{font-family:var(--gothic); font-weight:900; font-size:12px; letter-spacing:.26em;
+  color:var(--shu); display:block; margin-bottom:12px}
+.column p{margin-bottom:14px}
+.column p:last-child{margin-bottom:0}
+
+.sources{font-family:var(--gothic); font-size:13px; line-height:2.1; padding:0; list-style:none; margin:16px 0 0}
+.sources li{padding-left:1.5em; text-indent:-1.5em}
+.colophon{margin-top:56px; border-top:4px solid var(--ink); border-bottom:1px solid var(--ink);
+  padding:14px 0; font-family:var(--gothic); font-size:11.5px; letter-spacing:.12em; color:var(--ink-3);
+  display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap}
+
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr; gap:8px}
+  .hero-head{grid-column:1; grid-row:1; flex-direction:column}
+  .hero-body{grid-column:1; grid-row:2}
+  .vhead{writing-mode:horizontal-tb; height:auto; font-size:clamp(32px,8.4vw,46px); line-height:1.3}
+  .vsub{writing-mode:horizontal-tb; height:auto; border-right:0; border-left:4px solid var(--shu);
+    padding:0 0 0 14px; margin:0 0 18px}
+  .cols2{columns:1}
+  .demo{grid-template-columns:1fr}
+  .demo>div+div{border-left:0; border-top:1px solid var(--rule)}
+}
+</style>
+
+<div class="paper">
+
+  <header class="masthead">
+    <div>
+      <h1 class="logo">ＡＩ内製化時報<span class="dot">.</span></h1>
+      <div class="logo-sub">AI 内製化工房 MITA ／ 技術動向レポート</div>
+    </div>
+    <div class="issue">
+      <b>2026年（令和8年）7月28日 火曜日</b><br>
+第 001 号 ／ 全 1 面 ／ 不定期刊<br>
+      出典：Anthropic 公式ドキュメント・公式ブログ
+    </div>
+  </header>
+  <div class="rule-double"></div>
+  <nav class="strip">
+    <span>特報 ─ システムプロンプト八割削除</span>
+    <span>六つの転換</span>
+    <span>Opus 5 と Fable 5</span>
+    <span>実践欄 ─ 我々は何を削るか</span>
+  </nav>
+
+  <!-- ══ 一面 ══ -->
+  <section class="hero">
+    <div class="hero-head">
+      <h2 class="vhead">システム<br>プロンプト<br><em>八割削除</em></h2>
+      <p class="vsub">指示を足す時代から、削る時代へ</p>
+    </div>
+
+    <div class="hero-body">
+      <span class="eyebrow">特報</span>
+      <p class="lede">
+        Anthropic は 7月24日、最新モデル <b>Claude Opus 5</b> の公開に合わせ、
+        Claude Code の内部指示（システムプロンプト）を<b>八割以上削除した</b>と公表した。
+        削ったのに、コーディング性能の評価に測定可能な低下はなかったという。
+      </p>
+      <p>
+        同社が同日公開した記事「Claude 5 世代モデルにおけるコンテキスト・エンジニアリングの新しい規則」は、
+        その理由をこう説明する。かつて書かれた大量の指示は、モデルの<em>失敗を防ぐための足かせ</em>だった。
+        Claude 5 世代はその失敗をしなくなったため、足かせは効果を失い、
+        いまや互いに矛盾する指示と、無駄なトークン消費だけが残っている ── と。
+      </p>
+      <p>
+        つまり今回のニュースは「新しい書き方を覚えろ」ではない。<b>持っている指示書を減らせ</b>、である。
+        Claude Code に指示書を書き溜めてきた人ほど、いま損をしている可能性が高い。
+      </p>
+      <div class="stamp">要 保 存</div>
+      <p class="byline">編集・要約：Claude（Opus 5）／ 発行：AI内製化工房 MITA</p>
+    </div>
+  </section>
+
+  <!-- ══ 図1 ══ -->
+  <figure>
+    <svg viewBox="0 0 900 240" role="img" aria-label="システムプロンプトの削減量と、空いた領域の使われ方を示す帯グラフ">
+      <text class="f-ink2" x="0" y="18" font-size="13" font-weight="700">〈従来世代〉Claude Code の文脈の内訳</text>
+      <rect class="f-ink3" x="0" y="32" width="470" height="46" opacity="0.55"/>
+      <rect class="f-none s-rule" x="470" y="32" width="430" height="46" stroke-width="1"/>
+      <text class="f-paper" x="18" y="61" font-size="14" font-weight="800">システムプロンプト（内部指示）</text>
+      <text class="f-ink2" x="488" y="61" font-size="14">あなたのコード・会話・成果物</text>
+
+      <text class="f-ink2" x="0" y="122" font-size="13" font-weight="700">〈Claude 5 世代〉八割超を削除。性能低下は測定されず</text>
+      <rect class="f-shu" x="0" y="136" width="94" height="46"/>
+      <rect class="f-none s-ai" x="94" y="136" width="806" height="46" stroke-width="2"/>
+      <text class="f-paper mono" x="12" y="165" font-size="13" font-weight="700">残り2割</text>
+      <text class="f-ai" x="112" y="165" font-size="14" font-weight="800">空いた分は、すべてあなたの文脈に回る</text>
+
+      <line class="s-shu" x1="94" y1="190" x2="470" y2="190" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <path class="f-shu" d="M470 190 L458 185 L458 195 Z"/>
+      <path class="f-shu" d="M94 190 L106 185 L106 195 Z"/>
+      <text class="f-shu" x="196" y="216" font-size="12.5" font-weight="700">この帯が「削れた指示」＝ 取り戻した容量</text>
+    </svg>
+    <figcaption>
+      <b>図1</b>／ システムプロンプトは有限の容量を食う常駐コストである。指示を削れば、その分だけ実際の仕事（コード・会話・成果物）に使える幅が広がる。Anthropic は「削っても評価が落ちなかった」と述べており、<b>あの八割は、もはや働いていなかった</b>ということになる。
+    </figcaption>
+  </figure>
+
+  <!-- ══ 六つの転換 ══ -->
+  <section class="sec">
+    <div class="sec-no">SECTION 01</div>
+    <h2>六つの転換</h2>
+    <p class="sec-lead">公式ブログが挙げた、書き方の切り替えどころ</p>
+    <hr class="hr-thick">
+
+    <p>
+      Anthropic はこの削除作業から得た知見を、六つの「転換」として整理している。
+      いずれも共通しているのは、<b>モデルを縛るのをやめ、モデルが判断できる材料を渡す側に回る</b>という方向である。
+    </p>
+
+    <div class="tablewrap">
+      <table>
+        <caption>表1 ─ 公式ブログが示した六つの転換</caption>
+        <thead>
+          <tr><th>#</th><th>これまで</th><th>これから</th><th>具体例</th></tr>
+        </thead>
+        <tbody>
+          <tr><th>1</th><td class="was">ルールを与える</td><td class="now">判断を委ねる</td>
+            <td>「コメントは書くな」→「周囲のコードと同じコメント密度で書け」</td></tr>
+          <tr><th>2</th><td class="was">使用例を並べる</td><td class="now">道具の設計で語らせる</td>
+            <td>例文を積むより、ツールの引数名や選択肢そのものを分かる形にする</td></tr>
+          <tr><th>3</th><td class="was">全部を前置きする</td><td class="now">必要な時に開く</td>
+            <td>レビュー手順などは本体から出し、独立した Skill として必要時に読み込む</td></tr>
+          <tr><th>4</th><td class="was">大事なことは何度も書く</td><td class="now">道具の説明文に一度だけ</td>
+            <td>システムプロンプトとツール定義に同じ注意書きを重複させない</td></tr>
+          <tr><th>5</th><td class="was">CLAUDE.md に手で書き溜める</td><td class="now">自動記憶にまかせる</td>
+            <td>関連する記憶を Claude 側が自動保存する仕組みへ移行</td></tr>
+          <tr><th>6</th><td class="was">素朴な仕様書</td><td class="now">濃い参照物</td>
+            <td>文章での説明より、コード・テスト・成果物そのもの・採点基準を渡す</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      五番目の「自動記憶」については、公開直後から<em>制御を手放すことになる</em>という反発も出ている。
+      本紙の見立てでは、手書きの記憶をすべて捨てる必要はない。捨てるべきなのは
+      <b>「書いておかないと間違えるから書いた」種類の記憶</b>であって、
+      「本人にしか分からない事実」は依然として手で書く価値がある。
+    </p>
+  </section>
+
+  <!-- ══ 図2 ══ -->
+  <figure>
+    <svg viewBox="0 0 900 300" role="img" aria-label="全部を前置きする構成と、必要な時に読み込む構成の比較図">
+      <text class="f-ink3" x="0" y="16" font-size="13" font-weight="700">〈これまで〉全部を最初に積む</text>
+      <rect class="f-none s-ink3" x="0" y="30" width="330" height="240" stroke-width="1.5"/>
+      <rect class="f-ink3" x="16" y="46" width="298" height="30" opacity=".22"/><text class="f-ink2" x="28" y="66" font-size="12.5">全体の行動規範</text>
+      <rect class="f-ink3" x="16" y="82" width="298" height="30" opacity=".22"/><text class="f-ink2" x="28" y="102" font-size="12.5">コーディング規約</text>
+      <rect class="f-ink3" x="16" y="118" width="298" height="30" opacity=".22"/><text class="f-ink2" x="28" y="138" font-size="12.5">レビューの観点リスト</text>
+      <rect class="f-ink3" x="16" y="154" width="298" height="30" opacity=".22"/><text class="f-ink2" x="28" y="174" font-size="12.5">リリースの手順書</text>
+      <rect class="f-ink3" x="16" y="190" width="298" height="30" opacity=".22"/><text class="f-ink2" x="28" y="210" font-size="12.5">文書の書式ルール</text>
+      <rect class="f-ink3" x="16" y="226" width="298" height="30" opacity=".22"/><text class="f-ink2" x="28" y="246" font-size="12.5">障害対応の復旧手順</text>
+      <text class="f-shu" x="165" y="288" text-anchor="middle" font-size="12" font-weight="700">今日の仕事に無関係な指示も、毎回そこにいる</text>
+
+      <path class="s-ink" d="M360 150 L420 150" stroke-width="2"/>
+      <path class="f-ink" d="M420 150 L406 143 L406 157 Z"/>
+
+      <text class="f-ai" x="450" y="16" font-size="13" font-weight="700">〈これから〉核だけ常駐、あとは必要時に開く</text>
+      <rect class="f-ai" x="450" y="112" width="150" height="76"/>
+      <text class="f-paper" x="525" y="146" text-anchor="middle" font-size="14" font-weight="800">常駐する核</text>
+      <text class="f-paper" x="525" y="168" text-anchor="middle" font-size="11.5">＝ 判断の軸だけ</text>
+
+      <g class="f-none s-ai" stroke-width="1.5" stroke-dasharray="4 4">
+        <path d="M600 132 L690 60"/><path d="M600 145 L690 122"/><path d="M600 158 L690 184"/><path d="M600 170 L690 246"/>
+      </g>
+      <g font-size="12">
+        <rect class="f-none s-rule" x="690" y="42" width="200" height="34"/><text class="f-ink2" x="704" y="64">レビューの時だけ：観点リスト</text>
+        <rect class="f-none s-rule" x="690" y="104" width="200" height="34"/><text class="f-ink2" x="704" y="126">リリースの時だけ：手順書</text>
+        <rect class="f-none s-rule" x="690" y="166" width="200" height="34"/><text class="f-ink2" x="704" y="188">文書を書く時だけ：書式ルール</text>
+        <rect class="f-none s-rule" x="690" y="228" width="200" height="34"/><text class="f-ink2" x="704" y="250">障害の時だけ：復旧手順</text>
+      </g>
+    </svg>
+    <figcaption>
+      <b>図2</b>／ 逐次開示（progressive disclosure）の考え方。常駐させるのは「判断の軸」だけにし、
+      場面ごとの細則は <b>Skill</b> として切り出して、その作業をする時にだけ読み込ませる。
+      公式ドキュメントは CLAUDE.md について「毎セッション読まれるのだから、常に当てはまることだけを書け」と明言している。
+    </figcaption>
+  </figure>
+
+  <!-- ══ モデル別 ══ -->
+  <section class="sec">
+    <div class="sec-no">SECTION 02</div>
+    <h2>Opus 5 と Fable 5、それぞれの癖</h2>
+    <p class="sec-lead">同じ「Claude 5」でも、手綱の握り方は違う</p>
+    <hr class="hr-thick">
+
+    <h3>Claude Opus 5 ── 放っておくと、よく喋り、よく広げる</h3>
+    <div class="cols2">
+      <h4>削るべき指示</h4>
+      <p>
+        <b>「最後に検証工程を入れよ」「サブエージェントで確認せよ」といった検算の指示は削除する。</b>
+        Opus 5 は言われなくても自分の仕事を検証するため、指示を残すと<em>二重に検算して</em>トークンを浪費する。
+        「もう一度確認してから答えよ」の類も同じ理由で不要。
+      </p>
+      <p>
+        コードレビューでの「重大な問題だけ報告せよ」も逆効果になる。
+        指示に忠実に従って報告が減るため、<b>全部出させて、絞るのは別工程</b>にするのが公式の推奨である。
+      </p>
+      <h4>足すべき指示</h4>
+      <p>
+        逆に、この世代で必要になったのは<b>短くしろ</b>と<b>広げるな</b>の二つ。
+        Opus 5 は返答が長く、作業中の実況も多い。冗長さは effort（思考量）を下げても縮まないので、
+        「簡潔に。前置きと注意書きは短く」と<em>明示的に言葉で</em>頼む必要がある。
+      </p>
+      <p>
+        スコープ拡大も癖の一つで、頼んでいない改善まで手を出しがちになる。
+        「頼まれた範囲を、頼まれた粒度でやれ」を一文入れておく。
+        サブエージェントも自発的に増やすため、<b>小さい仕事では使うな・数は絞れ</b>と上限を示すとコストが安定する。
+      </p>
+    </div>
+
+    <h3>Claude Fable 5 ── 結果を渡して、任せる</h3>
+    <div class="cols2">
+      <h4>手順書を渡してはいけない</h4>
+      <p>
+        Fable 5 は「人が数時間から数日、数週間かけて終える仕事」を丸ごと引き受ける設計になっている。
+        一手ずつ操縦する前提のプロンプトはこのモデルを持て余す。
+        公式の言い方を借りれば、<b>欲しい結果を手渡し、道筋は本人に立てさせる</b>。
+      </p>
+      <p>
+        従来モデル向けに作り込んだ Skill は「細かすぎて逆に品質を落とす」とまで書かれている。
+        移行時は<em>まず素の状態で試し</em>、それより良くならない指示は消す。
+      </p>
+      <h4>長時間運転ならではの備え</h4>
+      <p>
+        一回の応答が数分、自律実行なら数時間に及ぶ。タイムアウトと進捗表示の設計を先に直しておく。
+      </p>
+      <p>
+        長時間走らせる時に効くのが<b>進捗の裏取り指示</b>である。
+        「報告する前に、その主張がこのセッションのツール実行結果で裏づけられるか確認せよ」と入れると、
+        Anthropic の試験では<em>作り話の進捗報告がほぼ消えた</em>という。
+      </p>
+      <p>
+        もう一つが<b>記憶の置き場</b>。マークダウン一枚でよいので「前回の教訓を書き残す場所」を与えると、
+        このモデルは特に良く働く。指示書に書ききれない「前回こうして失敗した」を溜める場所を、
+        AIの側に一つ持たせておく ── それだけで効く、という話である。
+      </p>
+    </div>
+  </section>
+
+  <!-- ══ 図3 ══ -->
+  <figure>
+    <svg viewBox="0 0 900 340" role="img" aria-label="タスクの重さとeffort設定の対応を示すマトリクス図">
+      <line class="s-ink" x1="70" y1="290" x2="870" y2="290" stroke-width="1.5"/>
+      <line class="s-ink" x1="70" y1="30" x2="70" y2="290" stroke-width="1.5"/>
+      <text class="f-ink2" x="470" y="322" text-anchor="middle" font-size="12.5" font-weight="700">タスクの重さ　→</text>
+      <text class="f-ink2" x="30" y="160" text-anchor="middle" font-size="12.5" font-weight="700" transform="rotate(-90 30 160)">effort（思考量）　→</text>
+
+      <g class="f-ink3" font-size="11.5">
+        <text x="180" y="308" text-anchor="middle">単発の修正・要約</text>
+        <text x="440" y="308" text-anchor="middle">複数ファイルの機能追加</text>
+        <text x="720" y="308" text-anchor="middle">数日級の自律実行</text>
+        <text class="mono" x="62" y="266" text-anchor="end">low</text>
+        <text class="mono" x="62" y="206" text-anchor="end">medium</text>
+        <text class="mono" x="62" y="146" text-anchor="end">high</text>
+        <text class="mono" x="62" y="86" text-anchor="end">xhigh</text>
+      </g>
+
+      <rect class="f-ai s-ai" x="80" y="228" width="220" height="52" fill-opacity=".16"/>
+      <text class="f-ai" x="190" y="252" text-anchor="middle" font-size="13" font-weight="800">Opus 5 ／ low・medium</text>
+      <text class="f-ink2" x="190" y="270" text-anchor="middle" font-size="11.5">品質が保てる限りここを使い倒す</text>
+
+      <rect class="f-ai s-ai" x="320" y="108" width="260" height="112" fill-opacity=".26"/>
+      <text class="f-ai" x="450" y="152" text-anchor="middle" font-size="13" font-weight="800">Opus 5 ／ high（既定値）</text>
+      <text class="f-ink2" x="450" y="172" text-anchor="middle" font-size="11.5">ここから始めて、下げられるか試す</text>
+
+      <rect class="f-shu s-shu" x="600" y="48" width="260" height="172" fill-opacity=".16"/>
+      <text class="f-shu" x="730" y="118" text-anchor="middle" font-size="13" font-weight="800">Fable 5 ／ high・xhigh</text>
+      <text class="f-ink2" x="730" y="138" text-anchor="middle" font-size="11.5">最難関の仕事を丸ごと預ける領域</text>
+      <text class="f-ink2" x="730" y="158" text-anchor="middle" font-size="11.5">一回の応答が数分〜、自律実行は数時間</text>
+    </svg>
+    <figcaption>
+      <b>図3</b>／ effort は「賢さ・待ち時間・費用」を一本で調整するつまみ。公式の推奨は
+      <b>既定の high から始め、自分の仕事で品質が落ちない範囲まで下げる</b>。
+      Opus 5 は low / medium でも精度が高く、価格は入力100万トークンあたり5ドル・出力25ドルで、Fable 5 のおよそ半額に位置づけられている。
+    </figcaption>
+  </figure>
+
+  <!-- ══ おことわり ══ -->
+  <div class="box scope">
+    <h4>おことわり ── これは Claude Code の話である</h4>
+    <p>
+      本紙が扱ったのは、Anthropic が<b>自社の開発ツール Claude Code と、Claude 5 世代のモデルについて</b>公表した内容である。
+      以下の「削れ」は、<b>Claude Code を使う場合について</b>言っている。
+    </p>
+    <p>
+      ChatGPT やその他のAI開発環境に、同じことがそのまま当てはまるかどうか ── 本紙は確かめていない。
+      各社が公表しているのは自社モデルの話であって、横に並べて「AI全般はこうだ」と言える材料は、いまのところない。
+      <b>確かめていないことは、言わない。</b>
+    </p>
+    <p>
+      工房が Claude Code を使っているから、その範囲で書く。それだけの話である。
+    </p>
+  </div>
+
+  <!-- ══ 実践欄 ══ -->
+  <section class="sec">
+    <div class="sec-no">SECTION 03</div>
+    <h2>実践欄 ── 我々は、何を削るか</h2>
+    <p class="sec-lead">読んで終わりにしないための、六つの手順</p>
+    <hr class="hr-thick">
+
+    <ol class="todo">
+      <li>
+        <div>
+          <h4>一行ずつ「消したら間違えるか」を問う</h4>
+          <p>公式ドキュメントが示す唯一の判定基準がこれである。<b>消しても Claude が間違えないなら、その行は消す。</b>
+             指示書が長いと、本当に守ってほしい規則が埋もれて無視される ── これは推測ではなく、公式が明記している失敗パターンである。</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h4>「禁止」を「判断の軸」に書き換える</h4>
+          <p>禁則の列挙は、想定外の場面で効かないうえ、互いに衝突する。
+             「Xをするな・Yをするな」を並べるより、<b>何を優先して判断するか</b>を一文で示すほうが、この世代には効く。</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h4>常時ロードから、必要時ロードへ移す</h4>
+          <p>その作業をする時にしか要らない細則 ── レビューの観点、リリース手順、特定フレームワークの作法 ── は
+             CLAUDE.md から出して Skill に移す。<b>常駐させるのは、いつでも当てはまることだけ。</b></p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h4>検証の二重指示をやめる</h4>
+          <p>「確認してから答えよ」「検算せよ」は、Opus 5 では削除対象である。
+             代わりに置くべきは、<b>Claude 自身が回せる検証手段</b>（テスト、ビルド、スクリーンショット比較）である。指示ではなく、装置で担保する。</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h4>公式の点検コマンドを一度通す</h4>
+          <p>Anthropic はこの一連の知見を <code>claude doctor</code> に組み込み、Skill と CLAUDE.md を適正サイズに直す用途に使えるとしている。
+             ターミナルから実行するコマンドで、まず現状診断として一度かけてみる価値がある。</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h4>ここまでを、定期業務にする</h4>
+          <p>モデルは数か月単位で変わる。年に一度の見直しでは、去年の工夫を1年間背負い続けることになる。
+             <b>月に一度、遅くとも四半期に一度。</b>棚卸しそのものをAIに頼めるので、手間は数十分で済む。
+             情報を集め、いまのモデルで確かめ、環境を片づける ── これを暦に載せてしまう。</p>
+        </div>
+      </li>
+    </ol>
+
+    <h3>削除の実例 ── あなたの指示書にあてはめると</h3>
+    <div class="demo" id="demo">
+      <div>
+        <h4>おそらく削れる（モデルが既にやる）</h4>
+        <ul>
+          <li class="gone"><span class="cut">「検算せよ」「二重に確認せよ」の類</span></li>
+          <li class="gone"><span class="cut">コメントの書き方の細則</span></li>
+          <li class="gone"><span class="cut">「不確実なら不確実と言え」</span></li>
+          <li class="gone"><span class="cut">「丁寧に」「品質を高く」の一般論</span></li>
+          <li class="gone"><span class="cut">禁止事項の網羅的な列挙</span></li>
+        </ul>
+        <p class="demo-note">※ 現行モデルの標準的な振る舞いに、すでに含まれている領域。</p>
+      </div>
+      <div>
+        <h4>残すべき（あなたにしか書けない）</h4>
+        <ul>
+          <li class="keep">この仕事が何のためにあるか、という目的</li>
+          <li class="keep">社内規程・契約に由来する外部制約</li>
+          <li class="keep">触ってはいけないファイル・領域の線引き</li>
+          <li class="keep">過去に実際に事故った、具体的な落とし穴</li>
+          <li class="keep">開発環境の癖（必要な環境変数・ビルドの罠）</li>
+        </ul>
+        <p class="demo-note">※ コードにも履歴にも書いていない事実は、モデルには推測できない。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 用語解説 ══ -->
+  <div class="box">
+    <h4>用語解説</h4>
+    <dl>
+      <dt>システムプロンプト</dt>
+      <dd>会話が始まる前に読み込まれる、AIへの常駐指示。Claude Code の場合はツールの使い方や振る舞いの規範が入っている。ユーザーからは見えないが、容量は確実に消費する。</dd>
+      <dt>effort（エフォート）</dt>
+      <dd>思考にどれだけ手間をかけるかの設定。low / medium / high / xhigh の四段階。費用と待ち時間を決める主要なつまみで、<b>返答の長さは調整しない</b>点に注意。</dd>
+      <dt>逐次開示（progressive disclosure）</dt>
+      <dd>すべてを最初に読ませず、必要になった時点で該当分だけ読み込ませる設計。Skill はこの仕組みの実体である。</dd>
+      <dt>Skill（スキル）</dt>
+      <dd><code>SKILL.md</code> という説明書を持つフォルダ。関連する作業の時だけ自動で読み込まれる。「たまにしか要らない知識」の置き場所。</dd>
+      <dt>サブエージェント</dt>
+      <dd>別の文脈で並行して働かせる補助AI。本体の作業領域を汚さずに調査できるが、小さな仕事に使うと費用と時間が増えるだけになる。</dd>
+    </dl>
+  </div>
+
+  <!-- ══ コラム ══ -->
+  <div class="column">
+    <span class="tag">社説 ── 削るのも、内製化の仕事である</span>
+    <p>
+      本紙はこれまで、プロンプトの細かな技法を扱ってこなかった。扱ってきたのは、
+      <b>「AIに迎合させないための5箇条」</b>のような、短い憲章を一枚だけ手元に置く ── その程度の話である。
+      あとは使い込みながら、自社の価値観と判断軸を足して育てていけばいい、とも書いた。
+    </p>
+    <p>
+      今回のニュースは、その軽さが結果として正しかったことを示している。
+      だが同時に、宿題も残した。<b>5箇条は、使っているうちに10箇条になり、20箇条になる。</b>
+      増やす作業には達成感があり、減らす作業にはない。「育てろ」と言った以上、「削れ」も言わなければ無責任である。
+    </p>
+    <p>
+      そして、少なくとも Claude Code については、その棚卸しは年に一度では遅い。
+      モデルは数か月で変わり、去年の工夫が今年の足かせになる。
+      <b>月に一度、遅くとも四半期に一度。</b>それくらいの間隔で十分だし、それより空けると効かない。
+    </p>
+    <p>
+      面倒な作業ではない。<em>この棚卸しそのものを、AIにやらせればいい。</em>
+      「この指示書を、いまのモデルが標準でやることと照らして、消しても振る舞いが変わらない行を挙げてくれ」──
+      頼み方はそれだけである。<b>集める、確かめる、片づける。環境の整理整頓は、AI内製化という仕事の一部である。</b>
+    </p>
+  </div>
+
+  <!-- ══ 出典 ══ -->
+  <section class="sec">
+    <div class="sec-no">SOURCES</div>
+    <h2>出典</h2>
+    <hr class="hr-thick">
+    <ul class="sources">
+      <li>▪ Anthropic「The new rules of context engineering for Claude 5 generation models」（2026年7月24日）— <a href="https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models">claude.com/blog</a></li>
+      <li>▪ Claude Platform Docs「Prompting Claude Opus 5」— <a href="https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5">platform.claude.com</a></li>
+      <li>▪ Claude Platform Docs「Prompting Claude Fable 5」— <a href="https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5">platform.claude.com</a></li>
+      <li>▪ Claude Platform Docs「Prompting best practices」— <a href="https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices">platform.claude.com</a></li>
+      <li>▪ Claude Code Docs「Best practices for Claude Code」（CLAUDE.md の書き方）— <a href="https://code.claude.com/docs/en/best-practices">code.claude.com</a></li>
+      <li>▪ Anthropic「Introducing Claude Opus 5」（2026年7月24日）— <a href="https://www.anthropic.com/news/claude-opus-5">anthropic.com/news</a></li>
+    </ul>
+  </section>
+
+  <div class="colophon">
+    <span>ＡＩ内製化時報　第001号</span>
+    <span>2026年7月28日 発行</span>
+    <span>AI内製化工房 MITA ／ note.com/ai_naiseika</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  var demo = document.getElementById('demo');
+  if(!demo) return;
+  if(!('IntersectionObserver' in window)){ demo.classList.add('is-vis'); return; }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ e.target.classList.add('is-vis'); io.unobserve(e.target); }
+    });
+  }, {threshold:0.25});
+  io.observe(demo);
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>未来の一日 ─ どこにでもある会社の朝</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- 本文の明朝体は、ここでネット越しに借りている（借りられない時は端末の明朝で組む） -->
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#211b14; --ink2:#4e4236;
+  --paper:#f4ecdb; --paper2:#e9ddc6;
+  --board:#5e2b2b; --board2:#3a1818; --foil:#d9b978;
+  --step:34px; --fs:17px; --pageH:600px; --padH:28px; --padV:30px;
+  --leafW:520px; --bookW:1040px; --bookH:660px; --board-pad:14px;
+  --coverW:480px; --coverH:660px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  background:radial-gradient(1200px 720px at 50% 6%,#3b3630 0%,#221f1c 55%,#15130f 100%);
+  font-family:"Shippori Mincho B1","Yu Mincho","YuMincho","Hiragino Mincho ProN",serif;
+  color:#e9e2d4;overflow:hidden;touch-action:none;-webkit-tap-highlight-color:transparent;
+}
+/* ゼリー装丁は本の後ろ（z=5）に常駐する。stage自体はクリックを素通しにし、表紙と本にだけ当てる */
+.stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;perspective:2600px;
+  z-index:6;pointer-events:none;}
+.cover,.book{pointer-events:auto;}
+
+/* ── 表紙（閉じた本） ───────────────────────── */
+.cover{position:relative;cursor:pointer;transform-origin:right center;transform-style:preserve-3d;
+  transition:transform .95s cubic-bezier(.6,.02,.2,1),opacity .95s;width:var(--coverW);height:var(--coverH);}
+.cover.open{transform:rotateY(172deg);opacity:0;pointer-events:none;}
+/* WebGLが使えない環境向けの簡易表紙も、革装ではなく磨りガラスのゼリー風に */
+.board{position:absolute;inset:0;border-radius:24px;
+  background:linear-gradient(155deg,rgba(206,238,242,.17) 0%,rgba(150,200,210,.06) 55%,rgba(206,238,242,.12) 100%);
+  -webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);
+  box-shadow:0 30px 70px rgba(0,0,0,.55),
+             inset 0 0 0 1px rgba(255,255,255,.24),inset 0 14px 34px rgba(255,255,255,.07);}
+.spine,.edge{display:none;}
+.cover-in{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:26px;}
+.foil{writing-mode:vertical-rl;font-weight:600;letter-spacing:.30em;color:var(--foil);
+  text-shadow:0 1px 0 rgba(255,255,255,.42),0 -1px 0 rgba(0,0,0,.55),0 0 16px rgba(217,185,120,.32);}
+.foil.t{font-size:calc(var(--fs)*2.1);}
+.foil.s{font-size:calc(var(--fs)*.92);letter-spacing:.22em;color:#c9ad84;opacity:.9;}
+.foil-rule{width:1px;height:96px;background:linear-gradient(180deg,transparent,var(--foil),transparent);opacity:.7;}
+.cover-brand{position:absolute;left:0;right:26px;bottom:20px;text-align:center;
+  font-size:calc(var(--fs)*.72);letter-spacing:.24em;color:#c9ad84;opacity:.72;}
+.hint{position:absolute;left:0;right:0;bottom:-40px;text-align:center;font-size:13px;
+  letter-spacing:.18em;color:#9a9184;animation:bre 2.6s ease-in-out infinite;}
+@keyframes bre{0%,100%{opacity:.42}50%{opacity:.95}}
+
+/* ── 見開き ─────────────────────────────── */
+.book{position:relative;display:none;opacity:0;transform:scale(.955);
+  transition:opacity .8s ease,transform .8s cubic-bezier(.34,1.5,.5,1);}
+.book.show{display:block;}
+.book.show.in{opacity:1;transform:none;}
+/* ワインレッドのハードカバーは廃止。器はゼリー（WebGL）が務める */
+.boards{display:none;}
+/* 綴じていないので、めくる紙が宙へ持ち上がる奥行きが要る */
+.leaves{position:relative;width:var(--bookW);height:var(--bookH);perspective:1800px;}
+.leaf{position:absolute;top:0;width:var(--leafW);height:var(--bookH);}
+.leaf.r{right:0;} .leaf.l{left:0;}
+.paper{position:absolute;inset:0;overflow:hidden;border-radius:3px;
+  background:linear-gradient(180deg,var(--paper) 0%,var(--paper2) 100%);
+  box-shadow:0 18px 44px rgba(0,0,0,.46),inset 0 0 42px rgba(120,95,60,.20);}
+.paper::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.42;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");}
+.gutter{display:none;}                 /* 綴じ目の影。一枚ずつ離れているので出さない */
+
+.win{position:absolute;right:var(--padH);top:var(--padV);width:var(--pageW);height:var(--pageH);overflow:hidden;}
+.flow{position:absolute;right:0;top:0;height:var(--pageH);width:max-content;
+  writing-mode:vertical-rl;font-size:var(--fs);color:var(--ink);
+  text-combine-upright:digits 2;will-change:transform;}
+.flow p{line-height:var(--step);text-indent:1em;}
+.flow p.n{text-indent:0;}
+.flow p.sep{text-indent:0;letter-spacing:.5em;color:var(--ink2);text-align:center;}
+.flow p.h{font-size:calc(var(--fs)*1.5);font-weight:600;letter-spacing:.16em;text-indent:0;}
+.flow p.h2{font-size:calc(var(--fs)*.95);color:var(--ink2);letter-spacing:.1em;text-indent:0;}
+.flow p.end{text-indent:0;color:var(--ink2);}
+.flow .tcy{text-combine-upright:all;}
+/* 縦書きで “ ” は寝てしまうので、太字で強調する（和文は太くしても字送りが変わらない） */
+.flow em.bt{font-style:normal;font-weight:700;}
+.flow .gap{height:100%;}
+.folio{position:absolute;bottom:9px;font-size:11px;letter-spacing:.14em;color:#8a7a5e;opacity:.85;}
+.leaf.r .folio{right:18px;} .leaf.l .folio{left:18px;}
+
+.sheet{position:absolute;top:0;left:0;width:var(--leafW);height:var(--bookH);
+  transform-style:preserve-3d;display:none;z-index:5;}
+.sheet.on{display:block;}
+/* 紙は平らな板ではない。短冊に分けて少しずつ角度をずらし、たわみを作る */
+.strip{position:absolute;top:0;right:0;height:100%;transform-origin:right center;
+  transform-style:preserve-3d;will-change:transform;}
+.sf,.sb{position:absolute;inset:0;overflow:hidden;-webkit-backface-visibility:hidden;backface-visibility:hidden;}
+.sb{transform:rotateY(180deg);}
+.slice{position:absolute;top:0;width:var(--leafW);height:100%;}
+.sh{position:absolute;inset:0;pointer-events:none;}
+/* ── モバイルの横スライド用（めくり目の陰影で紙の風情を残す） ── */
+.sheet .crease{position:absolute;left:0;top:0;bottom:0;width:46px;pointer-events:none;
+  background:linear-gradient(90deg,rgba(20,12,4,.34),rgba(20,12,4,.05) 60%,transparent);}
+.sheet.on .paper{box-shadow:0 0 44px rgba(0,0,0,.40),inset 0 0 42px rgba(120,95,60,.20);}
+
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:7;display:flex;gap:8px;align-items:center;justify-content:center;
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom));font-family:system-ui,sans-serif;font-size:12px;
+  color:#b9b0a1;background:linear-gradient(0deg,rgba(12,10,8,.86),transparent);
+  opacity:0;transition:opacity .3s;pointer-events:none;}
+.bar.show{opacity:1;pointer-events:auto;}
+.bar button{font:inherit;color:#e6dfd0;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);
+  border-radius:8px;padding:6px 12px;cursor:pointer;letter-spacing:.06em;}
+.bar button:hover{background:rgba(255,255,255,.17);}
+.bar .pos{min-width:118px;text-align:center;letter-spacing:.08em;}
+.measure{position:absolute;visibility:hidden;left:-99999px;top:0;}
+
+/* ── WebGLのゼリー装丁。表紙のときも読んでいる間も、本の後ろに常駐してぷるぷるする ── */
+#wet{position:fixed;inset:0;z-index:5;opacity:0;transition:opacity .85s ease;pointer-events:none;}
+#wet.on{opacity:1;pointer-events:auto;cursor:pointer;}
+#wet.read{cursor:default;}
+#wet.read .hint2{opacity:0;animation:none;transition:opacity .5s;}
+#wet canvas{display:block;width:100%;height:100%;}
+#wet .hint2{position:absolute;left:0;right:0;bottom:9vh;text-align:center;pointer-events:none;
+  font-size:12.5px;letter-spacing:.34em;color:#9fb9c2;text-shadow:0 1px 10px rgba(0,0,0,.8);
+  animation:hb 3.2s ease-in-out infinite;}
+@keyframes hb{0%,100%{opacity:.28}50%{opacity:.85}}
+body.jelly-on .cover{visibility:hidden;}
+/* ゼリーの支度ができるまでは何も出さない。先に簡易表紙を見せると切り替わりが目に付く */
+body.booting .cover{visibility:hidden;}
+@media (max-width:560px){
+  .bar{gap:5px;padding:7px 6px calc(7px + env(safe-area-inset-bottom));font-size:11px;}
+  .bar button{padding:5px 9px;white-space:nowrap;}
+  .bar .pos{min-width:auto;}
+}
+</style>
+</head>
+<body class="booting">
+
+<div class="stage">
+  <div class="cover" id="cover">
+    <div class="edge"></div><div class="board"></div><div class="spine"></div>
+    <div class="cover-in">
+      <div class="foil t">未来の一日</div>
+      <div class="foil-rule"></div>
+      <div class="foil s">どこにでもある会社の朝</div>
+    </div>
+    <div class="cover-brand">AI内製化工房 ／ MITA</div>
+    <div class="hint">― 表紙にふれて、ひらく ―</div>
+  </div>
+
+  <div class="book" id="book">
+    <div class="boards"></div>
+    <div class="leaves" id="leaves">
+      <div class="leaf l"><div class="paper" id="pL"><div class="gutter"></div></div><div class="folio" id="fL"></div></div>
+      <div class="leaf r"><div class="paper" id="pR"><div class="gutter"></div></div><div class="folio" id="fR"></div></div>
+      <div class="sheet" id="sheet"></div>
+    </div>
+  </div>
+</div>
+
+<div class="bar" id="bar">
+  <button id="prev">前へ</button>
+  <span class="pos" id="pos"></span>
+  <button id="next">次へ</button>
+  <button id="size">文字 中</button>
+  <button id="snd">音 ON</button>
+  <button id="home">閉じる</button>
+</div>
+
+<div class="measure"><div class="flow" id="master" style="right:auto;left:0"></div></div>
+
+<div id="wet"><div class="hint2">― 表紙にふれて、ひらく ―</div></div>
+
+<script>
+const T = [
+ ['h','未来の一日'],
+ ['h2','どこにでもある会社の朝'],
+ ['b',''],
+ ['b',''],
+ ['b',''],
+ ['p','目を覚ますと、もう会社は動いていた。'],
+ ['b',''],
+ ['p','真一（しんいち）が寝ているあいだに、昨日の売上は締まり、仕入れは補充され、来週の予定は組み直されていた。'],
+ ['p','誰かが寝ずに夜中働いたわけではない。'],
+ ['p','でも24時間、会社が動いていたのも確かだ。'],
+ ['p','ただ、今はそれが当たり前の時代なのだ。'],
+ ['b',''],
+ ['p','彼は小さな食品の会社をやっている。'],
+ ['p','と言っても年商は数十億円ある会社だ。'],
+ ['p','従業員は、６人。'],
+ ['p','かつては、その６人分の一日の大半を伝票とPC作業に費やさなければ同じ売上は維持できなかったらしい。'],
+ ['p','製造する従業員ももっとたくさん雇わなければならなかったからだ。'],
+ ['p','請求書。在庫表。シフト。報告書。'],
+ ['n','「仕入れたもの、作ったものを、数える仕事」なんてものが当たり前にあった。'],
+ ['b',''],
+ ['p','それもいまは、変わった。'],
+ ['b',''],
+ ['p','ダイニングテーブルで朝食をとりながら、真一は視界の端をちらりと見た。'],
+ ['p','見た、というより ―― 思っただけだ。'],
+ ['n','「昨日は、どうだった？」と。'],
+ ['p','すると、耳の後ろに付けているモバイル端末が、知りたかったことだけを、静かに空中へ、会社のステータスとして映し出した。'],
+ ['p','よく売れた商品と、少しだけ余った材料。'],
+ ['p','それらをどのように処理し、リサイクルに回しているか。'],
+ ['p','顧客が何を望み、どう評価したか。'],
+ ['p','次の入荷は、明後日の朝。'],
+ ['p','数字や状況は、もう “報告” ではなく、常に “現在” としてそこにあるのだ。'],
+ ['b',''],
+ ['p','彼は視界を戻し、残りの朝食を口に運んだ。'],
+ ['p','数字を確認する時間は、三十秒もいらない。'],
+ ['p','問題は、そこから先だ。'],
+ ['b',''],
+ ['n','「さて」と、真一は声に出した。'],
+ ['n','「今度は、どんな価値を作ろうか」'],
+ ['s','＊'],
+ ['b',''],
+ ['p','同じころ、若い従業員の美咲（みさき）は、通勤電車にも乗らず、近所の川べりを歩いていた。'],
+ ['p','“事務所” という概念が無くなって久しい。'],
+ ['p','企画営業である彼女は、工場には行っても行かなくてもいい。'],
+ ['p','会社という形が物理的に不要になり、今あるのは、価値が生まれる場所と、人だけ。'],
+ ['b',''],
+ ['p','彼女が今日考えているのは、たった一つ。'],
+ ['n','「あのお客さんに、どうやって喜んでもらおうか」と。'],
+ ['b',''],
+ ['p','先週、常連の老夫婦が、こぼしていた。'],
+ ['p','歳をとって、固いものが噛みづらくなってきた、と。'],
+ ['p','美咲は歩きながら、その顔を思い出す。'],
+ ['p','やわらかくて、でも食べ応えのある食事。'],
+ ['p','あの人たちの食卓に、もう一度 “おいしい” を戻せないだろうか。'],
+ ['b',''],
+ ['p','思いついたことを、彼女はその場でつぶやいた。'],
+ ['p','キラ ―― 彼女はAIをそう呼んでいる ―― は、すぐに応えた。'],
+ ['p','似た悩みを持つ人が、この町にどれだけいるか。'],
+ ['p','どんな作り方があり得るか。'],
+ ['p','試作の材料は、いつ、いくらで届くか。'],
+ ['p','考えるための手がかりが、歩いている数分のあいだに、ぜんぶ揃った。'],
+ ['b',''],
+ ['p','あとは、作って、届けて、顔を見るだけだ。'],
+ ['p','もちろんその段取りもすでに整っている。'],
+ ['p','その “だけ” が、美咲の仕事のすべてになった。'],
+ ['p','報告書なんてものは書いたことがない。'],
+ ['p','彼女が動いたことは、もう会社の “現在” の中に溶けて、社長以下全員に共有されている。'],
+ ['s','＊'],
+ ['b',''],
+ ['p','工場は、街のはずれにある。'],
+ ['p','重いものを運び、熱いものを扱う場所には、もう人はいない。'],
+ ['p','危ないところ、しんどいところは、AIを積んだ機械が引き受けた。'],
+ ['p','人が届かない高い棚のあいだを、小さな機械が静かに行き来している。'],
+ ['p','その正確で丁寧な繰り返しが、顧客に届く製品を作り続けている。'],
+ ['b',''],
+ ['p','屋根の上では、配送を待つ小型の機体が、朝の光を浴びていた。'],
+ ['p','真一は、工場を一度だけ見回して、また社内のステータスを伏せた。'],
+ ['p','早朝起こったトラブルは部下がすでに処理している。'],
+ ['p','彼がここでやることは、もう何もない。'],
+ ['b',''],
+ ['p','ちゃんと回っている、と確認することさえ、本来は不要なことだ。'],
+ ['p','ただ実際に確かめないと、済まない性分だから来ただけだった。'],
+ ['p','回っていなければ、すぐさま向こうから声がかかる。'],
+ ['b',''],
+ ['p','だから彼は、いつも “その先” を見ている。'],
+ ['p','半年後、この町の食卓は、どう変わっているだろう。'],
+ ['p','一年後、五年後、十年後、うちは誰を、どんなふうに喜ばせているだろう。'],
+ ['p','明日の価値は、どこにあるのか ―― それを考えるのが、社長という仕事の、たった一つの中身になった。'],
+ ['s','＊'],
+ ['b',''],
+ ['p','昼、真一と美咲は、川べりのベンチで落ち合った。'],
+ ['p','会議ではない。ただ、話すためだ。'],
+ ['b',''],
+ ['n','「固いものが、噛みづらいって」と美咲が言う。'],
+ ['n','「あの二人だけじゃ、ないと思うんです」'],
+ ['b',''],
+ ['n','「うちの町、そういう歳の人、多いもんな」と真一。'],
+ ['n','「―― やってみよう。うまくいったら、それは “商品” じゃなくて、“居場所” になるかもしれないからな」'],
+ ['b',''],
+ ['p','二人は笑いながら雑談をして過ごした。'],
+ ['p','仕事の話ではあったが、数字の話は、一言も出なかった。'],
+ ['p','数字は、勝手についてくるもの。'],
+ ['p','今は時代がそうなったからだ。'],
+ ['b',''],
+ ['p','本来、こんな話をするのに直接会う必要はなかった。'],
+ ['p','でも、顔を合わせないとわからない温度感もある。'],
+ ['p','どうやら彼女は順調らしい。'],
+ ['p','真一は安堵した。'],
+ ['b',''],
+ ['p','ふと、思う。'],
+ ['p','昔、人はこの一日のすべてを “働く” と呼んでいた。'],
+ ['p','作業を分け合い、役割を背負い、疲れて眠る、その繰り返しを。'],
+ ['b',''],
+ ['p','でも今、目の前で美咲がしているのは、たぶん “働く” ではない。'],
+ ['p','もっと近い言葉があるとすれば ―― それは、“生きる” だ。'],
+ ['p','彼女は、彼女の生き方で、誰かの食卓に手を伸ばしている。'],
+ ['p','ただ、それだけのことをしているのだと思う。'],
+ ['s','＊'],
+ ['b',''],
+ ['p','仕事が消える、と昔の人は怖がっていた。'],
+ ['p','消えた仕事も、確かにあった。'],
+ ['p','数える仕事。運ぶ仕事。夜中に働く仕事。'],
+ ['b',''],
+ ['p','けれど、無くなった分と同じだけ ―― いや、人の数だけ ―― 誰も名前を知らなかった仕事が、静かに生まれていた。'],
+ ['n','「あの人の食卓を、どうしたいか」を考える仕事に、決まった名前なんてものは無い。'],
+ ['p','でもそれは、かつて仕事と呼んだ価値を確かに持っている。'],
+ ['p','美咲は、それを自分自身の生き方としてやっているだけなのだ。'],
+ ['b',''],
+ ['p','真一は、若いころに誰かから聞いた言葉を、久しぶりに思い出した。'],
+ ['b',''],
+ ['n','―― 「人は、オギャーと生まれた瞬間から、経営者なんだ」'],
+ ['n','―― 「会社なんて無かった大昔から、みんな “自分” という人生を、自分で経営して、生き抜いてきたじゃないか」と。'],
+ ['b',''],
+ ['p','長いあいだ、その力は、会社という大きな箱に預けられていた。'],
+ ['p','分けて、束ねて、効率よく。'],
+ ['p','それが今、また ―― 一人ひとりの手のなかに、戻ってきた。'],
+ ['p','そういうことなのではないか、と真一は思っている。'],
+ ['b',''],
+ ['p','真一は立ち上がり、伸びをした。'],
+ ['p','空を、小さな機体が横切っていく。'],
+ ['n','「さて」と、彼はまた同じことを言った。'],
+ ['p','誰にともなく、けれど確かに、明日へ向けて。'],
+ ['b',''],
+ ['n','「今度は、どんな価値を作ろうか」'],
+ ['b',''],
+ ['b',''],
+ ['e','（了）'],
+];
+const CLS={h:'h',h2:'h2',p:'',n:'n',s:'sep',e:'end',b:'n'};
+function fmt(s){
+  s = s.replace(/[“"]([^”"]*)[”"]/g, '$1');   // “強調” → 傍点
+  s = s.replace(/[0-9]+|[A-Za-z]+/g, m => ''+m+'');            // 数字・英字 → 縦中横
+  s = s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  return s.replace(//g,'<em class="bt">').replace(//g,'</em>')
+          .replace(//g,'<span class="tcy">').replace(//g,'</span>');
+}
+// 場面（＊）ごとに区切る。場面が変わったら改ページする
+const SECTIONS=[[]];
+T.forEach(t => t[0]==='s' ? SECTIONS.push([]) : SECTIONS[SECTIONS.length-1].push(t));
+function secHTML(sec,i){
+  return (i>0 ? '<p class="sep">＊</p><p class="n">　</p>' : '')
+       + sec.map(([k,s]) => '<p class="'+CLS[k]+'">'+(k==='b'?'　':fmt(s))+'</p>').join('');
+}
+let FLOW='';
+function buildFlow(){
+  let html='', acc=0;
+  SECTIONS.forEach((sec,i)=>{
+    if(i>0){                                   // 次の場面は必ずページの頭から始める
+      const to=Math.ceil(acc/pageW)*pageW;
+      if(to>acc){ html+='<div class="gap" style="width:'+(to-acc)+'px"></div>'; acc=to; }
+    }
+    const h=secHTML(sec,i);
+    master.innerHTML=h; acc+=master.offsetWidth;
+    html+=h;
+  });
+  FLOW=html; master.innerHTML=FLOW;
+}
+
+/* ── 紙の音（音源ファイルを持たず、その場で合成する） ── */
+let AC=null, sound=true;
+const ac=()=>AC||(AC=new (window.AudioContext||window.webkitAudioContext)());
+function noise(ctx,sec){
+  const n=Math.floor(ctx.sampleRate*sec), b=ctx.createBuffer(1,n,ctx.sampleRate), d=b.getChannelData(0);
+  for(let i=0;i<n;i++) d[i]=Math.random()*2-1;
+  return b;
+}
+// 紙の音は「連続した風」ではなく、繊維が離れる無数の微小な破裂音の集まり。
+// 帯域を滑らかに掃引すると棒を振ったような風切り音になるので、粒を撒いて作る。
+function paperBuf(ctx,dur,dens,bright){
+  const sr=ctx.sampleRate, n=Math.floor(sr*dur);
+  const buf=ctx.createBuffer(1,n,sr), d=buf.getChannelData(0);
+  const grains=Math.floor(dens*dur*1000);
+  for(let g=0; g<grains; g++){
+    const u=Math.random();
+    const pos=Math.floor((.04+.92*Math.pow(u,.75))*n);          // 中盤に密度が寄る
+    const len=Math.max(2, Math.floor(sr*(.0004+Math.random()*.0026*bright)));
+    const amp=(.2+Math.random()*.8)*Math.max(.15, 1-Math.abs(pos/n-.42)*1.5);
+    for(let i=0;i<len && pos+i<n;i++)
+      d[pos+i]+=(Math.random()*2-1)*Math.exp(-i/len*4.2)*amp*.6;
+  }
+  for(let i=0;i<n;i++){                                          // 下地の薄い擦れ
+    const t=i/n;
+    d[i]+=(Math.random()*2-1)*.05*Math.min(1,t*10)*Math.pow(1-t,1.5);
+  }
+  let pk=0; for(let i=0;i<n;i++) pk=Math.max(pk,Math.abs(d[i]));
+  if(pk>0) for(let i=0;i<n;i++) d[i]/=pk;
+  return buf;
+}
+/* ぷるん：短い下降音に速い揺れを乗せ、小さな「ぽよん」を返す */
+function sJelly(k){
+  if(!sound) return;
+  const ctx=ac(), t=ctx.currentTime, v=.15*(k||1);
+  const o=ctx.createOscillator(); o.type='sine';
+  o.frequency.setValueAtTime(320+Math.random()*70,t);
+  o.frequency.exponentialRampToValueAtTime(92,t+.17);
+  const lfo=ctx.createOscillator(); lfo.type='sine';
+  lfo.frequency.setValueAtTime(22,t); lfo.frequency.exponentialRampToValueAtTime(8,t+.3);
+  const lg=ctx.createGain(); lg.gain.setValueAtTime(42,t);
+  lg.gain.exponentialRampToValueAtTime(2,t+.3);
+  lfo.connect(lg); lg.connect(o.frequency);
+  const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=880; lp.Q.value=1.1;
+  const g=ctx.createGain();
+  g.gain.setValueAtTime(.0001,t);
+  g.gain.exponentialRampToValueAtTime(v,t+.012);
+  g.gain.exponentialRampToValueAtTime(.0001,t+.34);
+  o.connect(lp); lp.connect(g); g.connect(ctx.destination);
+  o.start(t); o.stop(t+.36); lfo.start(t); lfo.stop(t+.36);
+  const t2=t+.11, o2=ctx.createOscillator(); o2.type='sine';
+  o2.frequency.setValueAtTime(250,t2); o2.frequency.exponentialRampToValueAtTime(125,t2+.12);
+  const g2=ctx.createGain(); g2.gain.setValueAtTime(.0001,t2);
+  g2.gain.exponentialRampToValueAtTime(v*.5,t2+.01);
+  g2.gain.exponentialRampToValueAtTime(.0001,t2+.17);
+  o2.connect(g2); g2.connect(ctx.destination); o2.start(t2); o2.stop(t2+.18);
+}
+function sTurn(k){
+  if(!sound) return;
+  if(window.__jellyOn) return sJelly(k);       // ゼリー装丁の時は紙擦れよりぷるん
+  const ctx=ac(), t=ctx.currentTime, dur=.17*(1+(Math.random()-.5)*.2), v=.17*(k||1);
+  const src=ctx.createBufferSource(); src.buffer=paperBuf(ctx,dur,.30,.9);
+  const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=300;
+  const pk=ctx.createBiquadFilter(); pk.type='peaking';           // 紙の胴鳴り（掃引しない）
+  pk.frequency.value=1400; pk.Q.value=.8; pk.gain.value=4;
+  const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=5000;
+  const g=ctx.createGain();
+  g.gain.setValueAtTime(.0001,t);
+  g.gain.exponentialRampToValueAtTime(v,t+.008);
+  g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  src.connect(hp); hp.connect(pk); pk.connect(lp); lp.connect(g); g.connect(ctx.destination);
+  src.start(t); src.stop(t+dur);
+  // 紙が重なりに落ちる、低く鈍い音（正弦波だと電子音になるので雑音を濾す）
+  const t2=t+dur*.66, ts=.10;
+  const s2=ctx.createBufferSource(); s2.buffer=noise(ctx,ts);
+  const l2=ctx.createBiquadFilter(); l2.type='lowpass'; l2.frequency.value=380; l2.Q.value=.7;
+  const g2=ctx.createGain();
+  g2.gain.setValueAtTime(.0001,t2);
+  g2.gain.exponentialRampToValueAtTime(.06*(k||1),t2+.006);
+  g2.gain.exponentialRampToValueAtTime(.0001,t2+ts);
+  s2.connect(l2); l2.connect(g2); g2.connect(ctx.destination);
+  s2.start(t2); s2.stop(t2+ts);
+}
+function sOpen(){
+  if(!sound) return;
+  if(window.__jellyOn) return sJelly(1.6);     // 開く時はひときわ大きくぷるん
+  const ctx=ac(), t=ctx.currentTime;
+  const o=ctx.createOscillator(), g=ctx.createGain();
+  o.type='sine'; o.frequency.setValueAtTime(96,t); o.frequency.exponentialRampToValueAtTime(52,t+.22);
+  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.22,t+.02);
+  g.gain.exponentialRampToValueAtTime(.0001,t+.34);
+  o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+.35);
+  setTimeout(()=>sTurn(1.25),70);
+}
+
+/* ── 組版・ページ分割 ───────────────────── */
+const el=id=>document.getElementById(id);
+const master=el('master'), leaves=el('leaves');
+let spread=true, pageW=0, leafPx=0, GAP=0, pages=1, cur=0, fsIdx=1, busy=false, opened=false;
+const ASPECT=0.70;   // 1ページの縦横比。文庫本に近づける（正方形にしない）
+const FS=[15,17,20], FSN=['小','中','大'];
+const stepN=()=>spread?2:1;
+
+function layout(){
+  const vw=innerWidth, vh=innerHeight;
+  spread = vw>=900;
+  const narrow=vw<560;
+  const fs=FS[fsIdx];
+  const padH=Math.round(fs*(narrow?1.9:2.6)), padV=Math.round(fs*(narrow?1.9:2.4)), pad=narrow?10:16;
+  const availH=Math.min(vh-(narrow?122:152), 860);
+  let chars=Math.max(14, Math.min(narrow?24:32, Math.floor((availH-padV*2)/fs)));  // 1行の字数を抑える
+  let pageH=chars*fs, bookH=pageH+padV*2;
+
+  const r=document.documentElement.style;
+  r.setProperty('--fs',fs+'px');
+  r.setProperty('--pageH',pageH+'px');
+  // 傍点は行の幅を押し広げる。全行が同じ送りになるまで実測を繰り返す
+  // （でないと頁の境界が行を切って、半分だけの列ができる）
+  // 行の送りは実測して確定させる（頁の境界が行を切らないように）
+  const probe = c => { master.innerHTML='<p class="'+c+'">'+'あ'.repeat(6)+'</p>'; return master.offsetWidth; };
+  let step=Math.round(fs*1.95);   // 行間はやや詰める
+  r.setProperty('--step',step+'px');
+  step=Math.max(step, Math.ceil(Math.max(probe('n'),probe('h'),probe('h2'),probe('sep'),probe('end'))));
+  r.setProperty('--step',step+'px');
+
+  // 幅は「縦横比」から決める。行数から決めると1ページが正方形になってしまう
+  const availW=Math.min(vw-(narrow?20:44), spread?1280:600)-pad*2;
+  const gap=spread?(narrow?0:26):0;          // 紙と紙のあいだ。綴じていない証
+  let N, leafW;
+  for(;;){
+    pageH=chars*fs; bookH=pageH+padV*2;
+    N=Math.max(5, Math.floor((Math.round(bookH*ASPECT)-padH*2)/step));
+    pageW=N*step; leafW=pageW+padH*2;
+    if(leafW*(spread?2:1)+gap<=availW || chars<=16) break;
+    chars--;
+  }
+  leafPx=leafW; GAP=gap;
+  const bookW=leafW*(spread?2:1)+gap;
+  r.setProperty('--pageH',pageH+'px');
+
+  r.setProperty('--padH',padH+'px');   r.setProperty('--padV',padV+'px');
+  r.setProperty('--pageW',pageW+'px'); r.setProperty('--leafW',leafW+'px');
+  r.setProperty('--bookW',bookW+'px'); r.setProperty('--bookH',bookH+'px');
+  r.setProperty('--board-pad',pad+'px');
+  r.setProperty('--coverW',Math.round(leafW*.94)+'px'); r.setProperty('--coverH',bookH+'px');
+
+  buildFlow();
+  pages=Math.max(1, Math.ceil(master.offsetWidth/pageW));
+  cur=Math.min(cur, Math.max(0,(Math.ceil(pages/stepN())-1)*stepN()));
+  cur=Math.floor(cur/stepN())*stepN();
+  render();
+}
+
+function fill(node,idx){
+  node.innerHTML = (idx<0||idx>=pages) ? '<div class="gutter"></div>'
+    : '<div class="gutter"></div><div class="win"><div class="flow" style="transform:translateX('+(idx*pageW)+'px)">'+FLOW+'</div></div>';
+}
+function folio(node,idx){ node.textContent = (idx>=0&&idx<pages) ? (idx+1)+' / '+pages : ''; }
+
+function render(){
+  fill(el('pR'),cur); folio(el('fR'),cur);
+  fill(el('pL'), spread?cur+1:-1); folio(el('fL'), spread?cur+1:-1);
+  const last=Math.min(pages,cur+stepN());
+  el('pos').textContent=(cur+1)+(last>cur+1?' 〜 '+last:'')+' ／ '+pages+' 頁';
+  try{ localStorage.setItem('mirai_page',cur); }catch(e){}
+}
+
+/* ── めくる（紙をたわませる） ───────────────── */
+const sheet=el('sheet');
+const NS=8;                     // 短冊の数。多いほど滑らかだが重くなる
+const CURL=30;                  // たわみの量（度）
+let CURLSIGN=-1;                // たわむ向き（-1で読者側に膨らむ）
+let angle=0, strips=[], stripW=0, slideDir=0;
+
+function pageHTML(idx){
+  if(idx<0||idx>=pages) return '<div class="paper"></div>';
+  return '<div class="paper"><div class="gutter"></div><div class="win">'
+       + '<div class="flow" style="transform:translateX('+(idx*pageW)+'px)">'+FLOW+'</div></div></div>';
+}
+function buildSheet(frontIdx, backIdx){
+  stripW=Math.ceil(leafPx/NS);
+  const f=pageHTML(frontIdx), bk=pageHTML(backIdx);
+  let h='';
+  for(let i=0;i<NS;i++){
+    h+='<div class="strip" style="width:'+(stripW+1)+'px">'
+      +  '<div class="sf"><div class="slice" style="right:'+(-i*stripW)+'px">'+f+'</div><div class="sh"></div></div>'
+      +  '<div class="sb"><div class="slice" style="left:'+(-i*stripW)+'px">'+bk+'</div><div class="sh"></div></div>'
+      + '</div>';
+  }
+  sheet.innerHTML=h;
+  strips=[...sheet.querySelectorAll('.strip')];
+}
+function setAngle(a){
+  if(!spread){ angle=a; slideSet(slideDir>0 ? a/180 : (180-a)/180); return; }
+  angle=a;
+  const rad=Math.PI/180;
+  const p=Math.max(0,Math.min(1,a/180)), lift=Math.sin(p*Math.PI);
+  // 綴じられていない一枚が、浮き上がって向こう側へ渡り、裏返って着地する
+  sheet.style.transform=
+     'translate3d('+((leafPx+GAP)*p).toFixed(1)+'px,'+(-lift*22).toFixed(1)+'px,'
+                   +(lift*150).toFixed(1)+'px)'
+   // 画面の横軸で傾ける（rotateY より前に書く）。真横を向く一瞬に消えないため
+   + ' rotateX('+(lift*15).toFixed(2)+'deg)'
+   + ' rotateY('+a.toFixed(1)+'deg)'
+   + ' rotateZ('+(Math.sin(p*Math.PI*2)*5).toFixed(2)+'deg)';
+  // 宙にある紙は平らではない。中ほどが遅れてしなる
+  const amp=CURLSIGN*CURL*lift;
+  let x=0, z=0;
+  for(let i=0;i<NS;i++){
+    const s=strips[i]; if(!s) break;
+    const ang=amp*Math.sin(Math.PI*(i+.5)/NS);
+    s.style.transform='translate3d('+x.toFixed(2)+'px,0,'+z.toFixed(2)+'px) rotateY('+ang.toFixed(2)+'deg)';
+    const lit=Math.cos((ang-26+a*.5)*rad);                   // 左上からの光に対する向き
+    s.children[0].children[1].style.background='rgba(28,18,6,'+Math.max(0,Math.min(.5,.16-lit*.26)).toFixed(3)+')';
+    s.children[1].children[1].style.background='rgba(28,18,6,'+Math.max(0,Math.min(.5,.16+lit*.26)).toFixed(3)+')';
+    x-=stripW*Math.cos(ang*rad); z+=stripW*Math.sin(ang*rad);
+  }
+}
+const canNext=()=>cur+stepN()<pages;
+const canPrev=()=>cur>0;
+
+function begin(dir){
+  if(!spread) return slideBegin(dir);
+  const st=stepN();
+  if(dir>0 && !canNext()) return false;
+  if(dir<0 && !canPrev()) return false;
+  if(dir>0){
+    buildSheet(spread?cur+1:cur, cur+st);
+    fill(el('pR'),cur); folio(el('fR'),cur);
+    if(spread){ fill(el('pL'),cur+3); folio(el('fL'),cur+3); }
+  }else{
+    buildSheet(cur-1, cur);
+    fill(el('pR'),cur-st); folio(el('fR'),cur-st);
+    if(spread){ fill(el('pL'),cur+1); folio(el('fL'),cur+1); }
+  }
+  sheet.classList.add('on');
+  sheet.style.transition='none';
+  setAngle(dir>0?0:180);
+  return true;
+}
+function finish(dir,go){
+  if(!spread) return slideFinish(dir,go);
+  busy=true;
+  sheet.style.transition='transform .78s cubic-bezier(.32,.04,.24,1)';
+  requestAnimationFrame(()=>setAngle(go?(dir>0?180:0):(dir>0?0:180)));
+  if(go){ sTurn(1); if(window.jellyPoke) window.jellyPoke(dir); }
+  setTimeout(()=>{
+    if(go) cur+=dir*stepN();
+    sheet.classList.remove('on'); sheet.innerHTML=''; strips=[];
+    sheet.style.transition='none'; sheet.style.transform='';
+    render(); busy=false;
+  },800);
+}
+function turn(dir){ if(busy||!begin(dir)) return; requestAnimationFrame(()=>finish(dir,true)); }
+
+/* ── モバイル（単ページ）：3Dめくりは映えないので横スライドで見せる ── */
+function slideBegin(dir){
+  if(dir>0 && !canNext()) return false;
+  if(dir<0 && !canPrev()) return false;
+  slideDir=dir;
+  if(dir>0){ sheet.innerHTML=pageHTML(cur)+'<div class="crease"></div>';
+             fill(el('pR'),cur+1); folio(el('fR'),cur+1); }
+  else     { sheet.innerHTML=pageHTML(cur-1)+'<div class="crease"></div>';
+             fill(el('pR'),cur);   folio(el('fR'),cur); }
+  sheet.classList.add('on');
+  sheet.style.transition='none';
+  slideSet(0);
+  return true;
+}
+function slideSet(p){
+  const q=Math.max(0,Math.min(1,p)), lift=Math.sin(q*Math.PI);
+  const x = slideDir>0 ? p*leafPx : (1-p)*leafPx;
+  sheet.style.transform='translate3d('+x.toFixed(1)+'px,'+(-lift*16).toFixed(1)+'px,'
+                        +(lift*150).toFixed(1)+'px) rotateZ('
+                        +(lift*2.6*(slideDir>0?1:-1)).toFixed(2)+'deg)';
+  const cr=sheet.querySelector('.crease');
+  if(cr) cr.style.opacity=(0.35+0.65*(1-Math.abs(0.5-p)*2)).toFixed(2);
+}
+function slideFinish(dir,go){
+  busy=true;
+  sheet.style.transition='transform .42s cubic-bezier(.33,.02,.28,1)';
+  requestAnimationFrame(()=>slideSet(go?1:0));
+  if(go){ sTurn(1); if(window.jellyPoke) window.jellyPoke(dir); }
+  setTimeout(()=>{
+    if(go) cur+=dir;
+    sheet.classList.remove('on'); sheet.innerHTML='';
+    sheet.style.transition='none'; sheet.style.transform='';
+    render(); busy=false;
+  },430);
+}
+
+/* ── スワイプ／タップ／キー（右綴じ：左へ進む） ── */
+let drag=null;
+leaves.addEventListener('pointerdown',e=>{
+  if(busy) return;
+  drag={x:e.clientX,live:false,moved:false,dir:0};
+  try{ leaves.setPointerCapture(e.pointerId); }catch(err){}
+});
+leaves.addEventListener('pointermove',e=>{
+  if(!drag||busy) return;
+  const dx=e.clientX-drag.x;
+  if(!drag.live){
+    if(Math.abs(dx)<14) return;
+    drag.dir = dx>0?1:-1;               // 左→右へ払う＝次の頁（右綴じの本と同じ手つき）
+    if(!begin(drag.dir)){ drag=null; return; }
+    drag.live=true; drag.moved=true; drag.x=e.clientX;
+  }
+  const p=Math.max(0,Math.min(1,Math.abs(e.clientX-drag.x)/(leafPx*.9)));
+  setAngle(drag.dir>0 ? p*180 : 180-p*180);
+});
+function release(){
+  if(!drag) return;
+  if(drag.live){
+    const p = drag.dir>0 ? angle/180 : 1-angle/180;
+    finish(drag.dir, p>.34);
+  }
+  drag=null;
+}
+leaves.addEventListener('pointerup',e=>{
+  if(drag && !drag.moved){
+    const r=leaves.getBoundingClientRect();
+    drag=null;
+    turn(e.clientX < r.left+r.width/2 ? 1 : -1);   // 左半分にふれる＝次へ
+    return;
+  }
+  release();
+});
+leaves.addEventListener('pointercancel',release);
+addEventListener('keydown',e=>{
+  if(!opened) return;
+  if(e.key==='Escape'){ closeBook(); return; }
+  if(['ArrowLeft',' ','PageDown'].includes(e.key)){ e.preventDefault(); turn(1); }
+  if(['ArrowRight','PageUp'].includes(e.key)){ e.preventDefault(); turn(-1); }
+});
+el('next').onclick=()=>turn(1);
+el('prev').onclick=()=>turn(-1);
+el('size').onclick=()=>{ fsIdx=(fsIdx+1)%3; el('size').textContent='文字 '+FSN[fsIdx]; layout(); };
+el('snd').onclick=()=>{ sound=!sound; el('snd').textContent='音 '+(sound?'ON':'OFF'); if(sound) sTurn(.7); };
+
+function openBook(){
+  if(opened) return;
+  opened=true; sOpen(); el('cover').classList.add('open');
+  setTimeout(()=>{
+    el('cover').style.display='none';          // 場所を明け渡す（本の中央寄せが崩れる）
+    el('book').classList.add('show'); el('bar').classList.add('show');
+    requestAnimationFrame(()=>el('book').classList.add('in'));   // ふわっと現れる
+    try{ const p=parseInt(localStorage.getItem('mirai_page')||'0',10);
+         if(p>0&&p<pages) cur=Math.floor(p/stepN())*stepN(); }catch(e){}
+    render();
+  },560);
+}
+el('cover').addEventListener('click',openBook);
+window.openBook=openBook;                       // WebGL表紙（ゼリー装丁）からも同じ動線で開く
+
+/* 本を閉じて表紙に戻る。読んでいた頁は覚えたまま */
+function closeBook(){
+  if(!opened) return;
+  opened=false; sTurn(.9);
+  el('bar').classList.remove('show');
+  el('book').classList.remove('in');
+  if(window.jellyClose) window.jellyClose();
+  setTimeout(()=>{
+    el('book').classList.remove('show');
+    el('cover').style.display='';
+    requestAnimationFrame(()=>el('cover').classList.remove('open'));
+  },520);
+}
+el('home').onclick=()=>closeBook();
+
+let rt=null;
+addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(layout,180); });
+layout();
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(layout);
+setTimeout(()=>document.body.classList.remove('booting'),7000);   // ゼリーが来ない時の保険
+</script>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+"three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+/* ── ゼリーの装丁（WebGL）。
+   ・厚みのある水の塊。背後の水景を実際に屈折させて透かす（板に見せない要）
+   ・二つ折りの見返しが開く。回転だけなので、大きさは最初から最後まで変わらない
+   ・突かれた点から細かい波紋が走り、塊そのものがプルプルうねる
+   読めない環境では何もせず、上のCSS表紙がそのまま生きる ── */
+try{
+  const THREE=await import('three');
+  const {RoundedBoxGeometry}=await import('three/addons/geometries/RoundedBoxGeometry.js');
+  const wet=document.getElementById('wet');
+  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  if(!renderer.capabilities.isWebGL2) throw new Error('WebGL2なし');
+  const DPR=Math.min(devicePixelRatio||1, innerWidth<560?1.5:2);
+  renderer.setPixelRatio(DPR); renderer.setSize(innerWidth,innerHeight);
+  renderer.outputColorSpace=THREE.SRGBColorSpace;
+  renderer.setClearColor(0x000000,0);
+  wet.prepend(renderer.domElement);
+
+  /* 遠近法。平行投影だと折りが「幅が縮むだけ」に見える */
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(24,innerWidth/innerHeight,1,8000);
+  const placeCam=()=>{
+    const D=(innerHeight/2)/Math.tan(camera.fov/2*Math.PI/180);
+    camera.position.set(innerWidth/2,-innerHeight/2,D);
+    camera.lookAt(innerWidth/2,-innerHeight/2,0);
+  };
+
+  /* 屈折で覗く背景を焼くための的。半分の解像度で十分（厚いゼリーは像がぼやける） */
+  const rt=new THREE.WebGLRenderTarget(2,2,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
+
+  /* ── 背景：深い水。読んでいる間も薄く残す（水の中で読む本なので） ── */
+  const back=new THREE.Mesh(new THREE.PlaneGeometry(1,1),
+    new THREE.ShaderMaterial({transparent:true,depthWrite:false,
+      uniforms:{uT:{value:0},uFade:{value:1}},
+      vertexShader:`varying vec2 vU; void main(){vU=uv;
+        gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+      fragmentShader:`varying vec2 vU; uniform float uT,uFade;
+        void main(){
+          vec2 p=vU*vec2(9.,4.6)+vec2(0.,uT*.04);
+          for(int i=0;i<3;i++){ p+=sin(p.yx*1.55+uT*vec2(.62,.47)+float(i)*1.9)*.44; }
+          float ca=pow(clamp(1.55-abs(sin(p.x))-abs(sin(p.y)),0.,1.55),2.6);
+          vec3 base=mix(vec3(.012,.05,.075),vec3(.05,.14,.185),pow(vU.y,1.5));
+          float shaft=smoothstep(.75,.0,abs(vU.x-.5))*pow(vU.y,2.2);
+          vec3 c=base + ca*vec3(.09,.20,.235)*(.25+.75*vU.y) + shaft*vec3(.05,.11,.135);
+          c*=smoothstep(1.08,.42,length(vU-vec2(.5,.46)));
+          gl_FragColor=vec4(c,uFade);
+        }`}));
+  back.position.z=-900; scene.add(back);
+
+  const spring=(k,c,v0)=>({v:v0||0,vel:0,t:v0||0,k,c,
+    step(dt){ this.vel+=-this.k*(this.v-this.t)*dt; this.vel*=Math.exp(-this.c*dt); this.v+=this.vel*dt; }});
+  const fold=spring(9,4.4,-Math.PI);                     // −π=閉じ 0=開き（手前を通す）
+  const jig=spring(90,5.0,0);                            // 一瞬の縮み
+  const wa=spring(26,1.7,0), wb=spring(62,2.2,0);        // 全身のたわみ（長く尾を引く）
+
+  /* ── 波紋：最大6つ。伝播 300px/s・細かい方の波長 約20px ── */
+  const NPK=10;
+  const pkArr=[]; for(let i=0;i<NPK;i++) pkArr.push(new THREE.Vector4(0,0,-99,0));
+  let pkI=0, NOW=0;
+  const pokeAt=(lx,ly,amp)=>{ pkArr[pkI].set(lx,ly,NOW,amp); pkI=(pkI+1)%NPK; };
+  const RIPPLE=`
+    uniform vec4 uPk[10]; uniform float uT;
+    void ripple(in vec2 lp, in float kf, in float sp, out float zs, out vec2 grad){
+      zs=0.; grad=vec2(0.);
+      for(int i=0;i<10;i++){
+        float amp=uPk[i].w; float age=uT-uPk[i].z;
+        if(amp<.01||age<0.||age>4.2) continue;
+        vec2 rel=lp-uPk[i].xy;
+        float d=length(rel)+1e-3;
+        /* 帯を広く・減衰を緩くすると、輪が何重にも尾を引いて余韻が残る */
+        float env=exp(-pow((d-age*260.)/86.,2.))*exp(-age*0.85)*amp;
+        float ph=d*kf-age*sp;
+        zs+=env*sin(ph);
+        grad+=(rel/d)*env*cos(ph)*kf;
+      }
+    }`;
+
+  /* ── ゼリーの材質：背後の水を屈折で透かす。ここが「板か水塊か」を分ける ── */
+  const shared={uT:{value:0},uPk:{value:pkArr},uScene:{value:rt.texture},
+                uRes:{value:new THREE.Vector2(1,1)},uJig:{value:0},
+                uWob:{value:new THREE.Vector3()}};
+  const mkJelly=()=>new THREE.ShaderMaterial({transparent:true,
+    uniforms:{uHalf:{value:new THREE.Vector2(1,1)},uOp:{value:1},...shared},
+    vertexShader:`
+      uniform vec2 uHalf; uniform float uJig; uniform vec3 uWob;
+      varying vec3 vN; varying vec2 vLP; varying vec3 vVP;
+      `+RIPPLE+`
+      void main(){
+        vec3 p=position;
+        /* 塊そのものがうねる：法線方向へ、ゆるい波で押し引きする */
+        float zs; vec2 g;
+        ripple(p.xy,.055,26.,zs,g);
+        p += normal*zs*.85;
+        /* 全身のプルン：波紋よりずっと低い周波数で、塊ごとたわむ */
+        float wph=uWob.z;
+        p.x += uWob.x*sin(p.y*.0092+wph)        + uWob.y*sin(p.y*.0165-wph*1.7);
+        p.y += uWob.x*sin(p.x*.0078-wph*1.2)*.75+ uWob.y*sin(p.x*.0140+wph*1.9)*.5;
+        p.z += (uWob.x+uWob.y)*.30*sin((p.x+p.y)*.0060+wph*.9);
+        p.xy *= 1.+uJig*.012;
+        p.z  *= 1.-uJig*.05;
+        vec4 mv=modelViewMatrix*vec4(p,1.);
+        vN=normalize(normalMatrix*normal);
+        vLP=position.xy; vVP=mv.xyz;
+        gl_Position=projectionMatrix*mv;
+      }`,
+    fragmentShader:`
+      uniform sampler2D uScene; uniform vec2 uRes; uniform float uOp;
+      varying vec3 vN; varying vec2 vLP; varying vec3 vVP;
+      `+RIPPLE+`
+      void main(){
+        /* 細かい波紋で法線を倒す（波長 約20px） */
+        float zs; vec2 g;
+        ripple(vLP,.31,93.,zs,g);
+        vec3 n=normalize(vN);
+        n.xy+=g*1.15;
+        n=normalize(n);
+
+        vec3 V=normalize(-vVP);
+        float fres=pow(1.-max(dot(n,V),0.),2.6);
+
+        /* 屈折：法線の傾きぶん、背後の水景をずらして拾う。厚いほど大きくずれる */
+        vec2 suv=gl_FragCoord.xy/uRes;
+        vec2 off=n.xy*(.030+fres*.055) + g*.0045;
+        vec3 refr=vec3(
+          texture2D(uScene, suv+off*1.10).r,      /* 色収差：縁で光が分かれる */
+          texture2D(uScene, suv+off*1.00).g,
+          texture2D(uScene, suv+off*0.90).b);
+        /* 水の吸収。厚みを通るほど青緑へ寄る */
+        refr*=mix(vec3(1.),vec3(.60,.92,.98),.45+fres*.35);
+        refr*=1.35;
+
+        /* 濡れたハイライト。2灯で粒立たせる */
+        vec3 L1=normalize(vec3(-.42,.72,.55)), L2=normalize(vec3(.55,-.28,.78));
+        float s1=pow(max(dot(n,normalize(L1+V)),0.),120.);
+        float s2=pow(max(dot(n,normalize(L2+V)),0.),46.)*.42;
+
+        vec3 col=refr + fres*vec3(.50,.86,.96)*.85 + (s1+s2)*vec3(1.,1.,.98);
+        float a=clamp(.80+fres*.20+(s1+s2)*.6,0.,1.)*uOp;
+        gl_FragColor=vec4(col,a);
+      }`});
+
+  /* ── 造り：背表紙で繋がった二枚の見返し。閉じ＝重なる／開き＝並ぶ ── */
+  const grp=new THREE.Group(); scene.add(grp);
+  const DEPTH=62;
+  const rightMat=mkJelly(), leftMat=mkJelly();
+  const foldGrp=new THREE.Group(); grp.add(foldGrp);     // 背表紙で回る側
+  foldGrp.position.z=DEPTH/2+16;                        // 束の手前を回る
+  let rightLeaf=null, leftLeaf=null, pages=null, LW=0, LH=0;
+
+  const stripe=(()=>{ const c=document.createElement('canvas'); c.width=c.height=64;
+    const g=c.getContext('2d'); g.fillStyle='#efe6d0'; g.fillRect(0,0,64,64);
+    g.strokeStyle='rgba(120,100,66,.5)';
+    for(let y=1;y<64;y+=2.4){ g.beginPath(); g.moveTo(0,y); g.lineTo(64,y); g.stroke(); }
+    const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(3,10);
+    t.colorSpace=THREE.SRGBColorSpace; return t; })();
+  const pagesMat=new THREE.MeshBasicMaterial({map:stripe,transparent:true,color:0x7d7663});
+  const PAGE_OP=.52;
+
+  function build(w,h){
+    LW=w; LH=h;
+    const geo=()=>new RoundedBoxGeometry(w,h,DEPTH,20,Math.min(30,w*.10,h*.10));
+    if(rightLeaf){ rightLeaf.geometry.dispose(); grp.remove(rightLeaf); }
+    rightLeaf=new THREE.Mesh(geo(),rightMat);
+    rightLeaf.position.set(-w/2,0,-DEPTH/2-16); grp.add(rightLeaf);   // 動かない側＝背表紙の左
+    rightMat.uniforms.uHalf.value.set(w/2,h/2);
+
+    if(leftLeaf){ leftLeaf.geometry.dispose(); foldGrp.remove(leftLeaf); }
+    leftLeaf=new THREE.Mesh(geo(),leftMat);
+    leftLeaf.position.x=w/2; foldGrp.add(leftLeaf);                   // 折り返す表紙
+    leftMat.uniforms.uHalf.value.set(w/2,h/2);
+
+    if(pages){ pages.geometry.dispose(); grp.remove(pages); }
+    pages=new THREE.Mesh(new RoundedBoxGeometry(w*.84,h*.88,30,3,12), pagesMat);
+    pages.position.set(-w/2,0,0); grp.add(pages);
+
+    /* 題字は折る側の外面に。開けば裏を向くので、勝手に見えなくなる */
+    title.position.set(w/2,0,-DEPTH/2-1.5);
+    title.rotation.y=Math.PI;
+    const tw=w*.78, th=w*.78*1.5;
+    title.scale.set(tw,th,1);
+    ttm.uniforms.uHalf.value.set(tw/2,th/2);
+  }
+
+  /* ── 題字。ゼリーの表面で、波紋に合わせて滲む ── */
+  const tc=document.createElement('canvas'); tc.width=512; tc.height=768;
+  const drawTitle=()=>{
+    const g=tc.getContext('2d'); g.clearRect(0,0,512,768);
+    const gold=g.createLinearGradient(0,0,0,768);
+    gold.addColorStop(0,'#f7e6b8'); gold.addColorStop(.5,'#dfb96c'); gold.addColorStop(1,'#f2daa0');
+    g.fillStyle=gold; g.textAlign='center'; g.textBaseline='middle';
+    const F='"Shippori Mincho B1","Yu Mincho",serif';
+    const v=(s,x,y0,fs,w)=>{ g.font=(w||500)+' '+fs+'px '+F;
+      [...s].forEach((ch,i)=>g.fillText(ch,x,y0+i*fs*1.12)); };
+    v('未来の一日',332,120,86,700);
+    g.fillRect(240,86,3,540);
+    v('どこにでもある会社の朝',168,120,34);
+    g.font='500 26px '+F; g.fillText('AI内製化工房 ／ MITA',256,724);
+  };
+  drawTitle();
+  const tt=new THREE.CanvasTexture(tc); tt.colorSpace=THREE.SRGBColorSpace; tt.anisotropy=4;
+  const ttm=new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.FrontSide,
+    uniforms:{uMap:{value:tt},uHalf:{value:new THREE.Vector2(1,1)},uOp:{value:1},...shared},
+    vertexShader:`varying vec2 vU; varying vec2 vLP;
+      uniform vec2 uHalf; uniform vec3 uWob;
+      void main(){
+        vU=uv;
+        vec2 lp=vec2(-(uv.x-.5),(uv.y-.5))*2.*uHalf;   /* 面は裏返しなのでxを反転 */
+        float wph=uWob.z;
+        vec2 d=vec2(
+          uWob.x*sin(lp.y*.0092+wph)        + uWob.y*sin(lp.y*.0165-wph*1.7),
+          uWob.x*sin(lp.x*.0078-wph*1.2)*.75+ uWob.y*sin(lp.x*.0140+wph*1.9)*.5);
+        vec3 p=position;
+        p.xy += vec2(-d.x,d.y)/(2.*uHalf);             /* px を面のローカルへ戻す */
+        vLP=lp;
+        gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.); }`,
+    fragmentShader:`uniform sampler2D uMap; uniform float uOp;
+      varying vec2 vU; varying vec2 vLP;
+      `+RIPPLE+`
+      void main(){
+        float zs; vec2 g;
+        ripple(vLP,.31,93.,zs,g);
+        vec4 c=texture2D(uMap, vU + g*.02);        /* 波紋の上で字が揺らぐ */
+        gl_FragColor=vec4(c.rgb*(1.+zs*.05), c.a*uOp);
+      }`});
+  const title=new THREE.Mesh(new THREE.PlaneGeometry(1,1), ttm);
+  foldGrp.add(title);
+  if(document.fonts&&document.fonts.ready)
+    document.fonts.ready.then(()=>{ drawTitle(); tt.needsUpdate=true; });
+
+  /* ── 落ちてくる滴と着水の輪 ── */
+  const soft=(()=>{ const c=document.createElement('canvas'); c.width=c.height=64;
+    const g=c.getContext('2d'), gr=g.createRadialGradient(32,32,0,32,32,32);
+    gr.addColorStop(0,'rgba(255,255,255,.95)'); gr.addColorStop(.55,'rgba(230,248,252,.45)');
+    gr.addColorStop(1,'rgba(230,248,252,0)');
+    g.fillStyle=gr; g.fillRect(0,0,64,64); return new THREE.CanvasTexture(c); })();
+  const fx=new THREE.Group(); scene.add(fx);            // 屈折の的には映さない組
+  const drops=[];
+  for(let i=0;i<5;i++){
+    const s=new THREE.Sprite(new THREE.SpriteMaterial({map:soft,color:0xd9f2f6,
+      transparent:true,opacity:.8,depthWrite:false}));
+    s.scale.set(8,13,1); s.position.z=DEPTH;
+    s.userData={y:-1e4,v:0,x:0}; fx.add(s); drops.push(s);
+  }
+  let dripT=1.2;
+  /* ── 位置と大きさ：開いても閉じても葉のサイズは同じ。動くのは背表紙の位置だけ ── */
+  const M=innerWidth<560?18:26;
+  let mode='cover';                                      // cover / opening / open / closing
+  const css=n=>parseFloat(getComputedStyle(document.documentElement).getPropertyValue(n))||0;
+  let spread=true;
+  function fitCase(){
+    const bw=css('--bookW'), bh=css('--bookH');
+    if(bw<10) return;
+    spread=innerWidth>=900;
+    const w=(spread?bw/2:bw)+M, h=bh+2*M;   // 紙の隙間ぶんも器が受け持つ
+    if(Math.abs(w-LW)>2 || Math.abs(h-LH)>2) build(w,h);
+    /* 背表紙は画面中央。閉じている間は右葉だけが見えるので、その半分ぶん左へ寄せる */
+    const openSpine=spread ? innerWidth/2 : innerWidth/2+w/2;
+    const shutSpine=innerWidth/2+w/2;                    // 閉じた本は背表紙の左に立つ
+    const want=(mode==='open'||mode==='opening')?openSpine:shutSpine;
+    grp.position.x+=(want-grp.position.x)*.14;
+    grp.position.y+=((-innerHeight/2)-grp.position.y)*.2;
+  }
+
+  /* ── ぷるん ── */
+  const toLocal=(cx,cy)=>[cx-grp.position.x+LW/2, -cy-grp.position.y];
+  window.jellyPoke=dir=>{
+    pokeAt((dir>0?1:-1)*LW*.3, (Math.random()-.5)*LH*.35, 5.5);
+    jig.vel+=1.5; wa.vel+=(dir>0?1:-1)*46; wb.vel+=(Math.random()-.5)*40;
+  };
+  let reading=false;
+  wet.addEventListener('click',e=>{
+    if(mode==='opening'||mode==='closing') return;
+    const [lx,ly]=toLocal(e.clientX,e.clientY);
+    if(!reading){
+      reading=true; mode='opening'; wet.classList.add('read');
+      fold.t=0; pokeAt(lx,ly,6.5); jig.vel+=3.2; wa.vel+=72; wb.vel-=46;
+      setTimeout(()=>{ mode='open'; window.openBook(); },760);
+      return;
+    }
+    pokeAt(lx,ly,4.5); jig.vel+=.8; wa.vel+=34; wb.vel+=26;
+  });
+  window.jellyClose=()=>{
+    reading=false; mode='closing'; wet.classList.remove('read');
+    fold.t=-Math.PI; pokeAt(0,0,5.5); jig.vel-=2.0; wa.vel-=58; wb.vel+=38;
+  };
+
+  function resize(){
+    camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); placeCam();
+    renderer.setSize(innerWidth,innerHeight);
+    rt.setSize(Math.max(2,Math.round(innerWidth*DPR*.5)), Math.max(2,Math.round(innerHeight*DPR*.5)));
+    shared.uRes.value.set(innerWidth*DPR, innerHeight*DPR);
+    back.scale.set(innerWidth*9,innerHeight*9,1);
+    back.position.set(innerWidth/2,-innerHeight/2,-900);
+  }
+  addEventListener('resize',resize); resize();
+
+  /* ── 毎フレーム ── */
+  const clock=new THREE.Clock();
+  const bookEl=document.getElementById('book');
+  let fade=1, pagesOp=1, foldOp=1, idleT=3.0;
+  function tick(){
+    requestAnimationFrame(tick);
+    const dt=Math.min(clock.getDelta(),.05), t=clock.elapsedTime;
+    NOW=t; shared.uT.value=t;
+    fitCase();
+    fold.step(dt); jig.step(dt); wa.step(dt); wb.step(dt);
+    shared.uWob.value.set(wa.v + 1.8*Math.sin(t*.52),
+                          wb.v + 1.0*Math.sin(t*.87+1.4), t*1.35);
+    foldGrp.rotation.y=fold.v;
+    shared.uJig.value=jig.v;
+    if(mode==='closing' && fold.v<-Math.PI+.12 && Math.abs(fold.vel)<.4) mode='cover';
+
+    /* 単ページ表示では紙が一枚しかない。開いた表紙は居場所がないので引き取る */
+    const wantFold=(!spread && mode==='open')?0:1;
+    foldOp+=(wantFold-foldOp)*Math.min(1,dt*2.4);
+    leftMat.uniforms.uOp.value=foldOp; ttm.uniforms.uOp.value=foldOp;
+    foldGrp.visible=foldOp>.02;
+
+    /* 束は本文が出てから引く。先に消すと何もない一瞬ができる */
+    const wantPages=(mode==='open'&&bookEl.classList.contains('in'))?0:1;
+    pagesOp+=(wantPages-pagesOp)*Math.min(1,dt*3.2);
+    pagesMat.opacity=pagesOp*PAGE_OP;
+    if(pages) pages.visible=pagesOp>.02;
+
+    idleT-=dt;
+    if(idleT<=0 && LW>0){
+      pokeAt((Math.random()-.5)*LW*1.4,(Math.random()-.5)*LH*.8, 1.5+Math.random()*1.1);
+      idleT=2.6+Math.random()*3.2;
+    }
+
+    /* 水は読んでいる間も薄く残す（水の中で読む本なので、屈折の種でもある） */
+    const wantFade=(mode==='open'||mode==='opening')?.34:1;
+    fade+=(wantFade-fade)*Math.min(1,dt*1.1);
+    back.material.uniforms.uT.value=t;
+    back.material.uniforms.uFade.value=fade;
+
+    /* 滴 */
+    dripT-=dt;
+    const topY=-grp.position.y-LH/2;
+    for(const s of drops){
+      const u=s.userData;
+      if(u.y<-9000){
+        if(dripT<=0 && LW>0){
+          const half=(mode==='open'&&spread)?LW:LW*.5;
+          u.x=grp.position.x-LW*.5+(Math.random()-.5)*half*1.5;
+          u.y=topY-120-Math.random()*180; u.v=0;
+          dripT=1.5+Math.random()*2.4;
+        }
+      }else{
+        u.v+=900*dt; u.y+=u.v*dt;
+        if(u.y>=topY-4){
+          const [lx,ly]=toLocal(u.x,topY+3);
+          pokeAt(lx,ly,3.2); jig.vel+=.35; wa.vel+=22; wb.vel+=16;
+          u.y=-1e4;
+        }else if(u.y>innerHeight+40) u.y=-1e4;
+      }
+      s.position.x=u.x; s.position.y=u.y<-9000?9e4:-u.y;
+      s.scale.set(8,13+u.v*.013,1);
+    }
+    /* ① 背景だけを的へ焼く → ② それを屈折させながら本番を描く */
+    grp.visible=false; fx.visible=false;
+    renderer.setRenderTarget(rt); renderer.render(scene,camera);
+    renderer.setRenderTarget(null);
+    grp.visible=true; fx.visible=true;
+    renderer.render(scene,camera);
+  }
+  window.__jelly={fold,jig,wa,wb,pk:pkArr,get mode(){return mode;},get now(){return NOW;},
+                  get slabW(){return LW;},get slabH(){return LH;}};
+  fitCase();
+  if(rightLeaf){
+    grp.position.x=innerWidth/2+LW/2; grp.position.y=-innerHeight/2;
+    renderer.render(scene,camera);
+    window.__jellyOn=true;
+    document.body.classList.remove('booting');
+    document.body.classList.add('jelly-on'); wet.classList.add('on');
+    tick();
+  }else throw new Error('表紙の寸法が取れない');
+}catch(err){ document.body.classList.remove('booting');
+  console.warn('ゼリー装丁は使えないため、通常の表紙で開きます:',err); }
+</script>
+</body>
+</html>

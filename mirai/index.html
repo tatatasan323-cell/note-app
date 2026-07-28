@@ -462,7 +462,7 @@ function drop(k,opt){
 /* 「ちゃぷ」ひと掬い分。水がまとまる方向へ帯域を下げるのが水らしさの要。
    掃引を上げると水を「切る」音になり、紙の擦れに寄ってしまう。 */
 function chap(k,at,bright){
-  const ctx=ac(), t=at, v=.15*(k||1), dur=.055+Math.random()*.05;
+  const ctx=ac(), t=at, v=.15*(k||1), dur=.17+Math.random()*.10;
   const pan=ctx.createStereoPanner? ctx.createStereoPanner():null;
   if(pan) pan.pan.value=Math.random()*1.0-.5;
   const out=ctx.createGain();
@@ -470,36 +470,40 @@ function chap(k,at,bright){
   const send=ctx.createGain(); send.gain.value=.6;
   out.connect(send); send.connect(reverb(ctx));
 
-  const f=(bright||1)*(520+Math.random()*680);
-  const nz=ctx.createBufferSource(); nz.buffer=noise(ctx,dur+.03);
-  const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=.85;
-  bp.frequency.setValueAtTime(f,t);
-  bp.frequency.exponentialRampToValueAtTime(f*.42,t+dur);   // 下がる＝水がまとまる
-  const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=190;
+  // 「ちゃ」＝帯域を狭めない広い雑音。狭い帯域を掃引すると音程が立って「ぷい」に化ける
+  const nz=ctx.createBufferSource(); nz.buffer=noise(ctx,dur+.06);
+  const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=260; hp.Q.value=.4;
+  const lo2=ctx.createBiquadFilter(); lo2.type='lowpass'; lo2.Q.value=.4;
+  const fc=(bright||1)*(3100+Math.random()*1500);
+  lo2.frequency.setValueAtTime(fc,t);
+  lo2.frequency.exponentialRampToValueAtTime(fc*.22,t+dur);  // 水が落ち着いていく
   const g=ctx.createGain();
   g.gain.setValueAtTime(.0001,t);
-  g.gain.exponentialRampToValueAtTime(v,t+.006);
-  g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-  nz.connect(bp); bp.connect(hp); hp.connect(g); g.connect(out);
-  nz.start(t); nz.stop(t+dur+.04);
+  g.gain.linearRampToValueAtTime(v,t+.018);                  // 立ち上がりを鈍らせる
+  g.gain.exponentialRampToValueAtTime(v*.26,t+.075);         // 一度落ちて
+  g.gain.exponentialRampToValueAtTime(.0001,t+dur);          // 泡の尾が残る
+  nz.connect(hp); hp.connect(lo2); lo2.connect(g); g.connect(out);
+  nz.start(t); nz.stop(t+dur+.07);
 
-  // 押しのけられた水の胴鳴り。これが無いと砂を撒く音になる
+  // 「ぷ」＝押しのけられた水の丸い胴鳴り。少し遅らせて、音程は落とさない。
+  // 落とすとそれ自体が「ぷいっ」になる
   const o=ctx.createOscillator(); o.type='sine';
-  o.frequency.setValueAtTime(160+Math.random()*70,t);
-  o.frequency.exponentialRampToValueAtTime(92,t+.11);
+  const bf=148+Math.random()*62;
+  o.frequency.setValueAtTime(bf*.85,t+.030);
+  o.frequency.linearRampToValueAtTime(bf,t+.060);            // わずかに上がる＝泡が締まる
   const og=ctx.createGain();
-  og.gain.setValueAtTime(.0001,t);
-  og.gain.exponentialRampToValueAtTime(v*.7,t+.010);
-  og.gain.exponentialRampToValueAtTime(.0001,t+.13);
-  o.connect(og); og.connect(out); o.start(t); o.stop(t+.15);
+  og.gain.setValueAtTime(.0001,t+.030);
+  og.gain.exponentialRampToValueAtTime(v*.60,t+.046);
+  og.gain.exponentialRampToValueAtTime(.0001,t+.175);
+  o.connect(og); og.connect(out); o.start(t+.030); o.stop(t+.19);
 }
 /* ページをめくる＝水面に手を入れて押す。ときどき二度、まれに三度 */
 function sSplash(k){
   if(!sound) return;
   const t=ac().currentTime;
   chap(k,t,1);
-  if(Math.random()<.58) chap((k||1)*.62, t+.095+Math.random()*.085, .80);
-  if(Math.random()<.24) chap((k||1)*.38, t+.235+Math.random()*.11,  .64);
+  if(Math.random()<.58) chap((k||1)*.62, t+.155+Math.random()*.11, .80);
+  if(Math.random()<.24) chap((k||1)*.38, t+.36+Math.random()*.15,  .64);
 }
 function sTurn(k){ sSplash(k); }
 /* ひらく・閉じる＝深く沈む一滴。低く、余韻を長く */

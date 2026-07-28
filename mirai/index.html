@@ -397,15 +397,16 @@ function drop(k,opt){
   if(!sound) return;
   const o2=opt||{}, ctx=ac(), t=(o2.at||ctx.currentTime), v=.16*(k||1);
   const sz=pickSize();                                 // 大粒か小粒かを毎回引く
-  const f0=o2.f || pickF((o2.lo||90)*sz.m, (o2.hi||190)*sz.m);
-  const f1=f0*(1.45+Math.random()*.4);                 // 立ち上がりの跳ね幅も毎回変える
-  const dur=(o2.dur||.34)*sz.d+Math.random()*.26;
+  const f0=o2.f || pickF((o2.lo||120)*sz.m, (o2.hi||250)*sz.m);
+  const f1=f0*(2.4+Math.random());                     // 跳ね上がる幅も毎回変える
+  const rise=.045+Math.random()*.035;                  // 駆け上がる時間。ここが「ちょ」
+  const dur=(o2.dur||.15)*sz.d+Math.random()*.09;      // 本体は短い。尾は残響が担う
 
   const pan=ctx.createStereoPanner ? ctx.createStereoPanner() : null;
   if(pan) pan.pan.value=(o2.pan===undefined? (Math.random()*1.4-.7) : o2.pan);
   // 高すぎる成分だけ落とす。全部残すと金属質の飛沫になる
   const lp=ctx.createBiquadFilter(); lp.type='lowpass';
-  lp.frequency.value=(o2.lp||2000)*sz.m; lp.Q.value=.6;
+  lp.frequency.value=(o2.lp||2800)*sz.m; lp.Q.value=.6;
   const out=ctx.createGain(); out.gain.value=1;
   lp.connect(out);
   out.connect(pan||ctx.destination); if(pan) pan.connect(ctx.destination);
@@ -416,7 +417,7 @@ function drop(k,opt){
 
   const o=ctx.createOscillator(); o.type='sine';
   o.frequency.setValueAtTime(f0,t);
-  o.frequency.exponentialRampToValueAtTime(f1,t+dur*.72);
+  o.frequency.exponentialRampToValueAtTime(f1,t+rise);
   const g=ctx.createGain();
   g.gain.setValueAtTime(.0001,t);
   g.gain.exponentialRampToValueAtTime(v,t+.005);
@@ -426,23 +427,24 @@ function drop(k,opt){
 
   const o1=ctx.createOscillator(); o1.type='sine';
   o1.frequency.setValueAtTime(f0*2,t);
-  o1.frequency.exponentialRampToValueAtTime(f1*2,t+dur*.72);
+  o1.frequency.exponentialRampToValueAtTime(f1*2,t+rise);
   const g1=ctx.createGain();
   g1.gain.setValueAtTime(.0001,t);
   g1.gain.exponentialRampToValueAtTime(v*.28,t+.005);
-  g1.gain.exponentialRampToValueAtTime(.0001,t+dur*.8);
+  g1.gain.exponentialRampToValueAtTime(.0001,t+dur*.7);
   o1.connect(g1); g1.connect(lp);
   o1.start(t); o1.stop(t+dur+.02);
 
   // 着水の「チッ」。これが無いと笛の音になる
-  const nz=ctx.createBufferSource(); nz.buffer=noise(ctx,.035);
+  const nz=ctx.createBufferSource(); nz.buffer=noise(ctx,.02);
   const bp=ctx.createBiquadFilter(); bp.type='bandpass';
-  bp.frequency.value=f1*(1.2+Math.random()*.8); bp.Q.value=1.1;
+  bp.frequency.value=2200+Math.random()*2000; bp.Q.value=1.6;
   const ng=ctx.createGain();
-  ng.gain.setValueAtTime(v*.50,t);                     // 着水の「チッ」。無いと笛になる
-  ng.gain.exponentialRampToValueAtTime(.0001,t+.04);
-  nz.connect(bp); bp.connect(ng); ng.connect(lp);
-  nz.start(t); nz.stop(t+.05);
+  ng.gain.setValueAtTime(v*.34,t);                     // 頭の「ぴ」。無いと輪郭が出ない
+  ng.gain.exponentialRampToValueAtTime(.0001,t+.014);
+  // 低域用の絞りを通さない。通すと明るさが消えて「ぽ」になる
+  nz.connect(bp); bp.connect(ng); ng.connect(out);
+  nz.start(t); nz.stop(t+.03);
 
   // ときどき、跳ねた二滴目。等間隔に鳴らさないのが単調さを消す鍵
   if(!o2.solo && Math.random()<.42)

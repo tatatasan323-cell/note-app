@@ -113,6 +113,17 @@ body{
 .bar .pos{min-width:118px;text-align:center;letter-spacing:.08em;}
 .measure{position:absolute;visibility:hidden;left:-99999px;top:0;}
 
+/* 音を点ける入口。ブラウザは利用者が一度触れるまで音を鳴らさないので、
+   本を開かずに「触れる」ための場所が要る。鳴らせない間だけ出す */
+#snd0{position:fixed;left:0;right:0;bottom:3.2vh;z-index:8;text-align:center;
+  pointer-events:none;opacity:0;transition:opacity .7s ease;}
+#snd0.on{opacity:1;}
+#snd0 button{pointer-events:auto;font-family:system-ui,sans-serif;font-size:12px;
+  letter-spacing:.18em;color:#a8c4cf;background:rgba(255,255,255,.07);
+  border:1px solid rgba(168,196,207,.30);border-radius:999px;padding:7px 18px;cursor:pointer;
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
+#snd0 button:hover{background:rgba(255,255,255,.15);}
+
 /* ── WebGLのゼリー装丁。表紙のときも読んでいる間も、本の後ろに常駐してぷるぷるする ── */
 #wet{position:fixed;inset:0;z-index:5;opacity:0;transition:opacity .85s ease;pointer-events:none;}
 #wet.on{opacity:1;pointer-events:auto;cursor:pointer;}
@@ -168,7 +179,8 @@ body.booting .cover{visibility:hidden;}
 
 <div class="measure"><div class="flow" id="master" style="right:auto;left:0"></div></div>
 
-<div id="wet"><div class="hint2">― 表紙にふれて、ひらく ―</div></div>
+<div id=wet><div class=hint2>― 表紙にふれて、ひらく ―</div></div>
+<div id=snd0><button type=button>♪ 水の音をつける</button></div>
 
 <script>
 const T = [
@@ -829,6 +841,18 @@ el('home').onclick=()=>closeBook();
 
 let rt=null;
 addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(layout,180); });
+/* 音の入口。ブラウザの決まりで、利用者が一度触れるまで音は出せない。
+   表紙を眺めながら水音を聞けるよう、本を開かずに触れられる場所を用意する */
+{
+  const box=el('snd0'), btn=box.querySelector('button');
+  const sync=()=>box.classList.toggle('on', sound && !running() && !opened);
+  btn.addEventListener('click',e=>{
+    e.stopPropagation(); wake();
+    setTimeout(()=>{ drop(.85); sync(); },80);
+  });
+  setInterval(sync,700); sync();
+}
+
 layout();
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(layout);
 setTimeout(()=>document.body.classList.remove('booting'),7000);   // ゼリーが来ない時の保険

@@ -362,7 +362,7 @@ function noise(ctx,sec){
 let REV=null;
 function reverb(ctx){
   if(REV) return REV;
-  const len=Math.floor(ctx.sampleRate*3.0), b=ctx.createBuffer(2,len,ctx.sampleRate);
+  const len=Math.floor(ctx.sampleRate*6.0), b=ctx.createBuffer(2,len,ctx.sampleRate);
   for(let c=0;c<2;c++){
     const d=b.getChannelData(c);
     for(let i=0;i<len;i++){
@@ -452,32 +452,49 @@ function drop(k,opt){
          {at:t+.13+Math.random()*.22, solo:true, lo:140, hi:270, dur:.18, lp:1200,
           pan:(pan?pan.pan.value:0)*.6, wet:.5});
 }
-/* 水をくぐる ── 紙が水を切って渡っていく音 */
-function swish(k){
-  if(!sound) return;
-  const ctx=ac(), t=ctx.currentTime, v=.055*(k||1), dur=.34;
-  const nz=ctx.createBufferSource(); nz.buffer=noise(ctx,dur);
-  const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=.9;
-  bp.frequency.setValueAtTime(95,t);
-  bp.frequency.exponentialRampToValueAtTime(240+Math.random()*90,t+dur*.5);
-  bp.frequency.exponentialRampToValueAtTime(110,t+dur);
-  // 上を切り落とす。ここを残すと帯域掃引がそのまま紙の擦れに聞こえる
-  const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=420; lp.Q.value=.5;
+/* 「ちゃぷ」ひと掬い分。水がまとまる方向へ帯域を下げるのが水らしさの要。
+   掃引を上げると水を「切る」音になり、紙の擦れに寄ってしまう。 */
+function chap(k,at,bright){
+  const ctx=ac(), t=at, v=.15*(k||1), dur=.055+Math.random()*.05;
+  const pan=ctx.createStereoPanner? ctx.createStereoPanner():null;
+  if(pan) pan.pan.value=Math.random()*1.0-.5;
+  const out=ctx.createGain();
+  out.connect(pan||ctx.destination); if(pan) pan.connect(ctx.destination);
+  const send=ctx.createGain(); send.gain.value=.6;
+  out.connect(send); send.connect(reverb(ctx));
+
+  const f=(bright||1)*(520+Math.random()*680);
+  const nz=ctx.createBufferSource(); nz.buffer=noise(ctx,dur+.03);
+  const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=.85;
+  bp.frequency.setValueAtTime(f,t);
+  bp.frequency.exponentialRampToValueAtTime(f*.42,t+dur);   // 下がる＝水がまとまる
+  const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=190;
   const g=ctx.createGain();
   g.gain.setValueAtTime(.0001,t);
-  g.gain.exponentialRampToValueAtTime(v,t+.09);
+  g.gain.exponentialRampToValueAtTime(v,t+.006);
   g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-  const send=ctx.createGain(); send.gain.value=.55;
-  nz.connect(bp); bp.connect(lp); lp.connect(g); g.connect(ctx.destination);
-  g.connect(send); send.connect(reverb(ctx));
-  nz.start(t); nz.stop(t+dur);
+  nz.connect(bp); bp.connect(hp); hp.connect(g); g.connect(out);
+  nz.start(t); nz.stop(t+dur+.04);
+
+  // 押しのけられた水の胴鳴り。これが無いと砂を撒く音になる
+  const o=ctx.createOscillator(); o.type='sine';
+  o.frequency.setValueAtTime(160+Math.random()*70,t);
+  o.frequency.exponentialRampToValueAtTime(92,t+.11);
+  const og=ctx.createGain();
+  og.gain.setValueAtTime(.0001,t);
+  og.gain.exponentialRampToValueAtTime(v*.7,t+.010);
+  og.gain.exponentialRampToValueAtTime(.0001,t+.13);
+  o.connect(og); og.connect(out); o.start(t); o.stop(t+.15);
 }
-/* ページをめくる＝水を切って、渡り切って一滴落ちる */
-function sTurn(k){
+/* ページをめくる＝水面に手を入れて押す。ときどき二度、まれに三度 */
+function sSplash(k){
   if(!sound) return;
-  swish(k);
-  drop((k||1)*.85, {lo:85, hi:170});
+  const t=ac().currentTime;
+  chap(k,t,1);
+  if(Math.random()<.58) chap((k||1)*.62, t+.095+Math.random()*.085, .80);
+  if(Math.random()<.24) chap((k||1)*.38, t+.235+Math.random()*.11,  .64);
 }
+function sTurn(k){ sSplash(k); }
 /* ひらく・閉じる＝深く沈む一滴。低く、余韻を長く */
 function sOpen(){
   if(!sound) return;
@@ -492,7 +509,7 @@ function sOpen(){
   const send=ctx.createGain(); send.gain.value=.55;
   o.connect(g); g.connect(ctx.destination); g.connect(send); send.connect(reverb(ctx));
   o.start(t); o.stop(t+.44);
-  swish(1.3);
+  sSplash(1.35);
   drop(1.15,{lo:70, hi:145, wet:.88, lp:1500});
   setTimeout(()=>drop(.5,{lo:160, hi:320, lp:1600}), 320+Math.random()*240);
 }
@@ -1135,7 +1152,7 @@ try{
           const half=(mode==='open'&&spread)?LW:LW*.5;
           u.x=grp.position.x-LW*.5+(Math.random()-.5)*half*1.5;
           u.y=topY-120-Math.random()*180; u.v=0;
-          dripT=1.5+Math.random()*2.4;
+          dripT=2.4+Math.random()*3.4;
         }
       }else{
         u.v+=900*dt; u.y+=u.v*dt;

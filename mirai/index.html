@@ -349,98 +349,129 @@ function buildFlow(){
   FLOW=html; master.innerHTML=FLOW;
 }
 
-/* ── 紙の音（音源ファイルを持たず、その場で合成する） ── */
+/* ── 水の音（音源ファイルを持たず、その場で合成する） ── */
 let AC=null, sound=true;
 const ac=()=>AC||(AC=new (window.AudioContext||window.webkitAudioContext)());
+const running=()=>AC && AC.state==='running';
 function noise(ctx,sec){
   const n=Math.floor(ctx.sampleRate*sec), b=ctx.createBuffer(1,n,ctx.sampleRate), d=b.getChannelData(0);
   for(let i=0;i<n;i++) d[i]=Math.random()*2-1;
   return b;
 }
-// 紙の音は「連続した風」ではなく、繊維が離れる無数の微小な破裂音の集まり。
-// 帯域を滑らかに掃引すると棒を振ったような風切り音になるので、粒を撒いて作る。
-function paperBuf(ctx,dur,dens,bright){
-  const sr=ctx.sampleRate, n=Math.floor(sr*dur);
-  const buf=ctx.createBuffer(1,n,sr), d=buf.getChannelData(0);
-  const grains=Math.floor(dens*dur*1000);
-  for(let g=0; g<grains; g++){
-    const u=Math.random();
-    const pos=Math.floor((.04+.92*Math.pow(u,.75))*n);          // 中盤に密度が寄る
-    const len=Math.max(2, Math.floor(sr*(.0004+Math.random()*.0026*bright)));
-    const amp=(.2+Math.random()*.8)*Math.max(.15, 1-Math.abs(pos/n-.42)*1.5);
-    for(let i=0;i<len && pos+i<n;i++)
-      d[pos+i]+=(Math.random()*2-1)*Math.exp(-i/len*4.2)*amp*.6;
+/* 反響。水の中／洞の中の距離感は、これが無いと出ない */
+let REV=null;
+function reverb(ctx){
+  if(REV) return REV;
+  const len=Math.floor(ctx.sampleRate*1.7), b=ctx.createBuffer(2,len,ctx.sampleRate);
+  for(let c=0;c<2;c++){
+    const d=b.getChannelData(c);
+    for(let i=0;i<len;i++){
+      const t=i/len;
+      d[i]=(Math.random()*2-1)*Math.pow(1-t,2.8)*(1-Math.exp(-i/500));
+    }
   }
-  for(let i=0;i<n;i++){                                          // 下地の薄い擦れ
-    const t=i/n;
-    d[i]+=(Math.random()*2-1)*.05*Math.min(1,t*10)*Math.pow(1-t,1.5);
-  }
-  let pk=0; for(let i=0;i<n;i++) pk=Math.max(pk,Math.abs(d[i]));
-  if(pk>0) for(let i=0;i<n;i++) d[i]/=pk;
-  return buf;
+  const cv=ctx.createConvolver(); cv.buffer=b;
+  const g=ctx.createGain(); g.gain.value=.42;
+  cv.connect(g); g.connect(ctx.destination);
+  REV=cv; return cv;
 }
-/* ぷるん：短い下降音に速い揺れを乗せ、小さな「ぽよん」を返す */
-function sJelly(k){
+/* 水滴：気泡が縮むので音程は「上がる」。下げると水に聞こえない。
+   同じ高さが続くと途端に単調になるので、直前の高さは避けて選ぶ。 */
+let lastF=0;
+function pickF(lo,hi){
+  let f=0;
+  for(let i=0;i<6;i++){
+    f=lo+Math.random()*(hi-lo);
+    if(!lastF || Math.abs(f-lastF)/lastF>.22) break;
+  }
+  lastF=f; return f;
+}
+function drop(k,opt){
   if(!sound) return;
-  const ctx=ac(), t=ctx.currentTime, v=.15*(k||1);
+  const o2=opt||{}, ctx=ac(), t=(o2.at||ctx.currentTime), v=.15*(k||1);
+  const f0=o2.f || pickF(o2.lo||330, o2.hi||1150);
+  const f1=f0*(1.9+Math.random()*1.7);                 // 立ち上がりの跳ね幅も毎回変える
+  const dur=(o2.dur||.14)+Math.random()*.22;
+
+  const pan=ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+  if(pan) pan.pan.value=(o2.pan===undefined? (Math.random()*1.4-.7) : o2.pan);
+  const out=ctx.createGain(); out.gain.value=1;
+  out.connect(pan||ctx.destination); if(pan) pan.connect(ctx.destination);
+  const send=ctx.createGain(); send.gain.value=(o2.wet===undefined?.45:o2.wet);
+  out.connect(send); send.connect(reverb(ctx));
+
   const o=ctx.createOscillator(); o.type='sine';
-  o.frequency.setValueAtTime(320+Math.random()*70,t);
-  o.frequency.exponentialRampToValueAtTime(92,t+.17);
-  const lfo=ctx.createOscillator(); lfo.type='sine';
-  lfo.frequency.setValueAtTime(22,t); lfo.frequency.exponentialRampToValueAtTime(8,t+.3);
-  const lg=ctx.createGain(); lg.gain.setValueAtTime(42,t);
-  lg.gain.exponentialRampToValueAtTime(2,t+.3);
-  lfo.connect(lg); lg.connect(o.frequency);
-  const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=880; lp.Q.value=1.1;
+  o.frequency.setValueAtTime(f0,t);
+  o.frequency.exponentialRampToValueAtTime(f1,t+dur*.72);
   const g=ctx.createGain();
   g.gain.setValueAtTime(.0001,t);
-  g.gain.exponentialRampToValueAtTime(v,t+.012);
-  g.gain.exponentialRampToValueAtTime(.0001,t+.34);
-  o.connect(lp); lp.connect(g); g.connect(ctx.destination);
-  o.start(t); o.stop(t+.36); lfo.start(t); lfo.stop(t+.36);
-  const t2=t+.11, o2=ctx.createOscillator(); o2.type='sine';
-  o2.frequency.setValueAtTime(250,t2); o2.frequency.exponentialRampToValueAtTime(125,t2+.12);
-  const g2=ctx.createGain(); g2.gain.setValueAtTime(.0001,t2);
-  g2.gain.exponentialRampToValueAtTime(v*.5,t2+.01);
-  g2.gain.exponentialRampToValueAtTime(.0001,t2+.17);
-  o2.connect(g2); g2.connect(ctx.destination); o2.start(t2); o2.stop(t2+.18);
+  g.gain.exponentialRampToValueAtTime(v,t+.005);
+  g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g); g.connect(out);
+  o.start(t); o.stop(t+dur+.02);
+
+  // 着水の「チッ」。これが無いと笛の音になる
+  const nz=ctx.createBufferSource(); nz.buffer=noise(ctx,.035);
+  const bp=ctx.createBiquadFilter(); bp.type='bandpass';
+  bp.frequency.value=f1*(1.2+Math.random()*.8); bp.Q.value=1.1;
+  const ng=ctx.createGain();
+  ng.gain.setValueAtTime(v*.55,t);
+  ng.gain.exponentialRampToValueAtTime(.0001,t+.04);
+  nz.connect(bp); bp.connect(ng); ng.connect(out);
+  nz.start(t); nz.stop(t+.05);
+
+  // ときどき、跳ねた二滴目。等間隔に鳴らさないのが単調さを消す鍵
+  if(!o2.solo && Math.random()<.42)
+    drop(k*(.3+Math.random()*.25),
+         {at:t+.09+Math.random()*.16, solo:true, lo:700, hi:1900, dur:.09,
+          pan:(pan?pan.pan.value:0)*.6, wet:.5});
 }
+/* 水をくぐる ── 紙が水を切って渡っていく音 */
+function swish(k){
+  if(!sound) return;
+  const ctx=ac(), t=ctx.currentTime, v=.07*(k||1), dur=.42;
+  const nz=ctx.createBufferSource(); nz.buffer=noise(ctx,dur);
+  const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=.7;
+  bp.frequency.setValueAtTime(240,t);
+  bp.frequency.exponentialRampToValueAtTime(1500+Math.random()*700,t+dur*.55);
+  bp.frequency.exponentialRampToValueAtTime(300,t+dur);
+  const g=ctx.createGain();
+  g.gain.setValueAtTime(.0001,t);
+  g.gain.exponentialRampToValueAtTime(v,t+.10);
+  g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  const send=ctx.createGain(); send.gain.value=.5;
+  nz.connect(bp); bp.connect(g); g.connect(ctx.destination);
+  g.connect(send); send.connect(reverb(ctx));
+  nz.start(t); nz.stop(t+dur);
+}
+/* ページをめくる＝水を切って、渡り切って一滴落ちる */
 function sTurn(k){
   if(!sound) return;
-  if(window.__jellyOn) return sJelly(k);       // ゼリー装丁の時は紙擦れよりぷるん
-  const ctx=ac(), t=ctx.currentTime, dur=.17*(1+(Math.random()-.5)*.2), v=.17*(k||1);
-  const src=ctx.createBufferSource(); src.buffer=paperBuf(ctx,dur,.30,.9);
-  const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=300;
-  const pk=ctx.createBiquadFilter(); pk.type='peaking';           // 紙の胴鳴り（掃引しない）
-  pk.frequency.value=1400; pk.Q.value=.8; pk.gain.value=4;
-  const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=5000;
-  const g=ctx.createGain();
-  g.gain.setValueAtTime(.0001,t);
-  g.gain.exponentialRampToValueAtTime(v,t+.008);
-  g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-  src.connect(hp); hp.connect(pk); pk.connect(lp); lp.connect(g); g.connect(ctx.destination);
-  src.start(t); src.stop(t+dur);
-  // 紙が重なりに落ちる、低く鈍い音（正弦波だと電子音になるので雑音を濾す）
-  const t2=t+dur*.66, ts=.10;
-  const s2=ctx.createBufferSource(); s2.buffer=noise(ctx,ts);
-  const l2=ctx.createBiquadFilter(); l2.type='lowpass'; l2.frequency.value=380; l2.Q.value=.7;
-  const g2=ctx.createGain();
-  g2.gain.setValueAtTime(.0001,t2);
-  g2.gain.exponentialRampToValueAtTime(.06*(k||1),t2+.006);
-  g2.gain.exponentialRampToValueAtTime(.0001,t2+ts);
-  s2.connect(l2); l2.connect(g2); g2.connect(ctx.destination);
-  s2.start(t2); s2.stop(t2+ts);
+  swish(k);
+  drop((k||1)*.85, {lo:300, hi:820});
 }
+/* ひらく・閉じる＝深く沈む一滴。低く、余韻を長く */
 function sOpen(){
   if(!sound) return;
-  if(window.__jellyOn) return sJelly(1.6);     // 開く時はひときわ大きくぷるん
   const ctx=ac(), t=ctx.currentTime;
-  const o=ctx.createOscillator(), g=ctx.createGain();
-  o.type='sine'; o.frequency.setValueAtTime(96,t); o.frequency.exponentialRampToValueAtTime(52,t+.22);
-  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.22,t+.02);
-  g.gain.exponentialRampToValueAtTime(.0001,t+.34);
-  o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+.35);
-  setTimeout(()=>sTurn(1.25),70);
+  // 沈み込む鈍い音
+  const o=ctx.createOscillator(); o.type='sine';
+  o.frequency.setValueAtTime(190,t); o.frequency.exponentialRampToValueAtTime(58,t+.30);
+  const g=ctx.createGain();
+  g.gain.setValueAtTime(.0001,t);
+  g.gain.exponentialRampToValueAtTime(.20,t+.02);
+  g.gain.exponentialRampToValueAtTime(.0001,t+.42);
+  const send=ctx.createGain(); send.gain.value=.55;
+  o.connect(g); g.connect(ctx.destination); g.connect(send); send.connect(reverb(ctx));
+  o.start(t); o.stop(t+.44);
+  swish(1.3);
+  drop(1.15,{lo:260, hi:640, wet:.62});
+  setTimeout(()=>drop(.5,{lo:820, hi:1700}), 260+Math.random()*160);
+}
+/* 装丁に落ちる一滴（絵と同時に鳴らす）。静かに、間隔もばらけさせる */
+function sDrip(){
+  if(!sound || !running()) return;      // 触れる前は音を出せない（ブラウザの決まり）
+  drop(.26+Math.random()*.18, {lo:420, hi:1500, wet:.72});
 }
 
 /* ── 組版・ページ分割 ───────────────────── */
@@ -685,7 +716,7 @@ addEventListener('keydown',e=>{
 el('next').onclick=()=>turn(1);
 el('prev').onclick=()=>turn(-1);
 el('size').onclick=()=>{ fsIdx=(fsIdx+1)%3; el('size').textContent='文字 '+FSN[fsIdx]; layout(); };
-el('snd').onclick=()=>{ sound=!sound; el('snd').textContent='音 '+(sound?'ON':'OFF'); if(sound) sTurn(.7); };
+el('snd').onclick=()=>{ sound=!sound; el('snd').textContent='音 '+(sound?'ON':'OFF'); if(sound) drop(.8); };
 
 function openBook(){
   if(opened) return;
@@ -1009,6 +1040,7 @@ try{
       return;
     }
     pokeAt(lx,ly,4.5); jig.vel+=.8; wa.vel+=34; wb.vel+=26;
+    if(window.drop) window.drop(.55,{lo:520,hi:1500});
   });
   window.jellyClose=()=>{
     reading=false; mode='closing'; wet.classList.remove('read');
@@ -1082,6 +1114,7 @@ try{
         if(u.y>=topY-4){
           const [lx,ly]=toLocal(u.x,topY+3);
           pokeAt(lx,ly,3.2); jig.vel+=.35; wa.vel+=22; wb.vel+=16;
+          if(window.sDrip) window.sDrip();
           u.y=-1e4;
         }else if(u.y>innerHeight+40) u.y=-1e4;
       }

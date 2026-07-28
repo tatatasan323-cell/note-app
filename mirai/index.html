@@ -474,7 +474,7 @@ function layout(){
   r.setProperty('--step',step+'px');
 
   // 幅は「縦横比」から決める。行数から決めると1ページが正方形になってしまう
-  const availW=Math.min(vw-(narrow?20:44), spread?1280:600)-pad*2;
+  const availW=Math.min(vw-(narrow?70:44), spread?1280:600)-pad*2;   // 器の余白ぶんを残す
   const gap=spread?(narrow?0:26):0;          // 紙と紙のあいだ。綴じていない証
   let N, leafW;
   for(;;){
@@ -973,7 +973,7 @@ try{
   }
   let dripT=1.2;
   /* ── 位置と大きさ：開いても閉じても葉のサイズは同じ。動くのは背表紙の位置だけ ── */
-  const M=innerWidth<560?18:26;
+  const M=innerWidth<560?22:26;
   let mode='cover';                                      // cover / opening / open / closing
   const css=n=>parseFloat(getComputedStyle(document.documentElement).getPropertyValue(n))||0;
   let spread=true;
@@ -981,7 +981,8 @@ try{
     const bw=css('--bookW'), bh=css('--bookH');
     if(bw<10) return;
     spread=innerWidth>=900;
-    const w=(spread?bw/2:bw)+M, h=bh+2*M;   // 紙の隙間ぶんも器が受け持つ
+    // 見開きは背表紙側に余白が要らないので片側ぶん、単ページは左右ぶん
+    const w=(spread? bw/2+M : bw+2*M), h=bh+2*M;
     if(Math.abs(w-LW)>2 || Math.abs(h-LH)>2) build(w,h);
     /* 背表紙は画面中央。閉じている間は右葉だけが見えるので、その半分ぶん左へ寄せる */
     const openSpine=spread ? innerWidth/2 : innerWidth/2+w/2;

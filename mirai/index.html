@@ -377,6 +377,13 @@ function reverb(ctx){
 }
 /* 水滴：気泡が縮むので音程は「上がる」。下げると水に聞こえない。
    同じ高さが続くと途端に単調になるので、直前の高さは避けて選ぶ。 */
+/* 粒の大きさ。m=音程の倍率 p=出る割合 d=伸びの倍率 */
+const SIZES=[{m:1.00,p:.44,d:1.18},{m:1.33,p:.34,d:1.00},{m:1.72,p:.22,d:.86}];
+function pickSize(){
+  let r=Math.random();
+  for(const z of SIZES){ r-=z.p; if(r<0) return z; }
+  return SIZES[0];
+}
 let lastF=0;
 function pickF(lo,hi){
   let f=0;
@@ -389,19 +396,22 @@ function pickF(lo,hi){
 function drop(k,opt){
   if(!sound) return;
   const o2=opt||{}, ctx=ac(), t=(o2.at||ctx.currentTime), v=.16*(k||1);
-  const f0=o2.f || pickF(o2.lo||90, o2.hi||190);
+  const sz=pickSize();                                 // 大粒か小粒かを毎回引く
+  const f0=o2.f || pickF((o2.lo||90)*sz.m, (o2.hi||190)*sz.m);
   const f1=f0*(1.45+Math.random()*.4);                 // 立ち上がりの跳ね幅も毎回変える
-  const dur=(o2.dur||.34)+Math.random()*.26;
+  const dur=(o2.dur||.34)*sz.d+Math.random()*.26;
 
   const pan=ctx.createStereoPanner ? ctx.createStereoPanner() : null;
   if(pan) pan.pan.value=(o2.pan===undefined? (Math.random()*1.4-.7) : o2.pan);
   // 高すぎる成分だけ落とす。全部残すと金属質の飛沫になる
   const lp=ctx.createBiquadFilter(); lp.type='lowpass';
-  lp.frequency.value=o2.lp||2000; lp.Q.value=.6;
+  lp.frequency.value=(o2.lp||2000)*sz.m; lp.Q.value=.6;
   const out=ctx.createGain(); out.gain.value=1;
   lp.connect(out);
   out.connect(pan||ctx.destination); if(pan) pan.connect(ctx.destination);
-  const send=ctx.createGain(); send.gain.value=(o2.wet===undefined?.78:o2.wet);
+  // 大粒ほど深く響かせる
+  const send=ctx.createGain();
+  send.gain.value=Math.min(.92,(o2.wet===undefined?.78:o2.wet)+(1.72-sz.m)*.10);
   out.connect(send); send.connect(reverb(ctx));
 
   const o=ctx.createOscillator(); o.type='sine';

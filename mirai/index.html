@@ -362,16 +362,16 @@ function noise(ctx,sec){
 let REV=null;
 function reverb(ctx){
   if(REV) return REV;
-  const len=Math.floor(ctx.sampleRate*1.7), b=ctx.createBuffer(2,len,ctx.sampleRate);
+  const len=Math.floor(ctx.sampleRate*2.2), b=ctx.createBuffer(2,len,ctx.sampleRate);
   for(let c=0;c<2;c++){
     const d=b.getChannelData(c);
     for(let i=0;i<len;i++){
       const t=i/len;
-      d[i]=(Math.random()*2-1)*Math.pow(1-t,2.8)*(1-Math.exp(-i/500));
+      d[i]=(Math.random()*2-1)*Math.pow(1-t,2.2)*(1-Math.exp(-i/500));
     }
   }
   const cv=ctx.createConvolver(); cv.buffer=b;
-  const g=ctx.createGain(); g.gain.value=.42;
+  const g=ctx.createGain(); g.gain.value=.54;
   cv.connect(g); g.connect(ctx.destination);
   REV=cv; return cv;
 }
@@ -389,19 +389,19 @@ function pickF(lo,hi){
 function drop(k,opt){
   if(!sound) return;
   const o2=opt||{}, ctx=ac(), t=(o2.at||ctx.currentTime), v=.16*(k||1);
-  const f0=o2.f || pickF(o2.lo||300, o2.hi||600);
-  const f1=f0*(1.8+Math.random()*.8);                  // 立ち上がりの跳ね幅も毎回変える
-  const dur=(o2.dur||.18)+Math.random()*.16;
+  const f0=o2.f || pickF(o2.lo||220, o2.hi||450);
+  const f1=f0*(1.7+Math.random()*.7);                  // 立ち上がりの跳ね幅も毎回変える
+  const dur=(o2.dur||.22)+Math.random()*.18;
 
   const pan=ctx.createStereoPanner ? ctx.createStereoPanner() : null;
   if(pan) pan.pan.value=(o2.pan===undefined? (Math.random()*1.4-.7) : o2.pan);
   // 高すぎる成分だけ落とす。全部残すと金属質の飛沫になる
   const lp=ctx.createBiquadFilter(); lp.type='lowpass';
-  lp.frequency.value=o2.lp||7000; lp.Q.value=.6;
+  lp.frequency.value=o2.lp||5000; lp.Q.value=.6;
   const out=ctx.createGain(); out.gain.value=1;
   lp.connect(out);
   out.connect(pan||ctx.destination); if(pan) pan.connect(ctx.destination);
-  const send=ctx.createGain(); send.gain.value=(o2.wet===undefined?.45:o2.wet);
+  const send=ctx.createGain(); send.gain.value=(o2.wet===undefined?.60:o2.wet);
   out.connect(send); send.connect(reverb(ctx));
 
   const o=ctx.createOscillator(); o.type='sine';
@@ -427,7 +427,7 @@ function drop(k,opt){
   // ときどき、跳ねた二滴目。等間隔に鳴らさないのが単調さを消す鍵
   if(!o2.solo && Math.random()<.42)
     drop(k*(.30+Math.random()*.25),
-         {at:t+.10+Math.random()*.18, solo:true, lo:400, hi:760, dur:.11, lp:3000,
+         {at:t+.10+Math.random()*.18, solo:true, lo:300, hi:570, dur:.13, lp:2400,
           pan:(pan?pan.pan.value:0)*.6, wet:.5});
 }
 /* 水をくぐる ── 紙が水を切って渡っていく音 */
@@ -454,7 +454,7 @@ function swish(k){
 function sTurn(k){
   if(!sound) return;
   swish(k);
-  drop((k||1)*.85, {lo:260, hi:520});
+  drop((k||1)*.85, {lo:195, hi:390});
 }
 /* ひらく・閉じる＝深く沈む一滴。低く、余韻を長く */
 function sOpen(){
@@ -471,13 +471,13 @@ function sOpen(){
   o.connect(g); g.connect(ctx.destination); g.connect(send); send.connect(reverb(ctx));
   o.start(t); o.stop(t+.44);
   swish(1.3);
-  drop(1.15,{lo:210, hi:420, wet:.58, lp:4800});
-  setTimeout(()=>drop(.5,{lo:480, hi:960}), 280+Math.random()*200);
+  drop(1.15,{lo:155, hi:310, wet:.74, lp:3600});
+  setTimeout(()=>drop(.5,{lo:360, hi:720, lp:3200}), 280+Math.random()*200);
 }
 /* 装丁に落ちる一滴（絵と同時に鳴らす）。静かに、間隔もばらけさせる */
 function sDrip(){
   if(!sound || !running()) return;      // 触れる前は音を出せない（ブラウザの決まり）
-  drop(.26+Math.random()*.18, {lo:300, hi:620, wet:.55});
+  drop(.26+Math.random()*.18, {lo:225, hi:465, wet:.70});
 }
 
 /* ── 組版・ページ分割 ───────────────────── */
@@ -1046,7 +1046,7 @@ try{
       return;
     }
     pokeAt(lx,ly,4.5); jig.vel+=.8; wa.vel+=34; wb.vel+=26;
-    if(window.drop) window.drop(.55,{lo:330,hi:660});
+    if(window.drop) window.drop(.55,{lo:245,hi:490});
   });
   window.jellyClose=()=>{
     reading=false; mode='closing'; wet.classList.remove('read');

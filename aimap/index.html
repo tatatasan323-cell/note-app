@@ -2018,6 +2018,8 @@ composer.addPass(new OutputPass());
 const ray=new THREE.Raycaster(), ptr=new THREE.Vector2(-9,-9);
 let focus=-1, opened=-1, hover=null;
 let flying=false, flyThen=null; const camWant=new THREE.Vector3(), tgtWant=new THREE.Vector3();
+// 見どころを開いている間に乗る島。浮き沈みぶんカメラも動かし、画面の中では止めて見せる
+let rideI=null, rideY=0;
 const BEAMS=[];
 const HOME_CAM=new THREE.Vector3(), HOME_TGT=new THREE.Vector3(0,-6,0);
 let idleAt=performance.now();
@@ -2034,7 +2036,7 @@ function flyTo(target,dist,elev=.36,azi=null){
     : new THREE.Vector3(Math.cos(azi),0,Math.sin(azi));
   dir.y=Math.max(dir.y,elev); dir.normalize();
   camWant.copy(target).add(dir.multiplyScalar(dist));
-  tgtWant.copy(target); flying=true; controls.autoRotate=false;
+  tgtWant.copy(target); flying=true; controls.autoRotate=false; rideI=null;
 }
 
 /* 見どころへ寄る位置を決める。
@@ -2046,7 +2048,8 @@ function focusSection(I,k){
   const sec=I.data.sections[k];
   if(sec && sec.topDown){                      // 穴の中は真上から覗く
     camWant.set(p.x+2.5*sc, p.y+42*sc, p.z+2.5*sc);
-    tgtWant.copy(p); flying=true; controls.autoRotate=false; return;
+    tgtWant.copy(p); flying=true; controls.autoRotate=false;
+    rideI=I; rideY=I.grp.position.y; return;
   }
   const dist=(12+(k%3)*3.4)*sc, elev=.10+(k%4)*.055;
   const objs=I.grp.children.filter(o=>o.userData.occluder);
@@ -2066,6 +2069,7 @@ function focusSection(I,k){
   }
   ray.far=Infinity;                       // クリック判定と共用なので必ず戻す
   camWant.copy(bestCam); tgtWant.copy(p); flying=true; controls.autoRotate=false;
+  rideI=I; rideY=I.grp.position.y;
 }
 function enterIsland(i){
   focus=i; const I=islands[i];
@@ -2090,7 +2094,7 @@ function enterIsland(i){
 function leaveIsland(){
   focus=-1; closePanel(false);
   islands.forEach(s=>{ s.marks.forEach(m=>m.g.visible=false); s.lab.visible=true; });
-  camWant.copy(HOME_CAM); tgtWant.copy(HOME_TGT); flying=true; controls.autoRotate=false;
+  camWant.copy(HOME_CAM); tgtWant.copy(HOME_TGT); flying=true; controls.autoRotate=false; rideI=null;
   isleHdr.classList.remove('on'); backBtn.classList.remove('on');
   head.style.opacity=1; hint.style.opacity=1;
 }
@@ -2134,7 +2138,7 @@ document.getElementById('isTop').onclick=()=>{
   const p=islands[focus].grp.position;
   closePanel(false);
   camWant.set(p.x+52, p.y+120, p.z+92); tgtWant.set(p.x, p.y+96, p.z);
-  flying=true; controls.autoRotate=false;
+  flying=true; controls.autoRotate=false; rideI=null;
   flyThen=()=>enterIsland(islands.length-1);
 };
 document.getElementById('isPrev').onclick=()=>{ if(focus>0){ closePanel(false); enterIsland(focus-1); } };
@@ -2227,6 +2231,10 @@ function animate(){
       f.o.position.y = f.y + Math.sin(t*f.w + f.p)*f.a;
     });
   });
+  if(rideI){
+    const dy=rideI.grp.position.y-rideY; rideY=rideI.grp.position.y;
+    if(dy){ camera.position.y+=dy; controls.target.y+=dy; camWant.y+=dy; tgtWant.y+=dy; }
+  }
   RISERS.forEach(r=>{
     if(r.kind==='flow'){  r.o.material.uniforms.uT.value=t; return; }
     if(r.kind==='flame'){ r.tube.material.uniforms.uT.value=t; return; }

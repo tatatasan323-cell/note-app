@@ -353,6 +353,13 @@ function buildFlow(){
 let AC=null, sound=true;
 const ac=()=>AC||(AC=new (window.AudioContext||window.webkitAudioContext)());
 const running=()=>AC && AC.state==='running';
+/* ブラウザは「利用者が一度触れるまで」音を鳴らさない。器だけ先に作っておき、
+   最初の操作で起こす。再訪時など許される環境では読み込み直後から鳴る。 */
+function wake(){ try{ const c=ac(); if(c.state!=='running') c.resume().catch(()=>{}); }catch(e){} }
+['pointerdown','keydown','touchstart'].forEach(ev=>
+  addEventListener(ev,wake,{capture:true,passive:true}));
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) wake(); });
+wake();
 function noise(ctx,sec){
   const n=Math.floor(ctx.sampleRate*sec), b=ctx.createBuffer(1,n,ctx.sampleRate), d=b.getChannelData(0);
   for(let i=0;i<n;i++) d[i]=Math.random()*2-1;
@@ -1074,10 +1081,23 @@ try{
     pokeAt((dir>0?1:-1)*LW*.3, (Math.random()-.5)*LH*.35, 5.5);
     jig.vel+=1.5; wa.vel+=(dir>0?1:-1)*46; wb.vel+=(Math.random()-.5)*40;
   };
+  const tapRay=new THREE.Raycaster(), tapND=new THREE.Vector2();
+  const onSlab=(cx,cy)=>{
+    tapND.set(cx/innerWidth*2-1, -(cy/innerHeight*2-1));
+    tapRay.setFromCamera(tapND,camera);
+    const hs=[rightLeaf,leftLeaf].filter(Boolean);
+    return hs.length ? tapRay.intersectObjects(hs,false).length>0 : true;
+  };
   let reading=false;
   wet.addEventListener('click',e=>{
     if(mode==='opening'||mode==='closing') return;
     const [lx,ly]=toLocal(e.clientX,e.clientY);
+    if(!reading && !onSlab(e.clientX,e.clientY)){
+      // 装丁の外＝ただの水面。ここを叩いても本は開かない
+      pokeAt(lx,ly,3.4); jig.vel+=.5; wa.vel+=20;
+      if(window.drop) window.drop(.5,{lo:105,hi:210});
+      return;
+    }
     if(!reading){
       reading=true; mode='opening'; wet.classList.add('read');
       fold.t=0; pokeAt(lx,ly,6.5); jig.vel+=3.2; wa.vel+=72; wb.vel-=46;

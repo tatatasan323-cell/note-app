@@ -459,6 +459,29 @@ function drop(k,opt){
          {at:t+.13+Math.random()*.22, solo:true, lo:140, hi:270, dur:.18, lp:1200,
           pan:(pan?pan.pan.value:0)*.6, wet:.5});
 }
+/* 水の音は「雑音」ではなく「無数の小さな泡」でできている。
+   帯域を整えた雑音は、どう整形しても紙や砂の音にしかならない。
+   泡ひとつひとつは、縮みながら音程が上がる短い正弦波。 */
+function bubbles(out,t,n,k,spread,loF,hiF){
+  const ctx=ac();
+  for(let i=0;i<n;i++){
+    const u=Math.pow(Math.random(),1.7);          // 頭に密集し、後ほどまばらに
+    const at=t+u*spread;
+    const f0=loF+Math.random()*(hiF-loF);
+    const f1=f0*(1.25+Math.random()*.85);
+    const d=.018+Math.random()*.045;
+    const a=k*(.05+Math.random()*.08)*(1-u*.6);
+    const o=ctx.createOscillator(); o.type='sine';
+    o.frequency.setValueAtTime(f0,at);
+    o.frequency.exponentialRampToValueAtTime(f1,at+d*.6);
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(.0001,at);
+    g.gain.exponentialRampToValueAtTime(a,at+.004);
+    g.gain.exponentialRampToValueAtTime(.0001,at+d);
+    o.connect(g); g.connect(out);
+    o.start(at); o.stop(at+d+.01);
+  }
+}
 /* 「ちゃぷ」ひと掬い分。水がまとまる方向へ帯域を下げるのが水らしさの要。
    掃引を上げると水を「切る」音になり、紙の擦れに寄ってしまう。 */
 function chap(k,at,bright){
@@ -470,20 +493,20 @@ function chap(k,at,bright){
   const send=ctx.createGain(); send.gain.value=.6;
   out.connect(send); send.connect(reverb(ctx));
 
-  // 「ちゃ」＝帯域を狭めない広い雑音。狭い帯域を掃引すると音程が立って「ぷい」に化ける
-  const nz=ctx.createBufferSource(); nz.buffer=noise(ctx,dur+.06);
-  const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=260; hp.Q.value=.4;
-  const lo2=ctx.createBiquadFilter(); lo2.type='lowpass'; lo2.Q.value=.4;
-  const fc=(bright||1)*(3100+Math.random()*1500);
-  lo2.frequency.setValueAtTime(fc,t);
-  lo2.frequency.exponentialRampToValueAtTime(fc*.22,t+dur);  // 水が落ち着いていく
+  // 触れた一瞬だけ、ごく薄く雑音を置く。これ以上増やすと紙の擦れに戻る
+  const nz=ctx.createBufferSource(); nz.buffer=noise(ctx,.03);
+  const bp=ctx.createBiquadFilter(); bp.type='bandpass';
+  bp.frequency.value=900+Math.random()*800; bp.Q.value=.8;
   const g=ctx.createGain();
   g.gain.setValueAtTime(.0001,t);
-  g.gain.linearRampToValueAtTime(v,t+.018);                  // 立ち上がりを鈍らせる
-  g.gain.exponentialRampToValueAtTime(v*.26,t+.075);         // 一度落ちて
-  g.gain.exponentialRampToValueAtTime(.0001,t+dur);          // 泡の尾が残る
-  nz.connect(hp); hp.connect(lo2); lo2.connect(g); g.connect(out);
-  nz.start(t); nz.stop(t+dur+.07);
+  g.gain.exponentialRampToValueAtTime(v*.09,t+.006);
+  g.gain.exponentialRampToValueAtTime(.0001,t+.026);
+  nz.connect(bp); bp.connect(g); g.connect(out);
+  nz.start(t); nz.stop(t+.04);
+
+  // 「ちゃ」＝泡の群れ。水の音の正体はこれで、雑音ではない
+  bubbles(out, t, 16+Math.floor(Math.random()*11), v*.9, dur*.85,
+          420*(bright||1), 2100*(bright||1));
 
   // 「ぷ」＝押しのけられた水の丸い胴鳴り。少し遅らせて、音程は落とさない。
   // 落とすとそれ自体が「ぷいっ」になる

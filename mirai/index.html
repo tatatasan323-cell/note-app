@@ -333,11 +333,11 @@ const T = [
 ];
 const CLS={h:'h',h2:'h2',p:'',n:'n',s:'sep',e:'end',b:'n'};
 function fmt(s){
-  s = s.replace(/[“"]([^”"]*)[”"]/g, '$1');   // “強調” → 傍点
-  s = s.replace(/[0-9]+|[A-Za-z]+/g, m => ''+m+'');            // 数字・英字 → 縦中横
+  s = s.replace(/[“"]([^”"]*)[”"]/g, '\u0001$1\u0002');   // “強調” → 傍点
+  s = s.replace(/[0-9]+|[A-Za-z]+/g, m => '\u0003'+m+'\u0004');            // 数字・英字 → 縦中横
   s = s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-  return s.replace(//g,'<em class="bt">').replace(//g,'</em>')
-          .replace(//g,'<span class="tcy">').replace(//g,'</span>');
+  return s.replace(/\u0001/g,'<em class="bt">').replace(/\u0002/g,'</em>')
+          .replace(/\u0003/g,'<span class="tcy">').replace(/\u0004/g,'</span>');
 }
 // 場面（＊）ごとに区切る。場面が変わったら改ページする
 const SECTIONS=[[]];

@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AIエージェント利用ガイド ── 部下としてハーネスする</title>
+<style>
+/* ──────────────────────────────────────────────────────────
+   AIエージェント利用ガイド ── 部下としてハーネスする
+   1ファイル・通信ゼロ・外部読み込みなし。図解はすべてHTML/CSS/SVGで描く。
+   スクリプトは末尾の1つだけ（目次の追従と戻るボタン）。通信も保存もしない。
+   画面では濃紺、印刷では白地に切り替わる（@media print）。
+   ────────────────────────────────────────────────────────── */
+:root{
+  --bg:#0a0f1c; --bg-2:#111a2f;
+  --ink:#eaf3ff; --muted:#a9bfd6; --dim:#a1b5ca;   /* 濃紺の上で読める下限。これより暗くしない（判定で落ちる） */
+  --accent:#6ecbff; --accent-2:#9adcff;
+  --A:#6ecbff; --A-bg:rgba(110,203,255,.12);
+  --B:#b5dc78; --B-bg:rgba(181,220,120,.12);
+  --C:#ff9484; --C-bg:rgba(255,148,132,.12);
+  --warn:#ffd591;
+  --card:rgba(255,255,255,.055); --card-2:rgba(255,255,255,.09);
+  --line:rgba(255,255,255,.13); --line-2:rgba(110,203,255,.35);
+  --navy:#14213d;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;color:var(--ink);
+  /* 土台は単色。グラデーションだけだと、固定背景が最初の画面しか覆わず下が白く抜ける
+     （2026-09-12、全ページ撮影で実際に抜けた。スマホのSafariは固定背景を無視するので同じ） */
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(1100px 640px at 12% 0%, rgba(92,194,255,.16), transparent 62%),
+    radial-gradient(900px 700px at 96% 100%, rgba(126,92,255,.14), transparent 62%),
+    linear-gradient(158deg,#1b2742 0%,#111a2f 48%,#090e1a 100%);
+  background-repeat:no-repeat;background-size:100% 100%;
+  font-family:"Yu Gothic UI","Yu Gothic","Hiragino Sans","Meiryo",system-ui,sans-serif;
+  font-size:16px;line-height:1.85;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1040px;margin:0 auto;padding:36px 22px 90px}
+a{color:var(--accent)}
+b,strong{color:#fff}
+.ph{background:rgba(255,213,145,.18);border-bottom:1px dashed var(--warn);color:var(--warn);padding:0 3px;border-radius:3px}
+
+/* ── 頭 ── */
+header{padding:10px 0 26px;border-bottom:1px solid var(--line-2);margin-bottom:34px}
+.eyebrow{color:var(--muted);font-size:13px;letter-spacing:.16em}
+h1{font-size:36px;line-height:1.28;margin:8px 0 6px;letter-spacing:.02em;font-weight:800;
+   text-shadow:0 8px 34px rgba(0,0,0,.6)}
+h1 .em{background:linear-gradient(180deg,#fff 10%,#8ecdff 95%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{color:var(--muted);font-size:15px;margin:0}
+.meta{color:var(--dim);font-size:12.5px;margin-top:14px}
+.meta span{margin-right:16px}
+
+/* ── 固定の帯：目次＋戻るボタン ──
+   固定するのはこの1段だけ（表題は固定しない）。高さは机上で56px・スマホで46pxに留め、
+   目次は折り返さず横に流す ── 節が増えても帯が縦に膨らんで画面を食わないため。
+   読んでいる節の札は .here で光る（位置の追従は末尾の短いスクリプト）。 */
+.bar{position:sticky;top:0;z-index:30;background:rgba(9,14,26,.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line-2);margin:0 -22px 30px;padding:0 22px}
+.bar-in{display:flex;align-items:center;gap:8px;height:56px;max-width:1040px;margin:0 auto}
+.bb{flex:0 0 auto;height:34px;padding:0 12px;border-radius:999px;border:1px solid var(--line-2);background:rgba(110,203,255,.10);
+  color:var(--accent);font:700 13px/1 inherit;font-family:inherit;cursor:pointer;white-space:nowrap}
+.bb:hover{background:rgba(110,203,255,.2)}
+.bb[disabled]{opacity:.45;cursor:default}
+nav.toc{position:relative;flex:1 1 auto;display:flex;gap:6px;overflow-x:auto;white-space:nowrap;scrollbar-width:none;padding:2px 0}   /* 帯の横送りは即時。滑らかにすると、本文の滑らかな送りを途中で止めてしまう（2026-09-12） */   /* position:relative ── 札の offsetLeft を目次基準にする（無いと帯基準になり、ボタンの幅ぶんずれる） */
+nav.toc::-webkit-scrollbar{display:none}
+nav.toc a{flex:0 0 auto;font-size:13px;color:var(--muted);text-decoration:none;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(10,20,30,.45);line-height:1}
+nav.toc a:hover{color:var(--accent);border-color:var(--line-2)}
+nav.toc a.here{color:#08131f;background:var(--accent);border-color:var(--accent);font-weight:800}
+section,header{scroll-margin-top:72px}
+@media (max-width:720px){.bar-in{height:46px;gap:6px}.bb{height:30px;padding:0 9px;font-size:12px}nav.toc a{font-size:12px;padding:6px 10px}section,header{scroll-margin-top:60px}}
+
+/* ── 節 ── */
+section{margin:0 0 56px}
+h2{font-size:23px;font-weight:700;letter-spacing:.04em;margin:0 0 16px;padding-bottom:10px;border-bottom:1px solid var(--line-2)}
+h2 .n{color:var(--accent);font-size:15px;letter-spacing:.2em;margin-right:12px;vertical-align:2px}
+h3{font-size:17px;font-weight:700;color:var(--accent-2);margin:28px 0 8px}
+p{margin:0 0 14px}
+ul{padding-left:1.3em;margin:0 0 14px}
+li{margin:4px 0}
+.q{margin:22px 0;padding:22px 26px;border-radius:16px;background:var(--navy);border:1px solid var(--line-2);
+   font-size:22px;font-weight:800;text-align:center;line-height:1.5;box-shadow:0 0 40px rgba(92,194,255,.14)}
+.note{color:var(--muted);font-size:13.5px;border-left:3px solid var(--line-2);padding:4px 14px;margin:16px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 22px;margin:14px 0}
+.card.A{border-color:var(--A);background:var(--A-bg)} .card.B{border-color:var(--B);background:var(--B-bg)} .card.C{border-color:var(--C);background:var(--C-bg)}
+.card h3{margin-top:0}
+.card.A h3{color:var(--A)} .card.B h3{color:var(--B)} .card.C h3{color:var(--C)}
+.rules{counter-reset:r;list-style:none;padding:0}
+.rules li{counter-increment:r;position:relative;padding:14px 18px 14px 64px;margin:10px 0;background:var(--card);border:1px solid var(--line);border-radius:12px}
+.rules li::before{content:counter(r);position:absolute;left:16px;top:12px;width:34px;height:34px;border-radius:50%;background:var(--accent);color:#08131f;font-weight:800;display:flex;align-items:center;justify-content:center}
+.faq details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:0 18px;margin:10px 0}
+.faq summary{cursor:pointer;padding:14px 0;font-weight:700;list-style:none}
+.faq summary::before{content:"Q";display:inline-block;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#08131f;text-align:center;line-height:28px;margin-right:12px;font-size:14px}
+.faq details[open] summary{border-bottom:1px solid var(--line)}
+.faq details p{padding:12px 0 14px 40px;margin:0;color:var(--muted)}
+
+/* ── 表 ── */
+.scroll{overflow-x:auto;max-width:100%}
+table{width:100%;border-collapse:collapse;font-size:14.5px;margin:10px 0 16px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-size:12.5px;font-weight:600;letter-spacing:.06em;border-bottom-color:var(--line-2)}
+td.x{text-align:center;font-weight:800;white-space:nowrap;width:64px}
+td.x.A{color:var(--A);background:var(--A-bg)} td.x.B{color:var(--B);background:var(--B-bg)} td.x.C{color:var(--C);background:var(--C-bg)}
+@media (max-width:720px){.scroll table{width:max-content;min-width:100%}.scroll th,.scroll td{white-space:nowrap}.scroll td.w{white-space:normal;min-width:16em;max-width:22em}}
+
+/* ── 図解の共通 ── */
+figure.fig{margin:26px 0;padding:26px 26px 20px;border-radius:18px;background:
+  linear-gradient(158deg,rgba(255,255,255,.07) 0%,rgba(255,255,255,.025) 60%,rgba(255,255,255,.01) 100%);
+  border:1px solid var(--line);box-shadow:0 26px 62px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.18)}
+figure.fig .fh{font-size:24px;font-weight:800;line-height:1.3;margin:0 0 4px}
+figure.fig .fh .em{color:var(--accent)}
+figure.fig .fs{color:var(--muted);font-size:14px;margin:0 0 18px}
+figure.fig figcaption{color:var(--muted);font-size:13.5px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+.glass{background:var(--card);border:1px solid var(--line);border-radius:14px}
+.tagc{display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:50%;font-weight:800;font-size:22px;flex:0 0 46px}
+.tagc.A{background:var(--A);color:#08131f}.tagc.B{background:var(--B);color:#0e1a06}.tagc.C{background:var(--C);color:#2a0d09}
+
+/* 図解① 部下 */
+.faces{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.face{padding:18px 20px 14px;border-radius:14px;border:1px solid}
+.face.A{border-color:var(--A);background:var(--A-bg)} .face.C{border-color:var(--C);background:var(--C-bg)}
+.face .t{font-size:19px;font-weight:800} .face.A .t{color:var(--A)} .face.C .t{color:var(--C)}
+.face ul{margin:8px 0 0;padding-left:1.2em;font-size:14.5px}
+.face .foot{margin-top:10px;padding-top:8px;border-top:1px solid var(--line);font-weight:800;font-size:14.5px}
+.face.A .foot{color:var(--A)} .face.C .foot{color:var(--C)}
+.hand{margin-top:14px;padding:16px 18px;border-radius:14px;background:var(--navy);border:1px solid var(--line-2)}
+.hand .t{font-weight:800;font-size:17px}
+.hand .four{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+.hand .four div{padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.08);font-size:13.5px;line-height:1.5}
+.hand .four b{display:block;color:var(--warn);font-size:15px}
+@media (max-width:720px){.faces{grid-template-columns:1fr}.hand .four{grid-template-columns:1fr 1fr}}
+
+/* 図解② ハーネス */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.hn{padding:16px 18px 14px}
+.hn .n{font-size:12px;font-weight:800;color:var(--accent);letter-spacing:.2em}
+.hn .t{font-size:18px;font-weight:800;margin-top:4px}
+.hn .d{font-size:14.5px;color:var(--muted);margin-top:6px;line-height:1.6}
+.hn .d b{color:var(--C)}
+.perm{display:flex;align-items:flex-end;gap:8px;margin-top:12px}
+.perm div{flex:1;text-align:center;font-size:13px;font-weight:800;border-radius:7px 7px 0 0;padding:6px 0;line-height:1.25}
+.perm .r{background:var(--A-bg);color:var(--A);height:34px;border:1px solid var(--A);border-bottom:none}
+.perm .w{background:var(--B-bg);color:var(--B);height:50px;border:1px solid var(--B);border-bottom:none}
+.perm .x{background:var(--C-bg);color:var(--C);height:66px;border:1px solid var(--C);border-bottom:none}
+@media (max-width:720px){.grid2{grid-template-columns:1fr}}
+
+/* 図解③ 出口 */
+.flow{display:grid;grid-template-columns:230px 90px 1fr;gap:0;align-items:stretch}
+.entr{padding:18px 18px;display:flex;flex-direction:column;justify-content:center}
+.entr .t{font-size:20px;font-weight:800} .entr .d{font-size:13.5px;color:var(--muted);margin-top:8px;line-height:1.6}
+.fan svg{width:100%;height:100%;display:block}
+.exits{display:flex;flex-direction:column;gap:12px}
+.exit{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:12px;border:1px solid}
+.exit.A{border-color:var(--A);background:var(--A-bg)}.exit.B{border-color:var(--B);background:var(--B-bg)}.exit.C{border-color:var(--C);background:var(--C-bg)}
+.exit .t{font-size:17px;font-weight:800} .exit.A .t{color:var(--A)}.exit.B .t{color:var(--B)}.exit.C .t{color:var(--C)}
+.exit .t small{font-size:13px;font-weight:700;margin-left:8px}
+.exit .d{font-size:13.5px;color:var(--muted);margin-top:2px}
+@media (max-width:720px){.flow{grid-template-columns:1fr}.fan{display:none}.entr{margin-bottom:12px}}
+
+/* 図解④ 誰が気づく */
+.branches{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+.br .arrow{text-align:center;color:var(--dim);font-size:22px;line-height:1;margin-bottom:6px}
+.br .ans{padding:12px 12px;border-radius:12px 12px 0 0;font-weight:800;text-align:center;font-size:16px;color:#08131f}
+.br .ans small{display:block;font-size:12.5px;font-weight:600;margin-top:2px}
+.br.A .ans{background:var(--A)}.br.B .ans{background:var(--B)}.br.C .ans{background:var(--C)}
+.br .go{padding:12px 12px;border:1px solid;border-top:none;border-radius:0 0 12px 12px;text-align:center;font-weight:800;font-size:16px}
+.br .go small{display:block;font-size:12.5px;font-weight:500;color:var(--muted);margin-top:2px}
+.br.A .go{border-color:var(--A);color:var(--A);background:var(--A-bg)}.br.B .go{border-color:var(--B);color:var(--B);background:var(--B-bg)}.br.C .go{border-color:var(--C);color:var(--C);background:var(--C-bg)}
+@media (max-width:720px){.branches{grid-template-columns:1fr}}
+
+/* 図解⑤ 完璧に見える（SVG） */
+.axes svg{width:100%;height:auto;display:block}
+.axes text{font-family:inherit}
+.zones{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.zone{padding:12px 14px;border-radius:10px;font-size:13.5px;line-height:1.55;border:1px solid}
+.zone.C{border-color:var(--C);background:var(--C-bg)}.zone.B{border-color:var(--B);background:var(--B-bg)}
+.zone b{font-size:14.5px}.zone.C b{color:var(--C)}.zone.B b{color:var(--B)}
+@media (max-width:720px){.zones{grid-template-columns:1fr}}
+
+/* 図解⑥ 地力の階段 */
+.stair{display:grid;grid-template-columns:1fr 54px 1fr 54px 1fr;gap:0;align-items:end}
+.cyc{padding:14px 16px 12px;border-radius:14px}
+.cyc.c3{border-color:var(--A);box-shadow:0 0 30px rgba(92,194,255,.18)}
+.cyc .n{font-size:12.5px;color:var(--accent);font-weight:800;letter-spacing:.2em}
+.cyc .k{display:flex;align-items:flex-start;gap:9px;margin-top:8px;font-size:14px;line-height:1.4}
+.cyc .k i{flex:0 0 26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:12px;font-weight:800;margin-top:2px}
+.cyc .k.you i{background:var(--accent);color:#08131f}.cyc .k.ai i{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.35)}
+.cyc .k .s{display:block;font-size:12.5px;color:var(--muted)}
+.cyc .k.next{color:var(--accent-2);font-weight:800;border-top:1px solid var(--line);padding-top:8px}
+.cyc.c1{margin-bottom:0} .cyc.c2{margin-bottom:90px} .cyc.c3{margin-bottom:180px}
+.up{align-self:center;display:flex;justify-content:center}
+.up svg{width:40px;height:60px}
+.up.u1{margin-bottom:60px}.up.u2{margin-bottom:150px}
+.axl{color:var(--accent);font-weight:800;font-size:13px;margin-bottom:8px}
+@media (max-width:720px){.stair{grid-template-columns:1fr}.cyc{margin-bottom:0!important}.up{margin:0!important;padding:6px 0}.up svg{transform:rotate(90deg);width:60px;height:40px}}
+
+/* 図解⑦ そのまま通すことを繰り返すと */
+.stairs3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:end}
+.step{padding:14px 16px 12px}
+.step .n{font-size:12px;font-weight:800;color:var(--dim);letter-spacing:.2em}
+.step .t{font-size:17px;font-weight:800;margin-top:4px}
+.step .d{font-size:13.5px;color:var(--muted);margin-top:6px;line-height:1.55}
+.step.s1{min-height:150px}.step.s2{min-height:190px;border-color:var(--warn)}.step.s3{min-height:230px;border-color:var(--C);background:var(--C-bg)}
+.step.s3 .t{color:var(--C)}
+.cond{margin-top:14px;padding:14px 18px;border-radius:12px;background:var(--navy);border:1px solid var(--line-2);font-size:14.5px;line-height:1.7}
+.cond b{color:var(--warn)}
+@media (max-width:720px){.stairs3{grid-template-columns:1fr}.step{min-height:0!important}}
+
+/* 図解⑧ 越えてはいけない線 ── AIの判定案は、人の確認を飛ばして実行に流れない */
+.pipe{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:12px;align-items:stretch}
+.pc{padding:16px 16px 14px;border-radius:14px;border:1px solid var(--line);background:var(--card);position:relative}
+.pc .who{font-size:12.5px;color:var(--muted);font-weight:700}
+.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-weight:800;font-size:12.5px;margin-right:4px;vertical-align:1px}
+.badge.ai{background:var(--A);color:#08131f}.badge.pg{background:var(--navy);color:#fff;border:1px solid var(--line-2)}.badge.hu{background:var(--B);color:#0e1a06}
+.pc .act{font-size:22px;font-weight:800;margin-top:6px;line-height:1.25}
+.pc .ex{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.55}
+.pc .ex b{color:#fff}
+.pc.ai{border-color:var(--A)} .pc.gate{border:2px solid var(--C);background:var(--C-bg);box-shadow:0 0 28px rgba(255,148,132,.3)} .pc.hu{border-color:var(--B)}
+.pc.ai .act{color:var(--A)} .pc.gate .act{color:var(--C)} .pc.hu .act{color:var(--B)}
+.pc.gate .tag{position:absolute;top:-12px;left:14px;padding:2px 10px;border-radius:999px;background:var(--C);color:#2a0d09;font-size:11.5px;font-weight:800}
+.lanes{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.lane{padding:12px 14px;border-radius:12px;border:1px solid;font-size:13.5px;line-height:1.55}
+.lane.pg{border-color:var(--line-2);background:var(--A-bg)} .lane.ai{border-color:var(--C);background:var(--C-bg)}
+.lane b{color:#fff;display:block;font-size:14.5px;margin-bottom:2px}
+.lane .fl{color:var(--muted);font-size:12.5px;margin-top:6px}
+.lane .fl b{display:inline;font-size:12.5px}
+.caveat{margin-top:12px;padding:12px 16px;border-radius:12px;background:var(--navy);border:1px solid var(--warn);font-size:13.5px;line-height:1.6}
+.caveat b{color:var(--warn)}
+.stg-h{font-size:13px;color:var(--muted);margin-top:18px;font-weight:700}
+.stg{display:grid;grid-template-columns:1fr 1fr 92px 1fr 1fr;gap:10px;margin-top:8px;align-items:stretch}
+.sg{padding:12px 12px 10px;border-radius:12px;border:1px solid;display:flex;flex-direction:column;gap:7px}
+.sg.low{border-color:var(--B);background:var(--B-bg)} .sg.high{border-color:var(--A);background:var(--A-bg)}
+.sg .sn{font-size:11.5px;font-weight:800;letter-spacing:.15em;color:var(--muted)}
+.sg .sn b{font-size:22px;color:#fff;margin-right:6px;letter-spacing:0}
+.sg .sa,.sg .sh,.sg .sp{font-size:13px;line-height:1.45}
+.sg .sa span,.sg .sh span,.sg .sp span{display:inline-block;min-width:28px;text-align:center;border-radius:6px;font-size:11px;font-weight:800;padding:1px 5px;margin-right:6px}
+.sg .sa span{background:var(--A);color:#08131f} .sg .sh span{background:var(--B);color:#0e1a06} .sg .sp span{background:var(--navy);color:#fff;border:1px solid var(--line-2)}
+.sg .sj{margin-top:auto;padding-top:7px;border-top:1px solid var(--line);font-size:12.5px;font-weight:800;text-align:center}
+.sg.low .sj{color:var(--B)} .sg.high .sj{color:#fff;background:var(--navy);border-radius:6px;padding:4px 6px;border:1px solid var(--line-2)}
+.sgline{display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--C);color:#2a0d09;font-weight:800;font-size:12px;text-align:center;line-height:1.3;padding:6px 4px}
+@media (max-width:720px){.pipe{grid-template-columns:1fr}.lanes{grid-template-columns:1fr}.stg{grid-template-columns:1fr 1fr}.sgline{grid-column:1/-1;padding:8px}.sgline br{display:none}}
+
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);color:var(--dim);font-size:12.5px;line-height:1.7}
+
+/* ── 印刷：白地に切り替える ── */
+@media print{
+  :root{--bg:#fff;--ink:#1c2430;--muted:#4a5568;--dim:#6b7a8c;--accent:#0b6e8f;--accent-2:#0b6e8f;
+    --A:#0b6e8f;--A-bg:#e6f4f8;--B:#5b6b1f;--B-bg:#eef3dc;--C:#b4432f;--C-bg:#fbe9e5;--warn:#8a5a00;
+    --card:#f8fafc;--card-2:#f1f5f9;--line:#c9d3df;--line-2:#0b6e8f;--navy:#14213d}
+  body{background:#fff;color:var(--ink);font-size:11pt}
+  b,strong{color:#14213d}
+  h1{text-shadow:none;color:#14213d} h1 .em{background:none;-webkit-text-fill-color:#0b6e8f;color:#0b6e8f}
+  figure.fig{box-shadow:none;background:#fff;break-inside:avoid}
+  .q,.hand,.cond,.row.high .judge{color:#fff}
+  .bar{display:none}
+  .faq details{break-inside:avoid}
+  section{break-inside:auto}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">社内向け・モノを知らないが優秀な部下に、仕事を任せるための手引き</div>
+  <h1>AIエージェント利用ガイド<br><span class="em">部下としてハーネスする</span></h1>
+  <p class="lead">どう指示し、どう囲い、どう受け取るか。操作方法や入力してよい情報の範囲は、別途 <span class="ph">【社内規程名】</span> をご覧ください。</p>
+  <div class="meta"><span>Version 1.0</span><span>2026年9月12日</span><span>発行：<span class="ph">【作成部署名を記載】</span></span><span>※ <span class="ph">【 】</span> は各社の状況に合わせて書き換えてください</span></div>
+</header>
+
+<div class="bar"><div class="bar-in">
+  <button class="bb" id="b-top" type="button" title="ページの先頭へ">⇧ TOP</button>
+  <button class="bb" id="b-back" type="button" title="目次やTOPで飛ぶ前にいた場所へ戻る" disabled>↩ 戻る</button>
+  <nav class="toc" aria-label="目次">
+    <a href="#s0">この1枚</a><a href="#s1">1 指示する相手</a><a href="#s2">2 指示する</a><a href="#s3">3 囲う</a><a href="#s4">4 受け取る</a><a href="#s5">5 1つの質問</a><a href="#s6">6 完璧に見える</a><a href="#s7">7 育てる</a><a href="#s8">8 依存の入り口</a><a href="#s9">9 仕組みに</a><a href="#s10">10 ルール</a><a href="#s11">11 FAQ</a><a href="#s12">12 窓口</a>
+  </nav>
+</div></div>
+
+<!-- ────────────────────────── 0 ────────────────────────── -->
+<section id="s0">
+  <h2>この1枚で分かること</h2>
+  <p>AIエージェントは、<b>モノを知らないが、優秀な部下</b>です。<br>聞く相手ではなく、<b>指示する相手</b>。指示のあと、答えが返るのではなく、<b>仕事が返ってきます</b>。</p>
+  <p>だから、部下に仕事を任せるときと同じことをします。</p>
+  <ul>
+    <li><b>指示する</b> ── 何のために、誰のために、してはいけないこと、どうなったら終わりか</li>
+    <li><b>囲う</b> ── 触ってよい範囲、止まって聞く線、計画を先に、判定者を先に</li>
+    <li><b>受け取る</b> ── 確かめてから使う（<span style="color:var(--A)">A</span>）か、材料にして自分で決める（<span style="color:var(--B)">B</span>）か。<b style="color:var(--C)">そのまま通す（C）</b>は、対AIでは厳禁。通した瞬間が、AI依存の入り口</li>
+    <li><b>育てる</b> ── 繰り返し回して自分の地力を上げ、引き継ぎ書に書き残す</li>
+  </ul>
+  <div class="q">これが間違っていたら、誰が気づく？</div>
+  <p>「私が気づく」か「私の責任」と言えれば、使ってよい。「誰も気づかない」なら、止める。<br>このガイドの中身は、この1枚の説明です。</p>
+</section>
+
+<!-- ────────────────────────── 1 ────────────────────────── -->
+<section id="s1">
+  <h2><span class="n">01</span>聞く相手ではなく、指示する相手</h2>
+  <p>チャット型のAIは、質問に答えを返します。AIエージェントは、指示に<b>仕事</b>を返します。文書を作り、表を組み、コードを書いて動かし、複数の手順を自分で進めます。</p>
+  <p>答えなら、読んで捨てられます。仕事は、そのまま次の工程へ流れていきます。<b>だから責任の置き場所が変わります。</b> 部下の仕事の責任が上司にあるのと同じで、エージェントの仕事の責任は、指示した人にあります。</p>
+
+  <h3>モノを知らないが、優秀</h3>
+  <figure class="fig">
+    <div class="fh">モノを知らないが、<span class="em">優秀な</span>部下</div>
+    <div class="fs">2つの顔を持つ。優秀な面に任せ、知らない面を人が埋める</div>
+    <div class="faces">
+      <div class="face A"><div class="t">優秀な面</div>
+        <ul><li>速い。疲れない。何手順でも進める</li><li>一般的な方法論を、たいてい知っている</li><li>指示が明確なら、粘り強くやり切る</li></ul>
+        <div class="foot">ここに任せる</div></div>
+      <div class="face C"><div class="t">モノを知らない面</div>
+        <ul><li>あなたの会社のこと（規程・慣習・取引先・経緯）</li><li>今日の事実（最新の数字・直近の決定）</li><li>何が「良い仕事」か（社内の基準・優先順位）</li></ul>
+        <div class="foot">知らないところを、もっともらしく埋める</div></div>
+    </div>
+    <div class="hand"><div class="t">だから、指示で渡す4つ</div>
+      <div class="four"><div><b>何のために</b>手段を選ぶ根拠</div><div><b>誰のために・どこで</b>会社の文脈</div><div><b>してはいけないこと</b>触るな・消すな・埋めるな</div><div><b>どうなったら終わりか</b>「できました」の基準</div></div></div>
+    <figcaption>新人なら「分かりません」と言うところで、埋めてくる。埋めたところは、知っている人にしか見分けが付かない。だから「分からなければ聞いて」を指示に入れる。</figcaption>
+  </figure>
+  <p>最後の1つが肝です。新人なら「分かりません」と言うところで、エージェントは自信を持って埋めてきます。埋めたところは、それを知っている人にしか見分けが付きません。</p>
+  <p>だから、このガイドの残りは全部、<b>この部下をどう扱えば埋め物が業務に混ざらないか</b>の話です。</p>
+</section>
+
+<!-- ────────────────────────── 2 ────────────────────────── -->
+<section id="s2">
+  <h2><span class="n">02</span>指示する ── 部下に渡す4つ</h2>
+  <p>会社のことを知らない部下に仕事を頼むとき、何を渡すか。「資料を作って」では、手段の最適化に走ります。渡すのは4つです。</p>
+  <ol>
+    <li><b>何のために</b>（目的）── 手段を選ぶ根拠になる</li>
+    <li><b>誰のために、どこで使うか</b>（文脈）── 会社のことを知らないので、ここを渡す</li>
+    <li><b>してはいけないこと</b>（制約）── 触るな、消すな、外に出すな、<b>推測で埋めるな</b></li>
+    <li><b>どうなったら終わりか</b>（完了条件）── これが無いと「できました」を信用できない</li>
+  </ol>
+  <div class="scroll"><table>
+    <thead><tr><th>弱い指示</th><th>部下に渡す形</th></tr></thead>
+    <tbody>
+      <tr><td>「資料を作って」</td><td class="w">「新製品Aの社内説明会用。営業10人が15分で全体像をつかむため。特徴・価格・競合比較を3枚。競合の数字は推測で埋めず、分からなければそう書いて」</td></tr>
+      <tr><td>「英語に直して」</td><td class="w">「取引先の担当者向け。丁寧なビジネス文で。固有名詞と金額は変えずに。訳した後に原文と並べて出して」</td></tr>
+      <tr><td>「まとめて」</td><td class="w">「この議事録を、決定事項・次回までのタスク・担当者の3項目に。議事録に無いことは足さない。3項目が全部埋まったら終わり」</td></tr>
+      <tr><td>「集計して」</td><td class="w">「このCSVを部門別・月別に集計。合計が元データと一致することを確かめてから出して。一致しなければ止まって聞いて」</td></tr>
+    </tbody></table></div>
+  <p>指示に必ず入れる一文があります。</p>
+  <div class="q">分からなければ、埋めずに聞いて。</div>
+  <p>モノを知らない部下は、言わなければ聞きません。埋めます。</p>
+</section>
+
+<!-- ────────────────────────── 3 ────────────────────────── -->
+<section id="s3">
+  <h2><span class="n">03</span>囲う ── ハーネス</h2>
+  <p>部下に任せるとき、最初から全部の鍵を渡しません。エージェントは自分で手順を進めるので、<b>どこまで動いてよいか</b>を先に決めておきます。これを「ハーネス」と呼びます。</p>
+  <figure class="fig">
+    <div class="fh">最初から全部の鍵を渡さない ── <span class="em">ハーネス</span>の4つ</div>
+    <div class="fs">自分で手順を進める相手だから、どこまで動いてよいかを先に決める</div>
+    <div class="grid2">
+      <div class="hn glass"><div class="n">01</div><div class="t">触ってよい範囲を、狭く</div><div class="d">読む → 書く → 実行の順に広げる。最初は読むだけ</div>
+        <div class="perm"><div class="r">読む</div><div class="w">書く</div><div class="x">実行<br>人が押す</div></div></div>
+      <div class="hn glass"><div class="n">02</div><div class="t">止まって聞く線</div><div class="d">外に出る操作 ── <b>送信・公開・削除・支払い・社外共有</b> ── の前は必ず止まる。「やる前に言って、返事を待って」と指示に入れる</div></div>
+      <div class="hn glass"><div class="n">03</div><div class="t">計画を先に言わせる</div><div class="d">大きな仕事は、やる前に「何を、どの順で、どこまで」を出させる。手を動かした後に直すより、ずっと安い</div></div>
+      <div class="hn glass"><div class="n">04</div><div class="t">判定者を先に置く</div><div class="d">「できた」をどう確かめるかを、始める前に決める。<b>確かめ方が決まっていない仕事は、任せない</b></div></div>
+    </div>
+    <figcaption>信頼は、鍵を1本ずつ渡して積み上げる。最後の鍵（実行）は、人の手に残す。</figcaption>
+  </figure>
+  <h3>触ってよい範囲を、狭く</h3>
+  <p>読む → 書く → 実行する、の順に権限は広がります。最初は<b>読むだけ</b>。信頼が積み上がったら<b>書く</b>。<b>実行</b>（送信・公開・削除・支払い）は、最後まで人が押します。</p>
+  <h3>止まって聞く線</h3>
+  <p>外に出る操作の前は、必ず止まって聞く。送信、公開、削除、支払い、社外への共有。「やる前に、何をするかを言って、私の返事を待って」と指示に入れます。</p>
+  <h3>計画を先に言わせる</h3>
+  <p>大きな仕事は、やる前に「何を、どの順で、どこまでやるか」を出させます。計画がずれていれば、そこで直す。手を動かした後に直すより、ずっと安い。</p>
+  <h3>判定者を先に置く</h3>
+  <p>「できた」をどう確かめるかを、仕事を始める前に決めます。数字なら元データと一致すること。文書なら3項目が埋まること。コードなら実際に動くこと。<b>確かめ方が決まっていない仕事は、任せません。</b>「できました」を信じる以外に方法が無くなるからです。</p>
+  <p class="note">連載#22で公開した社内ステータスの仕組みは、この4つで作りました。判定を先に書き、緑になっても人が画面を読むまで完成と言わない、という進め方です。</p>
+</section>
+
+<!-- ────────────────────────── 4 ────────────────────────── -->
+<section id="s4">
+  <h2><span class="n">04</span>受け取る ── 出口は3つ</h2>
+  <p>仕事が返ってきました。ここからが出口です。チャットの答えと違い、エージェントの仕事は<b>「言ったこと」と「やったこと」</b>の両方があります。両方を見ます。</p>
+  <p>出口は2つ ── 確かめてから使う（A）か、材料にして自分で決める（B）か。<b>そのまま通す（C）</b>は、選べる出口ではなく禁止線です。</p>
+  <figure class="fig">
+    <div class="fh">入口は同じ。<span class="em">出口</span>が違う</div>
+    <div class="fs">「指示する」は見た目が全部同じ。区別が付くのは、仕事が返ってきた後</div>
+    <div class="flow">
+      <div class="entr glass"><div class="t">指示する</div><div class="d">調べ物も、下書きも、集計も。<br>指示を出して、仕事が返る。<br>ここでは区別できない</div></div>
+      <div class="fan"><svg viewBox="0 0 90 300" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 150 C 40 150, 55 45, 90 45" fill="none" stroke="#6ecbff" stroke-width="3"/>
+        <path d="M0 150 C 40 150, 55 150, 90 150" fill="none" stroke="#b5dc78" stroke-width="3"/>
+        <path d="M0 150 C 40 150, 55 255, 90 255" fill="none" stroke="#ff9484" stroke-width="3" stroke-dasharray="8 6"/></svg></div>
+      <div class="exits">
+        <div class="exit A"><div class="tagc A">A</div><div><div class="t">確かめてから使う</div><div class="d">正しさをエージェントの外で確かめられるとき。出典・実物・動作・元データ・詳しい人</div></div></div>
+        <div class="exit B"><div class="tagc B">B</div><div><div class="t">材料にして、自分で決める</div><div class="d">正しさが外で決まらないとき。判断・方針・言い回し。決めるのは自分</div></div></div>
+        <div class="exit C"><div class="tagc C">C</div><div><div class="t">そのまま通す<small>対AIでは厳禁</small></div><div class="d">確かめず、決めもせず、次へ流すこと。これが「委ねる」で、AI依存の入り口</div></div></div>
+      </div>
+    </div>
+    <figcaption>Cは出口ではなく、禁止線。どんな指示でも、出口はAかB。</figcaption>
+  </figure>
+
+  <div class="card A"><h3>出口A　確かめてから使う</h3>
+    <p>仕事の正しさを、<b>エージェントの外で確かめられる</b>ときの出口です。出典、実物、動くかどうか、元データ、詳しい人。</p>
+    <ul><li>数字、日付、名前、金額</li><li>手順、規程の内容、法律や制度</li><li>コードが動くか</li><li>「〇〇は本当か」という事実</li></ul>
+    <p><b>「できました」を信じない。見に行く。</b> 確かめ方は1箇所でかまいませんが、1箇所も確かめずに使ってはいけません。1箇所外れていれば、全部を疑えます。</p></div>
+  <div class="card B"><h3>出口B　材料にして、自分で決める</h3>
+    <p>正しさが<b>外では決まらない</b>ときの出口です。判断、方針、意見、言い回し。エージェントの仕事は、選択肢や案です。決めるのは自分。</p>
+    <ul><li>どの案にするか</li><li>誰に、何を、どう言うか</li><li>優先順位</li><li>企画の方向</li></ul>
+    <p>条件が1つ。<b>決めた理由を、自分の言葉で言えること。</b>「エージェントがそう出したから」は理由になりません。</p></div>
+  <div class="card C"><h3>出口C　そのまま通す ── 禁止線</h3>
+    <p>確かめず、決めもせず、仕事を次へ流す。これが「委ねる」です。<b>対AIでは厳禁。</b></p>
+    <p>業務かどうかは関係ありません。自分用のメモでも、下書きの下書きでも、読まずに通さない。<b>通した瞬間が、AI依存の入り口です。</b>一度でも通すと、次はもう少し大きなものを通します。それが8章の階段です。</p></div>
+</section>
+
+<!-- ────────────────────────── 5 ────────────────────────── -->
+<section id="s5">
+  <h2><span class="n">05</span>受け取るときに聞く、1つの質問</h2>
+  <figure class="fig">
+    <div class="fh">受け取るときに、自分に<span class="em">1つだけ</span>聞く</div>
+    <div class="fs">確かめるべきか、決めるべきか、止めるべきか。この質問で分かれる</div>
+    <div class="q" style="margin:0">これが間違っていたら、誰が気づく？</div>
+    <div class="branches">
+      <div class="br A"><div class="arrow">↓</div><div class="ans">私が気づく<small>確かめたから</small></div><div class="go">出口A<small>使ってよい</small></div></div>
+      <div class="br B"><div class="arrow">↓</div><div class="ans">私の責任<small>私が決めたから</small></div><div class="go">出口B<small>使ってよい</small></div></div>
+      <div class="br C"><div class="arrow">↓</div><div class="ans">誰も気づかない<small>確かめても決めてもいない</small></div><div class="go">止める<small>確かめるか、決めるか、してから</small></div></div>
+    </div>
+    <figcaption>「エージェントがそう出した」は理由にならない。「〇〇で確かめた」「〇〇の理由で私が決めた」が理由。</figcaption>
+  </figure>
+  <p>この質問に答えられないものは、社外にも、上司にも、次の工程にも出しません。</p>
+
+  <h3>場面別 ── どの出口か</h3>
+  <div class="scroll"><table>
+    <thead><tr><th>よくある指示</th><th>出口</th><th>受け取るときにやること</th></tr></thead>
+    <tbody>
+      <tr><td>会議の議事録を要約する</td><td class="x A">A</td><td class="w">元の議事録と突き合わせる。決定事項と担当者は特に</td></tr>
+      <tr><td>取引先へのメールの下書き</td><td class="x B">B</td><td class="w">読んで、自分の言葉に直す。送るのは自分</td></tr>
+      <tr><td>社内規程についての質問</td><td class="x A">A</td><td class="w">規程の原文で確かめる。エージェントは自社の規程を持っていない</td></tr>
+      <tr><td>数字の計算・集計</td><td class="x A">A</td><td class="w">元データで1箇所検算する</td></tr>
+      <tr><td>企画のアイデア出し</td><td class="x B">B</td><td class="w">出た案から選ぶのは自分。なぜそれかを言える</td></tr>
+      <tr><td>専門外のことを調べる</td><td class="x A">A</td><td class="w">出典を出させて、出典を読む。出典が出ないなら使わない</td></tr>
+      <tr><td>「どうすべきか」を聞く</td><td class="x B">B</td><td class="w">選択肢と根拠を出させる。決めさせない。決めるのは自分</td></tr>
+      <tr><td>コードを書かせる</td><td class="x A">A</td><td class="w">動かして確かめる。動いた＝正しい、ではない。想定外の入力も試す</td></tr>
+      <tr><td>ファイルを整理・変換させる</td><td class="x A">A</td><td class="w">件数と合計が前後で一致するか。1件開いて中身を見る</td></tr>
+      <tr><td>翻訳</td><td class="x A">A</td><td class="w">大事な箇所は原文と突き合わせる。契約や規程は専門家へ</td></tr>
+    </tbody></table></div>
+  <p><b>迷ったら、Aです。</b> Bにしてよいのは、自分が決められると言い切れるときだけです。</p>
+</section>
+
+<!-- ────────────────────────── 6 ────────────────────────── -->
+<section id="s6">
+  <h2><span class="n">06</span>「完璧に見える」ときほど、止まる</h2>
+  <p>自分が詳しいことなら、部下の仕事の甘いところが見えます。自分が詳しくないことだと、甘いところが見えません。<b>見えないから、完璧に見える。</b></p>
+  <p>つまり、仕事が完璧に見えるのは、仕事が良いからではありません。良し悪しを判じる物差しを、自分が持っていないからです。</p>
+  <figure class="fig">
+    <div class="fh">「完璧に見える」ときほど、<span class="em">止まる</span></div>
+    <div class="fs">完璧に見える度合いと、確かめられる度合いは、逆に動く</div>
+    <div class="axes"><svg viewBox="0 0 1000 340" role="img" aria-label="完璧に見える度合いと確かめられる度合い">
+      <line x1="70" y1="290" x2="930" y2="290" stroke="#7f93ab" stroke-width="2"/>
+      <line x1="70" y1="290" x2="70" y2="30" stroke="#7f93ab" stroke-width="2"/>
+      <polyline points="90,262 300,200 560,110 800,58" fill="none" stroke="#6ecbff" stroke-width="5" stroke-linejoin="round"/>
+      <polyline points="90,60 300,125 560,215 800,265" fill="none" stroke="#ff9484" stroke-width="5" stroke-linejoin="round" stroke-dasharray="12 9"/>
+      <text x="815" y="62" fill="#6ecbff" font-size="15" font-weight="800">確かめられる度合い</text>
+      <text x="815" y="270" fill="#ff9484" font-size="15" font-weight="800">完璧に見える度合い</text>
+      <text x="76" y="318" fill="#a9bfd6" font-size="14">← 自分が詳しくないこと</text>
+      <text x="930" y="318" fill="#a9bfd6" font-size="14" text-anchor="end">自分が詳しいこと →</text>
+    </svg></div>
+    <div class="zones">
+      <div class="zone C"><b>左側 ── いちばん信じたくなる場面</b><br>甘いところが見えないから、完璧に見える。ここは出口Aで、外に当てる</div>
+      <div class="zone B"><b>右側 ── 甘いところが見える</b><br>自分の物差しがある。出口Bで、自分が決めてよい</div>
+    </div>
+    <figcaption>仕事が完璧に見えるのは、仕事が良いからではなく、良し悪しを判じる物差しを自分が持っていないから。</figcaption>
+  </figure>
+  <p><b>いちばん信じたくなる場面が、いちばん確かめられない場面です。</b> 詳しくないことほど、出口Aで外に当てる。詳しいことは、出口Bで自分が決めてよい。自信満々で持ってきた仕事ほど、自分が詳しくない領域なら、確かめる。</p>
+  <p class="note">研究の裏付け：Microsoft Research とカーネギーメロン大学が2025年に知識労働者319人を調べた結果、「AIの出力を点検・改善する技能が無い人は、批判的に考えることを省く」「AIへの信頼が高いほど批判的思考が減り、自分への自信が高いほど増える」と報告されています。</p>
+</section>
+
+<!-- ────────────────────────── 7 ────────────────────────── -->
+<section id="s7">
+  <h2><span class="n">07</span>育てる ── 繰り返しで上がるのは、自分の地力</h2>
+  <p>部下に任せ続けると、上司の力が落ちる ── ではありません。<b>正しく任せると、上がります。</b></p>
+  <figure class="fig">
+    <div class="fh">地力は、AIとのサイクルを<span class="em">回すたび</span>に上がる</div>
+    <div class="fs">指示する → 仕事が返る → 理解して自分を更新する → もっと高い指示を出す。一周ごとに、次の指示が一段上がる</div>
+    <div class="axl">地力 ↑</div>
+    <div class="stair">
+      <div class="cyc glass c1"><div class="n">1周目</div>
+        <div class="k you"><i>人</i><div><b>指示する</b><span class="s">これをやって</span></div></div>
+        <div class="k ai"><i>AI</i><div><b>仕事が返る</b></div></div>
+        <div class="k you"><i>人</i><div><b>理解して、自分を更新する</b><span class="s">返ってきたものを、わかるまで説明させる</span></div></div>
+        <div class="k next you"><i>人</i><div>次の指示　「なぜこの形にした？」</div></div></div>
+      <div class="up u1"><svg viewBox="0 0 40 60" aria-hidden="true"><path d="M4 56 C 14 50, 24 30, 32 8" fill="none" stroke="#6ecbff" stroke-width="3"/><path d="M22 10 L33 6 L31 17" fill="none" stroke="#6ecbff" stroke-width="3" stroke-linecap="round"/></svg></div>
+      <div class="cyc glass c2"><div class="n">2周目</div>
+        <div class="k you"><i>人</i><div><b>指示する</b><span class="s">なぜ、この形にした？</span></div></div>
+        <div class="k ai"><i>AI</i><div><b>仕事が返る</b></div></div>
+        <div class="k you"><i>人</i><div><b>理解して、自分を更新する</b><span class="s">前より速く読める。自分の言葉で言い直せる</span></div></div>
+        <div class="k next you"><i>人</i><div>次の指示　「この条件だと、どこが変わる？」</div></div></div>
+      <div class="up u2"><svg viewBox="0 0 40 60" aria-hidden="true"><path d="M4 56 C 14 50, 24 30, 32 8" fill="none" stroke="#6ecbff" stroke-width="3"/><path d="M22 10 L33 6 L31 17" fill="none" stroke="#6ecbff" stroke-width="3" stroke-linecap="round"/></svg></div>
+      <div class="cyc glass c3"><div class="n">3周目</div>
+        <div class="k you"><i>人</i><div><b>指示する</b><span class="s">この条件だと、どこが変わる？</span></div></div>
+        <div class="k ai"><i>AI</i><div><b>仕事が返る</b></div></div>
+        <div class="k you"><i>人</i><div><b>理解して、自分を更新する</b><span class="s">仕事の甘いところが見える</span></div></div>
+        <div class="k next you"><i>人</i><div>次の指示　「ここは違うのでは？」── 直せる側に立つ</div></div></div>
+    </div>
+    <figcaption>上げる相棒もまた、そのAI自身。3周目で「ここは違うのでは？」と言えたとき、この部下は本当の相棒になる。</figcaption>
+  </figure>
+  <p>指示する → 仕事が返る → 理解して自分を更新する → もっと高い指示を出す。この一周ごとに、次の指示が一段上がります。3周目に立てたとき、この部下は本当の相棒になります。</p>
+  <h3>引き継ぎ書に書き残す</h3>
+  <p>もう1つ、人の部下と違う点があります。<b>エージェントは、次の日に忘れます。</b></p>
+  <p>覚えさせたいことは、引き継ぎ書に書きます。会社の前提、してはいけないこと、過去にやらかしたこと、この仕事の確かめ方。指示のたびに読ませる文書です。<span class="ph">【引き継ぎ書の置き場所・書式を記載】</span></p>
+  <p>失敗したら、叱るのではなく、引き継ぎ書に1行足す。それが「ハーネスを育てる」ということです。</p>
+</section>
+
+<!-- ────────────────────────── 8 ────────────────────────── -->
+<section id="s8">
+  <h2><span class="n">08</span>そのまま通すことを繰り返すと、何が起きるか</h2>
+  <figure class="fig">
+    <div class="fh">そのまま通すことを繰り返すと、<span class="em">何が起きるか</span></div>
+    <div class="fs">最初は小さな埋め物。最後は、エージェントの仕事でしか安心できなくなる</div>
+    <div class="stairs3">
+      <div class="step glass s1"><div class="n">短期</div><div class="t">埋め物が混ざる</div><div class="d">誰も気づかない。資料に、見積に、判断材料に、そのまま乗る</div></div>
+      <div class="step glass s2"><div class="n">中期</div><div class="t">確かめる力が落ちる</div><div class="d">考える機会を飛ばし続けるので、甘いところが見えなくなっていく</div></div>
+      <div class="step glass s3"><div class="n">長期</div><div class="t">AIの答えでしか安心できない</div><div class="d">人の指摘が届かなくなり、AIの答えが「証拠」になる。ここには2026年、専門外来が立った</div></div>
+    </div>
+    <div class="cond">依存が起きる条件は3つ ── <b>すぐ必ず返ってくる</b>・<b>終わりがない</b>・<b>外からの修正が切れる</b>。そのまま通すことは、3つとも満たす。出口AとBは、現実に当たって終わるので、1つも満たさない。</div>
+    <figcaption>これが、AI依存の入り口。だから対AIでは厳禁。</figcaption>
+  </figure>
+  <p>最後の状態には、2026年5月、東京に専門外来が立ちました。「AI依存症」はまだ正式な診断名ではありません。それでも臨床は、機序を3つ挙げています ── AIが同調する／人からの指摘が届かなくなる／AIの答えが「証拠」になる。</p>
+  <p>任せきりにした上司が、部下の報告でしか現場を知らなくなるのと同じ形です。</p>
+</section>
+
+<!-- ────────────────────────── 9 ────────────────────────── -->
+<section id="s9">
+  <h2><span class="n">09</span>会社として仕組みに組み込むとき ── AIの判定案を、確かめずに通さない</h2>
+  <p>ここまでは、<b>人が指示し、人が受け取る</b>部下としてのエージェントの話でした。会社として業務を自動化するとき、もう1つの使い方が出てきます。<b>人がいないところで、エージェントの判定で処理が進む</b>使い方です。</p>
+  <p>ここで、判定を2つに分けます。</p>
+  <ul>
+    <li><b>機械で書ける判定</b> ── 規程内か、合計は合うか、上限を超えていないか。同じ入力に毎回同じ答えを返す。<b>プログラムで書く。</b>監査に耐えるので、人がいなくても自動で通してよい</li>
+    <li><b>機械では書けない機微</b> ── この申請は趣旨に合うか、この問い合わせはどの部署か、この文面は失礼でないか。<b>AIの判定案に任せる。</b>ここがAIの真価で、削れば使えない</li>
+  </ul>
+  <p>ただし、AIは同じ入力に毎回同じ答えを返しません。監査に耐えるのは、<b>人が確かめた記録</b>だけです。だから、AIの判定案は必ず人が確かめてから実行へ流します。<b>確かめずに自動で通すのは、出口Cを機械にやらせているのと同じ。</b>それを作りません。</p>
+  <p class="note"><b>但し書き。</b>AIの判定案を仕組みに入れると、その確認は膨大になります。件数ぶん、人が読む。確かめ切る覚悟ができたときだけ、判定案を仕組みに入れてください。覚悟がないなら、人が判定する段階（1・2）のままにします。</p>
+  <p>自動化するときは、出口を人ではなく仕組みに埋め込みます。</p>
+  <ul>
+    <li><b>出口Aを仕組みにする</b> ＝ 機械で書ける判定を<b>プログラムで書く</b>。入力の形、金額の上限、規程との突き合わせ</li>
+    <li><b>出口Bを仕組みにする</b> ＝ <b>人の確認と承認</b>を置く。AIの判定案は、ここを必ず通る</li>
+    <li><b>出口Cを仕組みにする</b> ＝ AIの判定案がそのまま実行に流れる。<b>これを作らない</b></li>
+  </ul>
+
+  <h3>任せる段階と、越えてはいけない線</h3>
+  <figure class="fig">
+    <div class="fh">越えてはいけない線 ── AIの判定案を、<span class="em">確かめずに通さない</span></div>
+    <div class="fs">機械で書ける判定はプログラムに。書けない機微はAIの判定案に。ただしAIの案は、必ず人が確かめてから実行へ</div>
+    <div class="pipe">
+      <div class="pc ai">
+        <div class="who"><span class="badge ai">AI</span>が出す</div>
+        <div class="act">整える・運ぶ・判定案</div>
+        <div class="ex">要約・下書き・整形に加えて、<b>機微を読む判定案</b> ── 文脈、例外、意図、言い回し。プログラムには書けない判定</div>
+      </div>
+      <div class="pc gate"><span class="tag">飛ばせない関所</span>
+        <div class="who"><span class="badge hu">人</span>が確かめる</div>
+        <div class="act">AIの案を、人が確かめる</div>
+        <div class="ex">AIは同じ入力に毎回同じ答えを返さない。だから<b>監査に耐えるのは、人が確かめた記録</b>だけ。ここを飛ばして実行に流さない</div>
+      </div>
+      <div class="pc hu">
+        <div class="who"><span class="badge hu">人</span>が決める</div>
+        <div class="act">決める・実行する</div>
+        <div class="ex">承認／送信／支払い／公開 ── 最後の鍵は人の手に</div>
+      </div>
+    </div>
+    <div class="lanes">
+      <div class="lane pg"><b><span class="badge pg">プログラム</span>の判定 ── 機械で書ける</b>規程内か／合計は合うか／上限を超えていないか。同じ入力に、毎回同じ答え。<div class="fl">→ 監査に耐える。人がいなくても自動で通してよい（人は例外・異常だけ）</div></div>
+      <div class="lane ai"><b><span class="badge ai">AI</span>の判定案 ── 機械では書けない機微</b>この申請は趣旨に合うか／この問い合わせはどの部署か／この文面は失礼でないか。<div class="fl">→ 監査に耐えない。<b>人が確かめてから</b>実行へ。確かめずに通したら、出口Cを機械にやらせたのと同じ</div></div>
+    </div>
+    <div class="caveat"><b>但し書き。</b>AIの判定案は、機械には読めない機微を読む。それがAIの真価で、削れば使えない。ただし、その確認は膨大になる。<b>確かめ切る覚悟ができたときだけ</b>、判定案を仕組みに入れる。覚悟がないなら、人が判定する段階のまま。</div>
+    <div class="stg-h">自動化の4段階 ── 上に行くほど人の手は減る。でもAIの判定案は、どの段階でも人が確かめる</div>
+    <div class="stg">
+      <div class="sg low"><div class="sn"><b>1</b>段階</div>
+        <div class="sa"><span>AI</span>要約する・整える</div>
+        <div class="sh"><span>人</span>読んで、入力し、承認する</div>
+        <div class="sj">判定＝人</div></div>
+      <div class="sg low"><div class="sn"><b>2</b>段階</div>
+        <div class="sa"><span>AI</span>案を作る（仕訳案・回答案・判定案）</div>
+        <div class="sh"><span>人</span>案を確かめて、確定する</div>
+        <div class="sj">判定＝人（AIの案を確かめる）</div></div>
+      <div class="sgline"><span>ここから上は<br>機械で書ける<br>判定を<br>プログラムに<br>移せたときだけ</span></div>
+      <div class="sg high"><div class="sn"><b>3</b>段階</div>
+        <div class="sp"><span>PG</span>規程内は、プログラムが通す</div>
+        <div class="sa"><span>AI</span>例外や機微に、判定案を出す</div>
+        <div class="sh"><span>人</span>AIの判定案を確かめて、決める</div>
+        <div class="sj">判定＝プログラム＋人</div></div>
+      <div class="sg high"><div class="sn"><b>4</b>段階</div>
+        <div class="sp"><span>PG</span>全工程で、書ける判定は自動</div>
+        <div class="sa"><span>AI</span>同じ。全工程で判定案</div>
+        <div class="sh"><span>人</span>異常時の対応と、AIの判定案の確認</div>
+        <div class="sj">全工程で 判定＝プログラム＋人</div></div>
+    </div>
+    <figcaption>AIの判定案を確かめずに自動で通すのは、出口Cを機械にやらせているのと同じ。書ける判定はプログラム、機微はAIの案、確かめて決めるのは人。</figcaption>
+  </figure>
+  <p><b>段階3から上に進んでよいのは、機械で書ける判定をプログラムに移せたときだけです。</b> 書けない機微はどの段階でもAIの判定案として残り、人が確かめます。判定は「プログラム＋人」、決定は人。</p>
+
+  <h3>自動化に向く業務・向かない業務</h3>
+  <p>向くのは、<b>判定の基準を文章に書ける</b>業務です。書けるなら、プログラムにできます。</p>
+  <ul><li>発生頻度が高く、繰り返される</li><li>手順と判断基準が規程やマニュアルにある</li><li>複数の手順・部署をまたぐ</li></ul>
+  <p>向かないのは、担当者ごとにやり方が違う、例外が多くて基準を書けない業務です。基準を書けないものは、プログラムにはできません。AIの判定案なら出せますが、<b>確認が膨大になります</b>。覚悟がないなら、人が決める（出口B）ままにします。</p>
+
+  <h3>作るときに決めておくこと</h3>
+  <ul>
+    <li><b>業務の持ち主を決める。</b> 自動化の範囲と例外対応に責任を持つ部署・担当者。情報システム部門だけの責任にしない</li>
+    <li><b>参照と実行を分ける。</b> エージェントに渡すのは読む権限と、判定案を出す権限まで。システムへの書き込みは、プログラムか人が行う。<b>エージェントに書き込み権限を渡さない</b>（外から指示を紛れ込ませる攻撃の入口になります）</li>
+    <li><b>記録を残す。</b> いつ、何が、どのシステムに何をしたか。人が後から読める形で</li>
+    <li><b>例外の行き先を決めておく。</b> 判定に落ちたものが、誰に、どう届くか</li>
+  </ul>
+  <p class="note">連載#22の社内ステータスは、判定をすべてプログラムで書けた例です。作るときはエージェントを部下として使い、動いているときにエージェントはいません。機微の判定が要る業務なら、そこにAIの判定案と人の確認が加わります。</p>
+</section>
+
+<!-- ────────────────────────── 10 ────────────────────────── -->
+<section id="s10">
+  <h2><span class="n">10</span>会社としてのルール（5つだけ）</h2>
+  <ol class="rules">
+    <li><b>指示には4つを渡す。</b> 何のために、誰のために、してはいけないこと、どうなったら終わりか。そして「分からなければ埋めずに聞いて」</li>
+    <li><b>外に出る操作は、人が押す。</b> 送信・公開・削除・支払い・社外共有の前で、エージェントは止まる</li>
+    <li><b>そのまま通すのは、対AIでは厳禁。</b> 「できました」を信じない。確かめるか、決めるか、どちらかをする。通した瞬間が依存の入り口</li>
+    <li><b>「間違っていたら、誰が気づく？」に答えられないものは、出さない。</b> 確かめた・決めたは書き残す。<span class="ph">【記録の方法・場所を記載】</span></li>
+    <li><b>仕組みに組み込むとき、AIの判定案を確かめずに実行に流さない。書き込ませない。</b> 機械で書ける判定はプログラムに。機微はAIの案に。確かめて決めるのは人。確認が膨大になる覚悟があるときだけ、判定案を仕組みに入れる</li>
+  </ol>
+</section>
+
+<!-- ────────────────────────── 11 ────────────────────────── -->
+<section id="s11" class="faq">
+  <h2><span class="n">11</span>よくある質問</h2>
+  <details open><summary>全部確かめていたら、時間がかかりすぎませんか。</summary><p>全部は要りません。出口Aは「1箇所を突き合わせる」でよいのです。確かめる場所を、仕事を始める前に決めておくと速くなります（3章「判定者を先に置く」）。</p></details>
+  <details open><summary>「分からなければ聞いて」と指示しても、聞いてきません。</summary><p>指示の最初に、はっきり1行で入れてください。それでも埋めてくるときは、「この仕事で推測した箇所を列挙して」と最後に聞くと、埋めたところが出てきます。</p></details>
+  <details open><summary>エージェントに任せると、社員の力が落ちませんか。</summary><p>そのまま通し続ければ落ちます。指示して、受け取って、理解して、次の指示を上げるサイクルを繰り返し回せば上がります（7章）。落ちるか上がるかは、出口で決まります。</p></details>
+  <details open><summary>自分が決めた理由が「なんとなく」しかありません。</summary><p>それは決めていません。エージェントの案に引っ張られています。いったん閉じて、自分ならどうするかを先に書いてから、案と比べてください。</p></details>
+  <details open><summary>急いでいるときはどうすればよいですか。</summary><p>急いでいるときほど、そのまま通してしまいます。「間違っていたら誰が気づく？」だけは聞いてください。10秒で済みます。</p></details>
+  <details open><summary>「AIエージェント」を入れれば、承認まで自動でやってくれると聞きました。</summary><p>「規程内なら自動承認」は、規程内かどうかをプログラムで書けたときに、プログラムがやります。規程で書き切れない機微の判断はエージェントが判定案を出せますが、<b>その案を確かめずに承認まで流す仕組みは作りません</b>（9章）。人が確かめてから承認へ。確認が膨大になる覚悟があるときだけ、判定案を仕組みに入れます。</p></details>
+  <details open><summary>何を入力してよいか分かりません。</summary><p>それは入口の話で、このガイドの範囲外です。機密情報・個人情報の扱いは <span class="ph">【社内規程名】</span> をご覧ください。迷ったら <span class="ph">【担当窓口】</span> へ。</p></details>
+</section>
+
+<!-- ────────────────────────── 12 ────────────────────────── -->
+<section id="s12">
+  <h2><span class="n">12</span>相談窓口</h2>
+  <ul>
+    <li>指示の出し方・受け取り方に迷ったとき：<span class="ph">【問い合わせ先を記載】</span></li>
+    <li>業務の自動化を検討したいとき：<span class="ph">【情報システム部門などの窓口を記載】</span></li>
+    <li>利用ルール・セキュリティに関する質問：<span class="ph">【問い合わせ先を記載】</span></li>
+    <li>このガイドへの意見：<span class="ph">【フォームやメールアドレスを記載】</span></li>
+  </ul>
+  <p>本ガイドは、利用状況と意見をもとに随時更新します。</p>
+</section>
+
+<footer>本ガイドは「AI内製化工房 MITA」の連載「AI内製化の羅針盤」の考え方に基づいています。図解と本文は各社の状況に合わせて改変してご利用いただけます。<br>1ファイル・通信ゼロ・外部読み込みなし（目次を追従させる短いスクリプトを1つ内蔵。通信も保存もしません）。印刷すると白地に切り替わります。</footer>
+
+</div>
+<script>
+(function () {
+  // 目次の追従と、戻るボタン。これだけ。通信・保存・外部呼び出しは無い。
+  var bar = document.querySelector('.bar');
+  var secs = [].slice.call(document.querySelectorAll('section[id]'));
+  var links = {};
+  [].forEach.call(document.querySelectorAll('nav.toc a[href^="#"]'), function (a) { links[a.getAttribute('href').slice(1)] = a; });
+  function lineY() { return window.scrollY + bar.offsetHeight + 24; }
+  function current() { var y = lineY(), c = secs[0]; for (var i = 0; i < secs.length; i++) { if (secs[i].offsetTop <= y) c = secs[i]; } return c; }
+  var last = null;
+  function mark() {
+    var c = current(); if (c === last) return; last = c;
+    for (var k in links) { links[k].classList.toggle('here', k === c.id); links[k].removeAttribute('aria-current'); }
+    var a = links[c.id]; if (!a) return;
+    a.setAttribute('aria-current', 'true');
+    var nav = a.parentNode; nav.scrollLeft = a.offsetLeft - (nav.clientWidth - a.offsetWidth) / 2;   // 光る札を帯の真ん中へ
+  }
+  // 「戻る」＝目次やTOPで飛ぶ前にいた場所へ戻る（ひとつ前の節ではない）。飛ぶたびに、飛ぶ前の位置を積む
+  var back = document.getElementById('b-back'), stack = [];
+  function leave() { stack.push(window.scrollY); if (stack.length > 20) stack.shift(); back.disabled = false; }
+  [].forEach.call(document.querySelectorAll('nav.toc a[href^="#"]'), function (a) { a.addEventListener('click', leave); });
+  document.getElementById('b-top').addEventListener('click', function () { leave(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  back.addEventListener('click', function () {
+    if (!stack.length) return;
+    window.scrollTo({ top: stack.pop(), behavior: 'smooth' });
+    back.disabled = !stack.length;
+  });
+  window.addEventListener('scroll', mark, { passive: true });
+  window.addEventListener('resize', mark);
+  mark();
+})();
+</script>
+</body>
+</html>

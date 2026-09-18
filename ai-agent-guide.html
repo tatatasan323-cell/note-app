@@ -83,6 +83,19 @@ li{margin:4px 0}
 .q{margin:22px 0;padding:22px 26px;border-radius:16px;background:var(--navy);border:1px solid var(--line-2);
    font-size:22px;font-weight:800;text-align:center;line-height:1.5;box-shadow:0 0 40px rgba(92,194,255,.14)}
 .note{color:var(--muted);font-size:13.5px;border-left:3px solid var(--line-2);padding:4px 14px;margin:16px 0}
+/* ── 冒頭の一言：生成AIとエージェントの、いちばん大きな違い ── */
+.creed{margin:0 0 30px;padding:26px 28px 22px;border-radius:18px;background:var(--navy);border:1px solid var(--line-2);
+  box-shadow:0 0 44px rgba(92,194,255,.16)}
+.creed .ct{font-size:15px;color:var(--muted);font-weight:700;letter-spacing:.04em;margin:0 0 14px}
+.creed .row{display:grid;grid-template-columns:auto 1fr;gap:10px 18px;align-items:center;margin:0 0 10px}
+.creed .lab{font-size:15px;color:var(--muted);white-space:nowrap}
+.creed .sw{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:22px;font-weight:800;line-height:1.3}
+.creed .sw .from{color:#c9d6e4;text-decoration:line-through;text-decoration-thickness:3px;text-decoration-color:var(--C)}
+.creed .sw .arr{color:var(--accent);font-size:26px}
+.creed .sw .to{color:#fff;background:var(--accent);color:#08131f;padding:4px 14px;border-radius:999px}
+.creed .sum{margin:16px 0 0;padding-top:14px;border-top:1px solid var(--line);font-size:19px;font-weight:800;line-height:1.5;text-align:center}
+.creed .sum b{color:#9adcff}
+@media (max-width:720px){.creed{padding:20px 18px 18px}.creed .row{grid-template-columns:1fr;gap:4px}.creed .sw{font-size:19px}.creed .sum{font-size:17px}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 22px;margin:14px 0}
 .card.A{border-color:var(--A);background:var(--A-bg)} .card.B{border-color:var(--B);background:var(--B-bg)} .card.C{border-color:var(--C);background:var(--C-bg)}
 .card h3{margin-top:0}
@@ -253,7 +266,8 @@ footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);color:v
   b,strong{color:#14213d}
   h1{text-shadow:none;color:#14213d} h1 .em{background:none;-webkit-text-fill-color:#0b6e8f;color:#0b6e8f}
   figure.fig{box-shadow:none;background:#fff;break-inside:avoid}
-  .q,.hand,.cond,.row.high .judge{color:#fff}
+  .q,.hand,.cond,.row.high .judge,.creed{color:#fff}
+  .creed .ct,.creed .lab{color:#c9d3df} .creed .sw .from{color:#c9d6e4} .creed .sum b{color:#9adcff}
   .bar{display:none}
   .faq details{break-inside:avoid}
   section{break-inside:auto}
@@ -269,6 +283,15 @@ footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);color:v
   <p class="lead">どう指示し、どう囲い、どう受け取るか。操作方法や入力してよい情報の範囲は、別途 <span class="ph">【社内規程名】</span> をご覧ください。</p>
   <div class="meta"><span>Version 1.0</span><span>2026年9月12日</span><span>発行：<span class="ph">【作成部署名を記載】</span></span><span>※ <span class="ph">【 】</span> は各社の状況に合わせて書き換えてください</span></div>
 </header>
+
+<div class="creed">
+  <p class="ct">これまでの生成AIと、AIエージェントとの関わり方の、いちばん大きな違い</p>
+  <div class="row"><div class="lab">あなたの行動を</div>
+    <div class="sw"><span class="from">聞く</span><span class="arr">→</span><span class="to">指示する</span><span>に変えること</span></div></div>
+  <div class="row"><div class="lab">あなたの受け取り方を</div>
+    <div class="sw"><span class="from">委ねる</span><span class="arr">→</span><span class="to">判断／採決</span><span>に変えること</span></div></div>
+  <p class="sum">AIエージェントは、モノを知らない優秀な部下。<b>ハーネスを握るのは、あなた</b>です。</p>
+</div>
 
 <div class="bar"><div class="bar-in">
   <button class="bb" id="b-top" type="button" title="ページの先頭へ">⇧ TOP</button>

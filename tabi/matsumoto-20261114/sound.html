@@ -133,7 +133,7 @@ function noise(){
    本物のクシャッは、葉が潰れ続ける連続した擦れで、その「ざらつき」は
    粒の数ではなく、擦れの強さが細かく暴れることから生まれる。
    だから土台はノイズ1本にして、それを速く揺らす。弾ける音は少数のアクセントだけ */
-function crunchBuf(dur, density, decay, dry){
+function crunchBuf(dur, density, decay, dry, tilt){
   dry = dry || 1;
   var sr=ctx.sampleRate, len=Math.floor(sr*dur);
   var b=ctx.createBuffer(1,len,sr), d=b.getChannelData(0);
@@ -164,6 +164,17 @@ function crunchBuf(dur, density, decay, dry){
     }
   }
 
+  /* 傾き。1に近いほど一階差分になり、白いノイズが「紫」に寄る（+6dB/oct）。
+     フィルタで削るより根本的に乾く */
+  if(tilt > 0){
+    var prev=0;
+    for(var i=0;i<len;i++){
+      var cur=d[i];
+      d[i] = cur*(1-tilt) + (cur-prev)*tilt*1.6;
+      prev = cur;
+    }
+  }
+
   var pk=0; for(var i=0;i<len;i++){ var a=Math.abs(d[i]); if(a>pk) pk=a; }
   if(pk>0) for(var i=0;i<len;i++) d[i]/=pk;
   return b;
@@ -182,10 +193,10 @@ var CANDS=[
   modes:[[1600,26,.45,1],[2400,24,.38,.65],[3300,20,.30,.4],[4300,18,.22,.2]], body:520, sustain:true, trim:0.171},
 
  {id:"leaves", name:"落ち葉を踏む",
-  desc:"カサッと乾いた音。「乾き」を上げるほど、からからに振れます",
+  desc:"カサッと乾いた音。「乾き」を上げるほど、からからに振れます（波形そのものを高域へ傾けます）",
   kind:"crunch",
-  p:{vol:.75,bright:13400,ring:.55,wood:0,hits:3,spread:105,pitch:1.62,dense:0,wobble:.95,dryness:.7},
-  modes:null, body:0, trim:0.0755,
+  p:{vol:.75,bright:13400,ring:.45,wood:0,hits:3,spread:105,pitch:1.62,dense:0,wobble:.95,dryness:.7},
+  modes:null, body:0, trim:0.094,
   labels:{hits:["ざらつきの細かさ","粗い（豆をまいた感じ）↔ 細かい（葉が潰れる感じ）"],
           spread:["長さ","さっと ↔ じっくり（ミリ秒）"],
           pitch:["かさつき","しっとり ↔ かさかさ"]}},
@@ -213,10 +224,10 @@ var CANDS=[
 
 var LABELS=[
  ["vol","音量","小さく ↔ 大きく（候補どうしは同じ音量に揃えてあります）",0,2,.05],
- ["bright","明るさ","こもる ↔ 明るい（高い成分をどこまで残すか）",600,15000,100],
+ ["bright","明るさ","こもる ↔ 明るい（高い成分をどこまで残すか）",600,18000,100],
  ["ring","響きの長さ","短い ↔ 長く残る",.2,3,.05],
  ["wood","木っぽさ","金属だけ ↔ 胴の低い音を足す",0,1.6,.05],
- ["hits","打つ回数","1回 ↔ たくさん（玉が跳ねる数）",1,14,1],
+ ["hits","打つ回数","1回 ↔ たくさん（玉が跳ねる数）",1,30,1],
  ["spread","打の間隔","詰める ↔ ばらける（ミリ秒）",15,200,5],
  ["pitch","高さ","低い ↔ 高い",.5,2.6,.02],
  ["wobble","ゆらぎ","毎回おなじ ↔ 鳴らすたび高さと長さが変わる",0,1,.05],
@@ -243,16 +254,17 @@ function play(){
     /* 乾き：低い方を削って、高い方を持ち上げるほど「からから」になる */
     var dr = (P.dryness==null ? .5 : P.dryness);
     var src=ctx.createBufferSource();
-    src.buffer=crunchBuf(dur, Math.max(40,Math.round(P.hits*110)), .40, pit*(1+dr*0.5));
+    src.buffer=crunchBuf(dur, Math.max(40,Math.round(P.hits*110)), .40,
+                         pit*(1+dr*1.1), dr);        /* 粒をさらに短く／波形も傾ける */
     var hp=ctx.createBiquadFilter();
-    hp.type="highpass"; hp.frequency.value=(950+1750*dr)*pit; hp.Q.value=.7;
+    hp.type="highpass"; hp.frequency.value=(900+3600*dr)*pit; hp.Q.value=.7;
     var sh=ctx.createBiquadFilter();                     /* 高い方を持ち上げて傾ける */
-    sh.type="highshelf"; sh.frequency.value=3200*pit; sh.gain.value=-3+13*dr;
+    sh.type="highshelf"; sh.frequency.value=3000*pit; sh.gain.value=-3+19*dr;
     var pk2=ctx.createBiquadFilter();
-    pk2.type="peaking"; pk2.frequency.value=4600*pit; pk2.Q.value=1.0; pk2.gain.value=7-4*dr;
+    pk2.type="peaking"; pk2.frequency.value=4600*pit; pk2.Q.value=1.0; pk2.gain.value=7-9*dr;
     /* 乾かすほど高域を持ち上げるぶん音量も上がってしまう。
        音色だけが変わるよう打ち消す。係数は実効値を5回ずつ測って作った表 */
-    var RV=[[0,1],[0.25,1.192],[0.5,1.335],[0.7,1.979],[0.85,2.331],[1,2.594]];
+    var RV=[[0,1],[0.25,1.152],[0.5,1.55],[0.75,2.407],[1,3.895]];
     var rr=1;
     for(var q=0;q<RV.length-1;q++){
       if(dr>=RV[q][0] && dr<=RV[q+1][0]){

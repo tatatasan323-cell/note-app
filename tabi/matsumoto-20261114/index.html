@@ -206,8 +206,10 @@ summary::after{width:22px;height:22px;border-radius:50%;border:1px solid var(--l
 summary:active{background:var(--chip)}
 
 svg a{cursor:pointer;-webkit-tap-highlight-color:transparent}
-svg a:active circle{opacity:.55}
-svg a text{pointer-events:none}
+svg a:active circle,svg a:active rect{opacity:.55}
+svg a.pin text{pointer-events:none}
+svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
+  text-underline-offset:2px;text-decoration-thickness:1px}
 
 .tools a:active,.maplinks a:active,.nav a:active,.fab a:active,.fab button:active{
   background:var(--gold);color:var(--oncolor);border-color:var(--gold)}
@@ -420,13 +422,19 @@ svg a text{pointer-events:none}
     </g>
 
     <g>
-      <rect x="12" y="142" width="52" height="17" rx="3.5" fill="var(--sub)"/>
-      <text x="38" y="154" font-size="9.5" fill="var(--bg)" text-anchor="middle">松本IC</text>
-      <text x="38" y="174" font-size="8.5" fill="var(--sub)" text-anchor="middle">長野自動車道</text>
+      <a href="#kuruma">
+        <rect x="8" y="138" width="60" height="42" fill="transparent"/>
+        <rect x="12" y="142" width="52" height="17" rx="3.5" fill="var(--sub)"/>
+        <text x="38" y="154" font-size="9.5" fill="var(--bg)" text-anchor="middle">松本IC ›</text>
+        <text x="38" y="174" font-size="8.5" fill="var(--sub)" text-anchor="middle">長野自動車道</text>
+      </a>
     </g>
 
-    <circle cx="126" cy="156" r="7" fill="var(--accent)"/>
-    <text x="126" y="178" font-size="11" fill="var(--ink)" text-anchor="middle">松本駅</text>
+    <a href="#p1" class="lbl">
+      <rect x="98" y="148" width="56" height="34" fill="transparent"/>
+      <circle cx="126" cy="156" r="7" fill="var(--accent)"/>
+      <text x="126" y="178" font-size="11" fill="var(--ink)" text-anchor="middle">松本駅</text>
+    </a>
     <text x="126" y="191" font-size="8.5" fill="var(--sub)" text-anchor="middle">標高586m</text>
 
     <a href="#jokamachi">
@@ -470,6 +478,12 @@ svg a text{pointer-events:none}
     <a href="#nakamachi">中町通り</a>
     <a href="#onsen">美ヶ原温泉</a>
   </div>
+
+  <div class="tools" style="margin-top:12px">
+    <a href="https://www.google.com/maps/d/viewer?mid=1HFleOMGhmlm6yMd59qN_EDbSGFDmwWQ">この案内の全28か所を地図で見る</a>
+  </div>
+  <p class="body" style="font-size:12.5px;color:var(--sub);margin-top:7px;text-align:center">
+  宿・立ち寄り先・バス停・駐車場をまとめた地図です。Googleマップのアプリで開けば、現在地と一緒に見られます。</p>
   </div>
 </section>
 
@@ -682,15 +696,21 @@ svg a text{pointer-events:none}
       <path d="M162 168 l15 -13 l15 13 z" fill="var(--roof)"/>
       <rect x="166" y="155" width="22" height="7" fill="var(--roof)"/>
       <path d="M168 155 l9 -11 l9 11 z" fill="var(--roof)"/>
-      <text x="202" y="162" font-size="11" fill="var(--ink)">松本城</text>
-      <text x="202" y="174" font-size="9" fill="var(--sub)">お堀端は無料</text>
+      <a href="#p9" class="lbl">
+        <rect x="158" y="142" width="104" height="36" fill="transparent"/>
+        <text x="202" y="162" font-size="11" fill="var(--ink)">松本城</text>
+        <text x="202" y="174" font-size="9" fill="var(--sub)" style="text-decoration:none">お堀端は無料</text>
+      </a>
     </g>
     <!-- 旧開智学校 -->
     <g>
       <rect x="112" y="42" width="30" height="14" fill="var(--roof)"/>
       <path d="M122 42 l5 -9 l5 9 z" fill="var(--roof)"/>
-      <text x="148" y="48" font-size="10.5" fill="var(--ink)">旧開智学校</text>
-      <text x="148" y="60" font-size="9" fill="var(--accent2)">国宝・擬洋風</text>
+      <a href="#p10" class="lbl">
+        <rect x="110" y="30" width="112" height="36" fill="transparent"/>
+        <text x="148" y="48" font-size="10.5" fill="var(--ink)">旧開智学校</text>
+        <text x="148" y="60" font-size="9" fill="var(--accent2)" style="text-decoration:none">国宝・擬洋風</text>
+      </a>
     </g>
 
     <!-- ゾーン：なわて -->
@@ -718,24 +738,37 @@ svg a text{pointer-events:none}
     <!-- 乗り場 -->
     <g>
       <line x1="171" y1="366" x2="152" y2="366" stroke="var(--accent2)" stroke-width="1.6"/>
-      <rect x="106" y="358" width="46" height="16" rx="3" fill="var(--accent2)"/>
-      <text x="129" y="370" font-size="9.5" fill="var(--oncolor)" text-anchor="middle">バス 本町</text>
+      <a href="#s-honmachi">
+        <rect x="94" y="358" width="58" height="16" rx="8" fill="var(--accent2)"/>
+        <text x="123" y="369.5" font-size="8.5" fill="var(--oncolor)" text-anchor="middle">バス 本町 ›</text>
+      </a>
       <line x1="171" y1="270" x2="152" y2="270" stroke="var(--accent2)" stroke-width="1.6"/>
-      <rect x="98" y="262" width="54" height="16" rx="3" fill="var(--accent2)"/>
-      <text x="125" y="274" font-size="9.5" fill="var(--oncolor)" text-anchor="middle">バス 大名町</text>
-      <circle cx="172" cy="190" r="8" fill="var(--gold)"/>
-      <text x="172" y="193.5" font-size="9" fill="var(--oncolor)" text-anchor="middle">車</text>
-      <text x="186" y="194" font-size="9.5" fill="var(--gold)">人力車（黒門前）</text>
+      <a href="#s-daimyocho">
+        <rect x="88" y="262" width="64" height="16" rx="8" fill="var(--accent2)"/>
+        <text x="120" y="273.5" font-size="8.5" fill="var(--oncolor)" text-anchor="middle">バス 大名町 ›</text>
+      </a>
+      <a href="#s-jinrikisha">
+        <rect x="163" y="181" width="118" height="18" rx="9" fill="transparent"/>
+        <circle cx="172" cy="190" r="8" fill="var(--gold)"/>
+        <text x="172" y="193.5" font-size="9" fill="var(--oncolor)" text-anchor="middle">車</text>
+        <text x="186" y="193.5" font-size="9" fill="var(--gold)">人力車（黒門前）›</text>
+      </a>
     </g>
 
     <!-- 駐車場 -->
     <g>
-      <rect x="126" y="294" width="17" height="16" rx="3" fill="var(--park)"/>
-      <text x="134.5" y="306" font-size="10" fill="var(--bg)" text-anchor="middle">P</text>
-      <text x="120" y="288" font-size="9" fill="var(--park)" text-anchor="end">大手門 437台</text>
-      <rect x="108" y="76" width="17" height="16" rx="3" fill="var(--park)"/>
-      <text x="116.5" y="88" font-size="10" fill="var(--bg)" text-anchor="middle">P</text>
-      <text x="102" y="88" font-size="9" fill="var(--park)" text-anchor="end">20台</text>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=36.235150%2C137.968680" class="lbl">
+        <rect x="58" y="280" width="86" height="32" fill="transparent"/>
+        <rect x="126" y="294" width="17" height="16" rx="3" fill="var(--park)"/>
+        <text x="134.5" y="306" font-size="10" fill="var(--bg)" text-anchor="middle" style="text-decoration:none">P</text>
+        <text x="120" y="288" font-size="9" fill="var(--park)" text-anchor="end">大手門 437台</text>
+      </a>
+      <a href="#p10" class="lbl">
+        <rect x="62" y="70" width="64" height="24" fill="transparent"/>
+        <rect x="108" y="76" width="17" height="16" rx="3" fill="var(--park)"/>
+        <text x="116.5" y="88" font-size="10" fill="var(--bg)" text-anchor="middle" style="text-decoration:none">P</text>
+        <text x="102" y="88" font-size="9" fill="var(--park)" text-anchor="end">20台</text>
+      </a>
     </g>
 
     <!-- ピン -->
@@ -748,10 +781,10 @@ svg a text{pointer-events:none}
       <a href="#p10" class="pin"><circle cx="127" cy="52" r="17" fill="transparent"/><circle cx="127" cy="52" r="12.5" fill="none" stroke="var(--accent)" stroke-width="1.1" opacity=".42"/><circle cx="127" cy="52" r="9" fill="var(--accent)"/><text x="127" y="55.5" fill="var(--oncolor)" text-anchor="middle">10</text></a>
     </g>
     <g font-size="10.5" fill="var(--ink)">
-      <text x="74" y="444">松本駅 お城口</text>
-      <text x="191" y="391">開運堂</text>
-      <text x="191" y="323">千歳橋</text>
-      <text x="187" y="260">松本市立博物館</text>
+      <a href="#p1" class="lbl"><rect x="70" y="432" width="78" height="17" fill="transparent"/><text x="74" y="444">松本駅 お城口</text></a>
+      <a href="#p2" class="lbl"><rect x="187" y="379" width="46" height="17" fill="transparent"/><text x="191" y="391">開運堂</text></a>
+      <a href="#p3" class="lbl"><rect x="187" y="311" width="46" height="17" fill="transparent"/><text x="191" y="323">千歳橋</text></a>
+      <a href="#p8" class="lbl"><rect x="183" y="248" width="90" height="17" fill="transparent"/><text x="187" y="260">松本市立博物館</text></a>
     </g>
 
     <g transform="translate(318,40)">
@@ -764,7 +797,7 @@ svg a text{pointer-events:none}
     <span><i>1</i>立ち寄り先</span>
     <span><i class="b"></i>バス停</span>
     <span><i class="p"></i>駐車場</span>
-    <span><i class="r">車</i>人力車</span>
+    <span><i class="r">車</i>人力車</span><span style="color:var(--sub)">バス停と人力車も押せます</span>
   </div>
   <div class="maplinks"><a href="#zentai">全体図へ</a><a href="#nawate">なわて拡大</a><a href="#nakamachi">中町拡大</a></div>
   </figure>
@@ -814,17 +847,20 @@ svg a text{pointer-events:none}
       <p id="p8"><b>8. 松本市立博物館</b>（四柱神社から徒歩2分）<br>
       2023年10月に松本城公園内から移転した新しい博物館。<b>1階は無料</b>で、休憩がてら入れます。有料は3階の常設展だけ。<br>
       9:00〜17:00（1階は21:00まで／受付16:30）／大人500円・<b>高校生以下無料</b>／火曜休（→11/14は開館）／大手3-2-21</p>
+      <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=36.235180%2C137.969543">松本市立博物館の地図</a></div>
 
       <p id="p9"><b>9. 松本城</b>（四柱神社から徒歩7分）<br>
       <b>お堀のまわりを歩いて外から眺めるだけなら無料</b>。紅葉と黒い天守の組み合わせはこの時期がいちばんきれいです。<br>
       ただ、<b>天守に登るのは今回だとちょっと厳しいかもしれません</b>。11月中旬の土曜は紅葉のピークと重なるので、混む日は天守の入口まで60分待ちが出ます。<br>
       8:30〜17:00（最終入場16:30）／大人1,200円（電子）・1,300円（当日窓口）・小中400円<br>
       本丸庭園（有料エリア）には<b>国宝松本城おもてなし隊</b>が9:00〜16:00ごろ出没します。甲冑姿の武士や忍者で、一緒に写真を撮ってくれます。</p>
+      <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=36.238808%2C137.969513">松本城の地図</a></div>
 
       <p id="p10"><b>10. 国宝 旧開智学校校舎</b>（松本城から徒歩7分）<br>
       明治9年、地元の大工棟梁・立石清重が設計施工した<button class="term" type="button" data-tip="明治のはじめ、日本の大工が見よう見まねで洋風を取り入れた建築。窓や塔は洋館ふうなのに、骨組みは日本の伝統工法のまま——という、時代の継ぎ目そのものみたいな建物です。">擬洋風建築</button>。2019年、近代の学校建築として初めて<b>国宝</b>になりました。耐震工事で長く閉まっていましたが2024年11月に再開し、<b>2026年4月、創建150年に合わせて12部屋の展示をリニューアル</b>したばかり。<br>
       9:00〜17:00（入館16:30）／一般700円（窓口）・600円（電子）・小中300円／3〜11月は第3火曜休（→11/14は開館）／駐車20台・無料<br>
       ※<b>松本城との共通券（電子）が一般1,600円</b>。両方入るなら200円お得です</p>
+      <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=36.242748%2C137.967834">旧開智学校の地図</a></div>
 
       <p>3つ全部まわると、城下町だけで3時間近くかかります。<b>宿へ向かう日なら、どれか一つ</b>くらいがちょうどいいと思います。</p>
     </div>
@@ -879,7 +915,7 @@ svg a text{pointer-events:none}
       <path d="M58 22 L58 258"/>
       <path d="M40 104 L316 104"/>
     </g>
-    <text x="58" y="16" font-size="9" fill="var(--sub)" text-anchor="middle">↑ 松本城へ</text>
+    <a href="#p9" class="lbl"><rect x="24" y="5" width="68" height="15" fill="transparent"/><text x="58" y="16" font-size="9" fill="var(--sub)" text-anchor="middle">↑ 松本城へ</text></a>
 
     <g fill="var(--roof)" opacity=".85">
       <rect x="124" y="80" width="18" height="11" rx="1.5"/>
@@ -904,23 +940,25 @@ svg a text{pointer-events:none}
       <a href="#p7" class="pin"><circle cx="292" cy="104" r="17" fill="transparent"/><circle cx="292" cy="104" r="12.5" fill="none" stroke="var(--gold)" stroke-width="1.1" opacity=".42"/><circle cx="292" cy="104" r="9" fill="var(--gold)"/><text x="292" y="107.5" fill="var(--oncolor)" text-anchor="middle">7</text></a>
     </g>
     <g font-size="10" fill="var(--ink)">
-      <text x="96" y="130" text-anchor="middle">四柱神社</text>
-      <text x="200" y="130" text-anchor="middle">たい焼き ふるさと</text>
-      <text x="292" y="130" text-anchor="middle">翁堂</text>
-      <text x="152" y="148" text-anchor="middle">カエル大明神</text>
+      <a href="#p6" class="lbl"><rect x="66" y="118" width="60" height="17" fill="transparent"/><text x="96" y="130" text-anchor="middle">四柱神社</text></a>
+      <a href="#p5" class="lbl"><rect x="156" y="118" width="88" height="17" fill="transparent"/><text x="200" y="130" text-anchor="middle">たい焼き ふるさと</text></a>
+      <a href="#p7" class="lbl"><rect x="270" y="118" width="44" height="17" fill="transparent"/><text x="292" y="130" text-anchor="middle">翁堂</text></a>
+      <a href="#p4" class="lbl"><rect x="112" y="136" width="80" height="17" fill="transparent"/><text x="152" y="148" text-anchor="middle">カエル大明神</text></a>
     </g>
     <text x="178" y="170" font-size="9.5" fill="var(--sub)" text-anchor="middle">なわて通り　24時間 歩行者天国・全長約250m</text>
 <path d="M6 198 C 70 190, 130 206, 190 194 C 244 183, 282 200, 334 190"
           fill="none" stroke="var(--water)" stroke-width="13" stroke-linecap="round"/>
     <rect x="49" y="189" width="18" height="14" rx="2" fill="var(--card)" stroke="var(--sub)" stroke-width="1.5"/>
     <a href="#p3" class="pin"><circle cx="58" cy="196" r="17" fill="transparent"/><circle cx="58" cy="196" r="12.5" fill="none" stroke="var(--accent)" stroke-width="1.1" opacity=".42"/><circle cx="58" cy="196" r="9" fill="var(--accent)"/><text x="58" y="199.5" font-size="9.5" font-weight="700" fill="var(--oncolor)" text-anchor="middle">3</text></a>
-    <text x="58" y="224" font-size="10" fill="var(--ink)" text-anchor="middle">千歳橋</text>
+    <a href="#p3" class="lbl"><rect x="34" y="212" width="48" height="17" fill="transparent"/><text x="58" y="224" font-size="10" fill="var(--ink)" text-anchor="middle">千歳橋</text></a>
     <text x="330" y="222" font-size="10" fill="var(--waterdeep)" text-anchor="end">女鳥羽川</text>
 
     <g>
-      <rect x="6" y="30" width="52" height="16" rx="3" fill="var(--accent2)"/>
-      <text x="32" y="42" font-size="9" fill="var(--oncolor)" text-anchor="middle">バス 大名町</text>
-      <line x1="58" y1="38" x2="66" y2="38" stroke="var(--accent2)" stroke-width="1.6"/>
+      <a href="#s-daimyocho">
+        <rect x="6" y="30" width="60" height="16" rx="8" fill="var(--accent2)"/>
+        <text x="36" y="41.5" font-size="8.5" fill="var(--oncolor)" text-anchor="middle">バス 大名町 ›</text>
+      </a>
+      <line x1="66" y1="38" x2="74" y2="38" stroke="var(--accent2)" stroke-width="1.6"/>
     </g>
     <text x="178" y="256" font-size="10.5" fill="var(--accent2)" text-anchor="middle">↓ 橋を渡って中町通りへ　徒歩3分</text>
 
@@ -1057,15 +1095,20 @@ svg a text{pointer-events:none}
     </g>
 
     <g>
-      <rect x="6" y="162" width="52" height="16" rx="3" fill="var(--accent2)"/>
-      <text x="32" y="174" font-size="9" fill="var(--oncolor)" text-anchor="middle">バス 本町</text>
-      <text x="64" y="174" font-size="9.5" fill="var(--accent2)">← 美ヶ原温泉行き（西端から2分）</text>
+      <a href="#s-honmachi">
+        <rect x="6" y="162" width="58" height="16" rx="8" fill="var(--accent2)"/>
+        <text x="35" y="173.5" font-size="8.5" fill="var(--oncolor)" text-anchor="middle">バス 本町 ›</text>
+      </a>
+      <text x="70" y="174" font-size="9.5" fill="var(--accent2)">← 美ヶ原温泉行き（西端から2分）</text>
     </g>
 
     <g>
-      <rect x="206" y="160" width="17" height="16" rx="3" fill="var(--park)"/>
-      <text x="214.5" y="172" font-size="10" fill="var(--bg)" text-anchor="middle">P</text>
-      <text x="228" y="172" font-size="9" fill="var(--park)">中町駐車場 約10台</text>
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=36.233700%2C137.971000" class="lbl">
+        <rect x="204" y="158" width="110" height="20" fill="transparent"/>
+        <rect x="206" y="160" width="17" height="16" rx="3" fill="var(--park)"/>
+        <text x="214.5" y="172" font-size="10" fill="var(--bg)" text-anchor="middle" style="text-decoration:none">P</text>
+        <text x="228" y="172" font-size="9" fill="var(--park)">中町駐車場 約10台</text>
+      </a>
     </g>
 
     <g font-size="9.5" font-weight="700">
@@ -1077,8 +1120,11 @@ svg a text{pointer-events:none}
       <a href="#p16" class="pin"><circle cx="308" cy="110" r="17.5" fill="transparent"/><circle cx="308" cy="110" r="13" fill="none" stroke="var(--accent)" stroke-width="1.1" opacity=".42"/><circle cx="308" cy="110" r="9.5" fill="var(--accent)"/><text x="308" y="113.5" fill="var(--oncolor)" text-anchor="middle">16</text></a>
       <a href="#p17" class="pin"><circle cx="190" cy="252" r="17.5" fill="transparent"/><circle cx="190" cy="252" r="13" fill="none" stroke="var(--waterdeep)" stroke-width="1.1" opacity=".42"/><circle cx="190" cy="252" r="9.5" fill="var(--waterdeep)"/><text x="190" y="255.5" fill="var(--oncolor)" text-anchor="middle">17</text></a>
     </g>
-    <text x="190" y="274" font-size="10" fill="var(--ink)" text-anchor="middle">源智の井戸</text>
-    <text x="190" y="288" font-size="9" fill="var(--sub)" text-anchor="middle">通りから南へ200m・3分</text>
+    <a href="#p17" class="lbl">
+      <rect x="126" y="262" width="128" height="32" fill="transparent"/>
+      <text x="190" y="274" font-size="10" fill="var(--ink)" text-anchor="middle">源智の井戸</text>
+      <text x="190" y="288" font-size="9" fill="var(--sub)" text-anchor="middle" style="text-decoration:none">通りから南へ200m・3分</text>
+    </a>
 
     <g transform="translate(318,212)">
       <path d="M0 -12 L4.5 5 L0 1.6 L-4.5 5 Z" fill="var(--sub)"/>
@@ -1154,9 +1200,11 @@ svg a text{pointer-events:none}
       <p id="p15"><b>15. ちきりや工芸店</b>／中央3-4-18<br>
       中町の民芸店の代表格。全国の焼きものと、松本の手仕事が並びます。<br>
       10:00〜17:30／火・水曜休（→11/14は営業）／0263-33-2522</p>
+      <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=36.233883%2C137.973175">ちきりや工芸店の地図</a></div>
       <p id="p16"><b>16. 陶片木</b>（とうへんぼく）／中央3-5-10<br>
       1975年からの「うつわ屋」。食器専門で、普段使いの一枚を探すならこちら。<br>
       火・水曜休（→11/14は営業）／0263-32-0646</p>
+      <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=36.233822%2C137.973297">陶片木の地図</a></div>
       <p>ほかに松本の手仕事としては、<b>松本手まり</b>、押絵の技法でつくる立体的なひな人形の<b>松本押絵雛</b>、和紙の<b>松本姉様人形</b>、<b>松本ほうき</b>（野溝ほうき）などがあります。中町・なわての店先で見かけたら、それです。</p>
     </div>
   </details>
@@ -1249,16 +1297,17 @@ svg a text{pointer-events:none}
   </div>
 
 
-  <div class="card">
+  <div class="card" id="noriba">
     <h4>乗り場をひらく <span class="ruby">押すと地図が出ます</span></h4>
     <p class="body">どこから乗るのか分からなくなったら、ここから地図を開いてください。</p>
     <ul class="idx" style="margin-top:9px">
-      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=%E6%9D%BE%E6%9C%AC%E3%83%90%E3%82%B9%E3%82%BF%E3%83%BC%E3%83%9F%E3%83%8A%E3%83%AB%20%E6%9D%BE%E6%9C%AC%E5%B8%82"><span class="n">松本バスターミナル 3番のりば</span><span class="d">美ヶ原温泉行きの始発。松本駅お城口から徒歩2分</span></a></li>
-      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=36.23344%2C137.96938"><span class="n">バス停「本町」</span><span class="d">中町通りの西端から北へ2分。宿へ行くならここが近い</span></a></li>
-      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=36.23497%2C137.96955"><span class="n">バス停「大名町」</span><span class="d">千歳橋を渡ってすぐ北。なわて通りから近い</span></a></li>
-      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=36.23084%2C137.96509"><span class="n">タクシー乗り場（松本駅お城口）</span><span class="d">駅前。城下町では流しが少ないので、呼ぶか、ここから乗る</span></a></li>
-      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=36.23845%2C137.96945"><span class="n">人力車の乗り場（松本城 黒門前）</span><span class="d">9:30〜16:30・火曜休。要予約 080-4806-8177</span></a></li>
-      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=36.24289%2C137.99507"><span class="n">バス停「松本民芸館」</span><span class="d">民芸館の目の前。ここで降りると宿まで徒歩7分</span></a></li>
+      <li id="s-terminal"><a href="https://www.google.com/maps/search/?api=1&amp;query=%E6%9D%BE%E6%9C%AC%E3%83%90%E3%82%B9%E3%82%BF%E3%83%BC%E3%83%9F%E3%83%8A%E3%83%AB%20%E6%9D%BE%E6%9C%AC%E5%B8%82"><span class="n">松本バスターミナル 3番のりば</span><span class="d">美ヶ原温泉行きの始発。松本駅お城口から徒歩2分</span></a></li>
+      <li id="s-honmachi"><a href="https://www.google.com/maps/search/?api=1&amp;query=36.23344%2C137.96938"><span class="n">バス停「本町」</span><span class="d">中町通りの西端から北へ2分。宿へ行くならここが近い</span></a></li>
+      <li id="s-daimyocho"><a href="https://www.google.com/maps/search/?api=1&amp;query=36.23497%2C137.96955"><span class="n">バス停「大名町」</span><span class="d">千歳橋を渡ってすぐ北。なわて通りから近い</span></a></li>
+      <li id="s-taxi"><a href="https://www.google.com/maps/search/?api=1&amp;query=36.23084%2C137.96509"><span class="n">タクシー乗り場（松本駅お城口）</span><span class="d">駅前。城下町では流しが少ないので、呼ぶか、ここから乗る</span></a></li>
+      <li id="s-jinrikisha"><a href="https://www.google.com/maps/search/?api=1&amp;query=36.23845%2C137.96945"><span class="n">人力車の乗り場（松本城 黒門前）</span><span class="d">9:30〜16:30・火曜休。要予約 080-4806-8177</span></a></li>
+      <li id="s-mingeikan"><a href="https://www.google.com/maps/search/?api=1&amp;query=36.24289%2C137.99507"><span class="n">バス停「松本民芸館」</span><span class="d">民芸館の目の前。ここで降りると宿まで徒歩7分</span></a></li>
+      <li id="s-tsujido"><a href="https://www.google.com/maps/search/?api=1&amp;query=%E8%BE%BB%E5%A0%82%20%E3%83%90%E3%82%B9%E5%81%9C%20%E6%9D%BE%E6%9C%AC%E5%B8%82%E9%87%8C%E5%B1%B1%E8%BE%BA"><span class="n">バス停「辻堂」</span><span class="d">美ヶ原温泉線の終点。宿のすぐそばだが、民芸館で降りたほうが寄り道できる</span></a></li>
     </ul>
     <p class="body" style="font-size:12.5px;color:var(--sub)">
     バス停はどれも、押すとその場所に地図のピンが立ちます。時刻は
@@ -1355,21 +1404,31 @@ svg a text{pointer-events:none}
     </g>
 
     <g>
-      <rect x="14" y="256" width="88" height="16" rx="3" fill="var(--accent2)"/>
-      <text x="58" y="268" font-size="9.5" fill="var(--oncolor)" text-anchor="middle">バス停 松本民芸館</text>
+      <a href="#s-mingeikan">
+        <rect x="8" y="256" width="100" height="16" rx="8" fill="var(--accent2)"/>
+        <text x="58" y="267.5" font-size="8.5" fill="var(--oncolor)" text-anchor="middle">バス停 松本民芸館 ›</text>
+      </a>
       <line x1="62" y1="272" x2="66" y2="291" stroke="var(--accent2)" stroke-width="1.5" stroke-dasharray="2 2"/>
-      <rect x="240" y="132" width="76" height="16" rx="3" fill="var(--accent2)"/>
-      <text x="278" y="144" font-size="9.5" fill="var(--oncolor)" text-anchor="middle">バス停 辻堂（終点）</text>
+      <a href="#s-tsujido">
+        <rect x="234" y="132" width="88" height="16" rx="8" fill="var(--accent2)"/>
+        <text x="278" y="143.5" font-size="8.5" fill="var(--oncolor)" text-anchor="middle">バス停 辻堂（終点）›</text>
+      </a>
       <line x1="252" y1="132" x2="240" y2="114" stroke="var(--accent2)" stroke-width="1.5" stroke-dasharray="2 2"/>
     </g>
 
     <g>
-      <rect x="198" y="48" width="17" height="16" rx="3" fill="var(--park)"/>
-      <text x="206.5" y="60" font-size="10" fill="var(--bg)" text-anchor="middle">P</text>
-      <text x="192" y="60" font-size="9" fill="var(--park)" text-anchor="end">宿 35台無料</text>
-      <rect x="112" y="300" width="17" height="16" rx="3" fill="var(--park)"/>
-      <text x="120.5" y="312" font-size="10" fill="var(--bg)" text-anchor="middle">P</text>
-      <text x="134" y="312" font-size="9" fill="var(--park)">民芸館 計19台</text>
+      <a href="#p19" class="lbl">
+        <rect x="136" y="46" width="80" height="20" fill="transparent"/>
+        <rect x="198" y="48" width="17" height="16" rx="3" fill="var(--park)"/>
+        <text x="206.5" y="60" font-size="10" fill="var(--bg)" text-anchor="middle" style="text-decoration:none">P</text>
+        <text x="192" y="60" font-size="9" fill="var(--park)" text-anchor="end">宿 35台無料</text>
+      </a>
+      <a href="#p18" class="lbl">
+        <rect x="110" y="298" width="90" height="20" fill="transparent"/>
+        <rect x="112" y="300" width="17" height="16" rx="3" fill="var(--park)"/>
+        <text x="120.5" y="312" font-size="10" fill="var(--bg)" text-anchor="middle" style="text-decoration:none">P</text>
+        <text x="134" y="312" font-size="9" fill="var(--park)">民芸館 計19台</text>
+      </a>
     </g>
 
     <g font-size="9.5" font-weight="700">
@@ -1378,9 +1437,9 @@ svg a text{pointer-events:none}
       <a href="#p20" class="pin"><circle cx="296" cy="64" r="17.5" fill="transparent"/><circle cx="296" cy="64" r="13" fill="none" stroke="var(--waterdeep)" stroke-width="1.1" opacity=".42"/><circle cx="296" cy="64" r="9.5" fill="var(--waterdeep)"/><text x="296" y="67.5" fill="var(--oncolor)" text-anchor="middle">20</text></a>
     </g>
     <g font-size="10.5" fill="var(--ink)">
-      <text x="66" y="332" text-anchor="middle">松本民芸館</text>
-      <text x="232" y="42" text-anchor="middle">追分屋旅館</text>
-      <text x="332" y="92" text-anchor="end">白糸の湯</text>
+      <a href="#p18" class="lbl"><rect x="30" y="320" width="72" height="18" fill="transparent"/><text x="66" y="332" text-anchor="middle">松本民芸館</text></a>
+      <a href="#p19" class="lbl"><rect x="196" y="30" width="72" height="18" fill="transparent"/><text x="232" y="42" text-anchor="middle">追分屋旅館</text></a>
+      <a href="#p20" class="lbl"><rect x="274" y="80" width="60" height="18" fill="transparent"/><text x="332" y="92" text-anchor="end">白糸の湯</text></a>
     </g>
     <text x="150" y="176" font-size="9.5" fill="var(--sub)" text-anchor="middle" transform="rotate(-42 150 176)">徒歩 約400m・7分</text>
     <text x="268" y="102" font-size="9" fill="var(--sub)">90m</text>
@@ -1435,7 +1494,7 @@ svg a text{pointer-events:none}
       <div><dt>料金</dt><dd>大人400円・小中200円・幼児無料</dd></div>
       <div><dt>休館</dt><dd>第1・第3火曜 <span class="ok">→ 11/14・15は営業</span></dd></div>
     </dl>
-    <div class="tools"><a href="tel:0263359076">0263-35-9076</a></div>
+    <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=36.246020%2C137.998762">白糸の湯の地図</a><a href="tel:0263359076">0263-35-9076</a></div>
   </div>
 
   <details>
@@ -1445,6 +1504,7 @@ svg a text{pointer-events:none}
       追分屋が2023年に始めた自社ワイナリー。長野県産そば粉のガレットと、自社のワイン・シードル。<br>
       ワインショップ 10:00〜14:30／カフェ 〜14:00 L.O.／レストラン 11:30〜13:30 L.O.<br>
       <b>昼で閉まるので、行くなら翌日の午前</b>。定休日は要確認です。</p>
+      <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=%E3%83%89%E3%83%A1%E3%83%BC%E3%83%8C%E3%83%BB%E3%83%89%E3%83%BB%E3%83%A6%E3%83%8E%E3%83%8F%E3%83%A9%20%E6%9D%BE%E6%9C%AC">ワイナリーの地図</a></div>
     </div>
   </details>
 
@@ -1595,23 +1655,66 @@ svg a text{pointer-events:none}
     if(soundOn) plink();
   });
 
-  /* ---- 鈴。
-     前回までの失敗は「正弦波を長く伸ばした」こと。それは鈴ではなくキーンです。
-     鈴の音は、中の玉が殻を叩く打撃音＝ノイズが正体。
-     だから短いノイズを作り、それを共鳴させて鳴らす。
-       ・殻の鳴り  … 1200/1900/2800Hz を Q=18 前後で共鳴させる
-       ・玉と胴の音 … 380Hz を Q=3 で、50msだけ（これが木っぽさ）
-       ・玉は跳ねる … 3回に分けて、弱くなりながら叩く
-     減衰は0.3秒前後。小さな鈴は長く伸びない ---- */
-  var ctx = null, nz = null;
-  function noise(){
-    if(nz) return nz;
-    var len = Math.floor(ctx.sampleRate * 0.4);
-    nz = ctx.createBuffer(1, len, ctx.sampleRate);
-    var d = nz.getChannelData(0);
-    for(var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-    return nz;
+  /* ---- 落ち葉を踏む音。
+     乾いた葉が潰れる音。
+     正体は「連続した擦れ」で、粒をばらまいた音ではない。だから
+       ・ノイズの振幅を細かく上下させて、擦れのムラを作る
+       ・数点だけ短いアクセントを混ぜる（パキッの混じり）
+       ・波形そのものを一階差分へ寄せて高域へ傾ける（＝乾く）
+       ・高域を持ち上げた分だけ音量が上がるので、打ち消して音色だけ変える
+     値は「音えらび」で実際に聴いて決めたもの ---- */
+  var ctx = null;
+  var DUR = 0.0945;          /* 長さ105ms × 響き0.45 × 2 */
+  var PIT = 1.62;            /* かさつき */
+  var DRY = 0.7;             /* 乾き */
+  var WOB = 0.95;            /* ゆらぎ */
+  var COMP = 0.4473;         /* 乾き0.7ぶんの音量打ち消し（実測表から） */
+
+  function crunchBuf(dur, pit){
+    var dry = pit * (1 + DRY * 1.1);
+    var sr = ctx.sampleRate, len = Math.floor(sr * dur);
+    var b = ctx.createBuffer(1, len, sr), d = b.getChannelData(0);
+    var i;
+
+    /* 擦れのムラ */
+    var step = 0.0022 / (330 / 500) / dry;
+    var mod = 0.6, target = 0.6, hold = 0;
+    for(i = 0; i < len; i++){
+      if(hold-- <= 0){
+        target = Math.pow(Math.random(), 1.35);
+        hold = Math.max(2, Math.floor(sr * step * (0.35 + Math.random() * 1.5)));
+      }
+      mod += (target - mod) * 0.34;
+      var t = i / len;
+      var env = Math.min(1, t / 0.045) * Math.exp(-t * 2.4);
+      d[i] = (Math.random() * 2 - 1) * (0.08 + mod * 0.92) * env;
+    }
+
+    /* アクセント */
+    for(var g = 0; g < 4; g++){
+      var at = Math.floor(Math.random() * len * 0.75);
+      var gl = Math.max(3, Math.floor(sr * (0.0006 + Math.random() * 0.0022) / dry));
+      var am = 0.5 + Math.random() * 0.5;
+      var t2 = at / len, ev = Math.min(1, t2 / 0.045) * Math.exp(-t2 * 2.4);
+      for(var k = 0; k < gl && at + k < len; k++){
+        d[at + k] += (Math.random() * 2 - 1) * am * ev * Math.exp(-k / (gl * 0.2));
+      }
+    }
+
+    /* 高域へ傾ける */
+    var prev = 0;
+    for(i = 0; i < len; i++){
+      var cur = d[i];
+      d[i] = cur * (1 - DRY) + (cur - prev) * DRY * 1.6;
+      prev = cur;
+    }
+
+    var pk = 0;
+    for(i = 0; i < len; i++){ var av = Math.abs(d[i]); if(av > pk) pk = av; }
+    if(pk > 0) for(i = 0; i < len; i++) d[i] /= pk;
+    return b;
   }
+
   function plink(){
     if(!soundOn) return;
     try{
@@ -1621,49 +1724,31 @@ svg a text{pointer-events:none}
       if(ctx.state === "suspended") ctx.resume();
       var t0 = ctx.currentTime;
 
+      /* 毎回まったく同じだと機械に聞こえる。高さと長さを少し振る */
+      var pit = PIT * (1 + (Math.random() - 0.5) * 0.24 * WOB);
+      var dur = Math.max(0.05, DUR * (1 + (Math.random() - 0.5) * 0.60 * WOB));
+
       var lp = ctx.createBiquadFilter();
-      lp.type = "lowpass"; lp.frequency.value = 4200; lp.Q.value = 0.4;
+      lp.type = "lowpass"; lp.frequency.value = 13400; lp.Q.value = 0.4;
       var out = ctx.createGain();
-      out.gain.value = 0.2;
+      out.gain.value = 0.75 * 0.094;
       lp.connect(out); out.connect(ctx.destination);
 
-      /* 一打ち分 */
-      function hit(at, amp, jitter){
-        var src = ctx.createBufferSource();
-        src.buffer = noise();
-        var env = ctx.createGain();
-        env.gain.setValueAtTime(0, at);
-        env.gain.linearRampToValueAtTime(1, at + 0.0015);
-        env.gain.exponentialRampToValueAtTime(0.0001, at + 0.06);
-        src.connect(env);
+      var src = ctx.createBufferSource();
+      src.buffer = crunchBuf(dur, pit);
 
-        /* 殻の共鳴 */
-        [[1200, 18, 0.30, 1.0], [1900, 16, 0.24, 0.6], [2800, 14, 0.18, 0.3]]
-        .forEach(function(m){
-          var bp = ctx.createBiquadFilter();
-          bp.type = "bandpass";
-          bp.frequency.value = m[0] * jitter;
-          bp.Q.value = m[1];
-          var g = ctx.createGain();
-          g.gain.setValueAtTime(amp * m[3], at);
-          g.gain.exponentialRampToValueAtTime(0.0001, at + m[2]);
-          env.connect(bp); bp.connect(g); g.connect(lp);
-        });
+      var hp = ctx.createBiquadFilter();
+      hp.type = "highpass"; hp.frequency.value = 3420 * pit; hp.Q.value = 0.7;
+      var sh = ctx.createBiquadFilter();
+      sh.type = "highshelf"; sh.frequency.value = 3000 * pit; sh.gain.value = 10.3;
+      var pk2 = ctx.createBiquadFilter();
+      pk2.type = "peaking"; pk2.frequency.value = 4600 * pit; pk2.Q.value = 1.0;
+      pk2.gain.value = 0.7;
+      var comp = ctx.createGain(); comp.gain.value = COMP;
 
-        /* 玉と胴。低くて短い。これが金属だけの音との差になる */
-        var body = ctx.createBiquadFilter();
-        body.type = "bandpass"; body.frequency.value = 380 * jitter; body.Q.value = 3;
-        var bg = ctx.createGain();
-        bg.gain.setValueAtTime(amp * 0.85, at);
-        bg.gain.exponentialRampToValueAtTime(0.0001, at + 0.05);
-        env.connect(body); body.connect(bg); bg.connect(lp);
-
-        src.start(at); src.stop(at + 0.4);
-      }
-
-      hit(t0,         1.00, 1.000);
-      hit(t0 + 0.052, 0.42, 1.013);   /* 玉が跳ねる */
-      hit(t0 + 0.118, 0.18, 0.988);
+      src.connect(hp); hp.connect(sh); sh.connect(pk2); pk2.connect(comp);
+      comp.connect(lp);
+      src.start(t0); src.stop(t0 + dur + 0.05);
     }catch(e){}
   }
 

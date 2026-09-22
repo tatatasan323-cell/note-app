@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>音えらび</title>
+<meta name="description" content="松本まちあるきのリンク音を、聴き比べて決めるための道具。">
+<meta name="theme-color" content="#1b3a2f">
+<style>
+:root{
+  --bg:#f7f3ea; --card:#fffdf9; --ink:#232019; --sub:#6d6455;
+  --line:#e2d9c8; --accent:#1e4033; --accent2:#b24e28; --gold:#a8843a; --chip:#efe8da; --oncolor:#f7f3ea;
+  --shadow:0 1px 2px rgba(35,32,25,.06),0 6px 16px rgba(35,32,25,.05);
+  --sans:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",YuGothic,Meiryo,sans-serif;
+  --mincho:"Hiragino Mincho ProN","Hiragino Mincho Pro","Yu Mincho","YuMincho","Noto Serif JP",serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#15151a; --card:#1e1e24; --ink:#ebe6db; --sub:#a59c8c; --line:#343440;
+  --accent:#7ec0a3; --accent2:#e08a63; --gold:#d3ad5e; --chip:#282830; --oncolor:#15151a;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 16px rgba(0,0,0,.35);
+}}
+:root[data-theme="dark"]{
+  --bg:#15151a; --card:#1e1e24; --ink:#ebe6db; --sub:#a59c8c; --line:#343440;
+  --accent:#7ec0a3; --accent2:#e08a63; --gold:#d3ad5e; --chip:#282830; --oncolor:#15151a;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 16px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:16px;line-height:1.75;padding-bottom:40px}
+.wrap{max-width:620px;margin:0 auto;padding-block:0;padding-left:16px;padding-right:16px}
+header{padding-block:26px 4px}
+h1{font-family:var(--mincho);font-size:24px;margin:0;font-weight:600;letter-spacing:.05em}
+.lead{font-size:13.5px;color:var(--sub);line-height:1.85;margin:12px 0 0}
+h2{font-family:var(--mincho);font-size:17px;margin:30px 0 10px;display:flex;align-items:center;gap:9px;font-weight:600}
+h2::before{content:"";width:3px;height:17px;background:var(--accent);flex:none}
+
+.cands{display:grid;gap:8px}
+@media(min-width:620px){.cands{grid-template-columns:1fr 1fr}}
+.cand{display:flex;gap:12px;align-items:center;width:100%;text-align:left;
+  background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px 14px;
+  box-shadow:var(--shadow);cursor:pointer;font:inherit;color:inherit;-webkit-appearance:none}
+.cand[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent),var(--shadow)}
+.cand .play{flex:none;width:34px;height:34px;border-radius:50%;background:var(--accent);color:var(--oncolor);
+  display:grid;place-items:center;font-size:13px}
+.cand b{display:block;font-family:var(--mincho);font-size:16px;font-weight:600;letter-spacing:.04em}
+.cand span{display:block;font-size:11.5px;color:var(--sub);line-height:1.6;margin-top:2px}
+
+.mix{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px 6px;box-shadow:var(--shadow)}
+.row{margin:0 0 14px}
+.row label{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;gap:10px}
+.row .nm{font-weight:700}
+.row .vl{font-size:12px;color:var(--sub);font-variant-numeric:tabular-nums}
+.row .hint{display:block;font-size:11px;color:var(--sub);line-height:1.55;margin-top:1px}
+input[type=range]{width:100%;margin:7px 0 0;accent-color:var(--accent);height:26px}
+
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 0}
+.bar button{font:inherit;font-size:13.5px;font-weight:700;padding:11px 18px;border-radius:999px;
+  border:1px solid var(--line);background:var(--chip);color:var(--ink);cursor:pointer;-webkit-appearance:none}
+.bar button.go{background:var(--accent);color:var(--oncolor);border-color:var(--accent)}
+
+.out{background:var(--chip);border-left:3px solid var(--gold);border-radius:12px;padding:13px 15px;margin:16px 0 0;
+  font-size:13px;line-height:1.85}
+.out code{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;
+  background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:8px 0 0;
+  white-space:pre-wrap;word-break:break-all;line-height:1.7}
+.note{font-size:12.5px;color:var(--sub);line-height:1.85;margin:14px 0 0}
+footer{margin:34px 0 0;padding-top:16px;border-top:1px solid var(--line);font-size:11.5px;color:var(--sub);line-height:1.9}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>音えらび</h1>
+  <p class="lead">
+  「松本まちあるき」のリンクを押したときに鳴る音を、聴き比べて決めるための道具です。<br>
+  私（AI）には音が聞こえないので、言葉のやりとりだけで合わせるのは無理がありました。ここで実際に鳴らして選んでください。<br>
+  <b>候補を押すとその場で鳴ります。</b>下のつまみで、選んだ音を好きに調整できます。
+  </p>
+</header>
+
+<section>
+  <h2>候補</h2>
+  <div class="cands" id="cands"></div>
+</section>
+
+<section>
+  <h2>調整</h2>
+  <div class="mix" id="mix"></div>
+  <div class="bar">
+    <button type="button" class="go" id="again">もう一度鳴らす</button>
+    <button type="button" id="reset">この候補の初期値に戻す</button>
+  </div>
+</section>
+
+<section>
+  <h2>決まったら</h2>
+  <div class="out">
+    この値をそのまま伝えてください。パンフレット側に入れます。
+    <code id="dump">—</code>
+  </div>
+  <p class="note">
+  <b>音が鳴らないとき。</b>iPhoneは本体横のサイレントスイッチが入っていると鳴りません。
+  ブラウザの仕様で、最初の1回はボタンを押さないと音が出ない作りになっています（勝手に鳴らないようにするためです）。
+  </p>
+</section>
+
+<footer>
+  作業用のページです。親族へ配る案内は
+  <a href="./">こちら</a>。<br>
+  音は外部ファイルを使わず、その場で合成しています。
+</footer>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+var ctx=null, nz=null;
+function AC(){ var A=window.AudioContext||window.webkitAudioContext; if(!A) return null;
+  if(!ctx) ctx=new A(); if(ctx.state==="suspended") ctx.resume(); return ctx; }
+function noise(){
+  if(nz) return nz;
+  var len=Math.floor(ctx.sampleRate*1.2);
+  nz=ctx.createBuffer(1,len,ctx.sampleRate);
+  var d=nz.getChannelData(0);
+  for(var i=0;i<len;i++) d[i]=Math.random()*2-1;
+  return nz;
+}
+
+/* 候補。modes は [周波数, Q, 減衰秒, 強さ] */
+var CANDS=[
+ {id:"suzu", name:"鈴（玉が殻を叩く）",
+  desc:"打撃音を共鳴させる作り。玉と胴の低い音を混ぜてあります",
+  p:{vol:.20,bright:4200,ring:1,wood:.85,hits:3,spread:60,pitch:1,dense:0},
+  modes:[[1200,18,.30,1],[1900,16,.24,.6],[2800,14,.18,.3]], body:380},
+
+ {id:"harmony", name:"ハーモニーボール",
+  desc:"小さな粒が無数に鳴る、かすれたシャラーン。粒の数を増やせます",
+  p:{vol:.16,bright:5200,ring:1.5,wood:.25,hits:9,spread:130,pitch:1.15,dense:1},
+  modes:[[1600,26,.45,1],[2400,24,.38,.7],[3300,20,.30,.45],[4300,18,.22,.25]], body:520},
+
+ {id:"rin", name:"りん（仏具）",
+  desc:"低めで、長く残ります。打ったあとの余韻が長いタイプ",
+  p:{vol:.18,bright:3000,ring:2.4,wood:.5,hits:1,spread:40,pitch:.7,dense:0},
+  modes:[[820,34,1.6,1],[1240,30,1.2,.5],[2050,24,.8,.2]], body:300},
+
+ {id:"wood", name:"木だけ（かたい音）",
+  desc:"金属の響きを抜いた、こつん という音",
+  p:{vol:.22,bright:2200,ring:.6,wood:1.4,hits:1,spread:40,pitch:1,dense:0},
+  modes:[[700,9,.10,1],[1100,7,.07,.4]], body:300},
+
+ {id:"drop", name:"水滴",
+  desc:"音程が上がる ぽちゃん。共鳴ではなく正弦波です",
+  p:{vol:.24,bright:2400,ring:1,wood:0,hits:1,spread:40,pitch:1,dense:0},
+  modes:null, body:0},
+
+ {id:"cloth", name:"かすれた払い（音程なし）",
+  desc:"しゃっ という擦れ。音程を感じさせたくない場合",
+  p:{vol:.16,bright:6000,ring:.8,wood:.2,hits:2,spread:70,pitch:1,dense:0},
+  modes:[[2600,2.2,.22,1],[5200,1.8,.16,.5]], body:900}
+];
+
+var LABELS=[
+ ["vol","音量","小さく ↔ 大きく",0,.5,.01],
+ ["bright","明るさ","こもる ↔ 明るい（高い成分をどこまで残すか）",600,8000,50],
+ ["ring","響きの長さ","短い ↔ 長く残る",.2,3,.05],
+ ["wood","木っぽさ","金属だけ ↔ 胴の低い音を足す",0,1.6,.05],
+ ["hits","打つ回数","1回 ↔ たくさん（玉が跳ねる数）",1,14,1],
+ ["spread","打の間隔","詰める ↔ ばらける（ミリ秒）",15,200,5],
+ ["pitch","高さ","低い ↔ 高い",.5,2,.02]
+];
+
+var cur=CANDS[0], P=Object.assign({},cur.p);
+
+function play(){
+  if(!AC()) return;
+  var t0=ctx.currentTime;
+  var lp=ctx.createBiquadFilter();
+  lp.type="lowpass"; lp.frequency.value=P.bright; lp.Q.value=.4;
+  var out=ctx.createGain(); out.gain.value=P.vol;
+  lp.connect(out); out.connect(ctx.destination);
+
+  if(!cur.modes){                       /* 水滴だけは正弦波のスイープ */
+    for(var k=0;k<Math.max(1,Math.round(P.hits));k++){
+      (function(at,amp){
+        var o=ctx.createOscillator(), g=ctx.createGain();
+        o.type="sine";
+        o.frequency.setValueAtTime(420*P.pitch,at);
+        o.frequency.exponentialRampToValueAtTime(1320*P.pitch,at+.08*P.ring);
+        g.gain.setValueAtTime(0,at);
+        g.gain.linearRampToValueAtTime(amp,at+.005);
+        g.gain.exponentialRampToValueAtTime(.0001,at+.26*P.ring);
+        o.connect(g); g.connect(lp); o.start(at); o.stop(at+.32*P.ring+.05);
+      })(t0+k*P.spread/1000, .85*Math.pow(.45,k));
+    }
+    return;
+  }
+
+  var n=Math.max(1,Math.round(P.hits));
+  for(var i=0;i<n;i++){
+    var jit = 1 + (i===0?0:(Math.random()-.5)*.05);
+    var at  = t0 + (P.dense ? (i*P.spread/1000)*(0.4+Math.random()*1.2) : i*P.spread/1000);
+    var amp = (i===0?1:Math.pow(.55,i)) * (P.dense ? (.35+Math.random()*.5) : 1);
+    hit(at, amp, jit, lp);
+  }
+}
+
+function hit(at, amp, jit, lp){
+  var src=ctx.createBufferSource(); src.buffer=noise();
+  var env=ctx.createGain();
+  env.gain.setValueAtTime(0,at);
+  env.gain.linearRampToValueAtTime(1,at+.0015);
+  env.gain.exponentialRampToValueAtTime(.0001,at+.06);
+  src.connect(env);
+
+  cur.modes.forEach(function(m){
+    var bp=ctx.createBiquadFilter();
+    bp.type="bandpass";
+    bp.frequency.value=m[0]*P.pitch*jit;
+    bp.Q.value=m[1];
+    var g=ctx.createGain();
+    g.gain.setValueAtTime(amp*m[3],at);
+    g.gain.exponentialRampToValueAtTime(.0001,at+m[2]*P.ring);
+    env.connect(bp); bp.connect(g); g.connect(lp);
+  });
+
+  if(P.wood>0 && cur.body){
+    var b=ctx.createBiquadFilter();
+    b.type="bandpass"; b.frequency.value=cur.body*P.pitch*jit; b.Q.value=3;
+    var bg=ctx.createGain();
+    bg.gain.setValueAtTime(amp*P.wood,at);
+    bg.gain.exponentialRampToValueAtTime(.0001,at+.05*P.ring);
+    env.connect(b); b.connect(bg); bg.connect(lp);
+  }
+  src.start(at); src.stop(at+1.2);
+}
+
+/* ---- 画面 ---- */
+var cands=document.getElementById("cands");
+CANDS.forEach(function(c){
+  var b=document.createElement("button");
+  b.type="button"; b.className="cand"; b.setAttribute("aria-pressed", c===cur);
+  b.innerHTML='<span class="play">▶</span><span><b>'+c.name+'</b><span>'+c.desc+'</span></span>';
+  b.addEventListener("click",function(){
+    cur=c; P=Object.assign({},c.p);
+    [].forEach.call(cands.children,function(x){ x.setAttribute("aria-pressed","false"); });
+    b.setAttribute("aria-pressed","true");
+    build(); play(); dump();
+  });
+  cands.appendChild(b);
+});
+
+var mix=document.getElementById("mix");
+function build(){
+  mix.innerHTML="";
+  LABELS.forEach(function(L){
+    var key=L[0];
+    if(key==="wood" && !cur.body) return;
+    var row=document.createElement("div"); row.className="row";
+    var id="r-"+key;
+    row.innerHTML='<label for="'+id+'"><span class="nm">'+L[1]+'</span><span class="vl" id="v-'+key+'"></span></label>'+
+                  '<span class="hint">'+L[2]+'</span>'+
+                  '<input type="range" id="'+id+'" min="'+L[3]+'" max="'+L[4]+'" step="'+L[5]+'">';
+    mix.appendChild(row);
+    var inp=row.querySelector("input"), vl=row.querySelector(".vl");
+    inp.value=P[key];
+    vl.textContent=fmt(key,P[key]);
+    inp.addEventListener("input",function(){
+      P[key]=parseFloat(inp.value);
+      vl.textContent=fmt(key,P[key]); dump();
+    });
+    inp.addEventListener("change",function(){ play(); });
+  });
+}
+function fmt(k,v){
+  if(k==="bright") return Math.round(v)+" Hz";
+  if(k==="spread") return Math.round(v)+" ms";
+  if(k==="hits")   return Math.round(v)+" 回";
+  if(k==="vol")    return Math.round(v*100)+" %";
+  return (Math.round(v*100)/100).toString();
+}
+function dump(){
+  var o={候補:cur.name, id:cur.id};
+  LABELS.forEach(function(L){ if(L[0]==="wood" && !cur.body) return; o[L[1]]=fmt(L[0],P[L[0]]); });
+  document.getElementById("dump").textContent=JSON.stringify(o,null,1)
+    .replace(/[{}"]/g,"").split("\n").filter(function(x){return x.trim();}).join("\n");
+}
+document.getElementById("again").addEventListener("click",play);
+document.getElementById("reset").addEventListener("click",function(){
+  P=Object.assign({},cur.p); build(); play(); dump();
+});
+build(); dump();
+})();
+</script>
+</body>
+</html>

@@ -178,6 +178,38 @@ footer{margin:44px 0 0;padding-top:18px;border-top:1px solid var(--line);font-si
 footer a{color:var(--sub)}
 footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
 
+/* 目次：したいことから選ぶ */
+.cats{display:grid;gap:8px}
+.cat{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+.cat > summary{padding:13px 15px;font-family:var(--mincho);font-size:16.5px;font-weight:600;letter-spacing:.06em}
+.cat > summary .n{font-family:var(--sans);font-size:11px;font-weight:500;color:var(--sub);margin-left:auto;letter-spacing:.04em;padding-right:10px}
+.cat .inner{padding:0 15px 12px}
+.idx{list-style:none;margin:0;padding:0}
+.idx li{padding:8px 0;border-top:1px dashed var(--line)}
+.idx li:first-child{border-top:0;padding-top:2px}
+.idx a{font-size:14.5px;font-weight:700;border-bottom:0;color:var(--ink)}
+.idx a::before{content:"→";color:var(--accent2);font-weight:400;margin-right:.45em}
+.idx li > span{display:block;font-size:12px;color:var(--sub);line-height:1.6;margin-top:2px;padding-left:1.35em}
+
+/* いま見ているところ */
+.nav a.here{background:var(--accent);color:var(--oncolor);border-color:var(--accent)}
+
+/* 右下の操作 */
+.fab{position:fixed;right:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:50;
+  display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.fab[hidden],.fab button[hidden]{display:none}
+.fab a,.fab button{font-family:var(--sans);font-size:11.5px;font-weight:700;line-height:1;
+  padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);
+  color:var(--ink);box-shadow:0 2px 12px rgba(35,32,25,.18);cursor:pointer;-webkit-appearance:none;
+  white-space:nowrap;text-decoration:none}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .fab a,
+  :root:not([data-theme="light"]) .fab button{box-shadow:0 2px 12px rgba(0,0,0,.5)}}
+
+/* 飛んだ先を一瞬光らせる */
+.landed{animation:landed 1.3s ease-out}
+@keyframes landed{0%,12%{box-shadow:0 0 0 3px var(--gold)}100%{box-shadow:0 0 0 0 rgba(0,0,0,0)}}
+@media (prefers-reduced-motion:reduce){.landed{animation:none}}
+
 @media (min-width:900px){
   body{font-size:16.5px}
   .wrap{max-width:1140px;padding-left:32px;padding-right:32px}
@@ -196,6 +228,8 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
   .area > figure{position:sticky;top:76px}
   .area > .spots{min-width:0}
   /* 全体図は模式図。引き伸ばすと粗が目立つので幅を止める */
+  .cats{grid-template-columns:1fr 1fr;align-items:start}
+  .fab{right:24px;bottom:24px}
   .overview{max-width:700px;margin:0 auto}
   .overview svg{max-width:560px;margin-left:auto;margin-right:auto}
   .twocol{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
@@ -209,21 +243,25 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
 
 <div class="navbar">
 <nav class="nav" aria-label="目次">
+  <a href="#kono-hi">この日</a>
   <a href="#zentai">全体図</a>
+  <a href="#sitemap">目次</a>
   <a href="#nimotsu">荷物</a>
   <a href="#jokamachi">城下町</a>
   <a href="#nawate">なわて</a>
   <a href="#nakamachi">中町</a>
-  <a href="#norimono">乗り物・体験</a>
+  <a href="#norimono">乗り物</a>
+  <a href="#idou">宿へ</a>
   <a href="#onsen">美ヶ原温泉</a>
-  <a href="#kuruma">車の人へ</a>
+  <a href="#kuruma">車</a>
+  <a href="#asa">翌朝</a>
 </nav>
-<button class="sndbtn" type="button" id="snd" aria-pressed="true" aria-label="音を消す" title="鈴の音">
+<button class="sndbtn" type="button" id="snd" aria-pressed="true" aria-label="音を消す" title="押すと鳴ります">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="on">
-    <path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 20a2.2 2.2 0 0 0 4 0"/>
+    <path d="M6 9.5a6 6 0 0 1 12 0c0 4.6 1.9 5.6 1.9 5.6H4.1S6 14.1 6 9.5"/><path d="M10 19a2.2 2.2 0 0 0 4 0"/>
   </svg>
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="off">
-    <path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 20a2.2 2.2 0 0 0 4 0"/><path d="M3 3l18 18"/>
+    <path d="M6 9.5a6 6 0 0 1 12 0c0 4.6 1.9 5.6 1.9 5.6H4.1S6 14.1 6 9.5"/><path d="M10 19a2.2 2.2 0 0 0 4 0"/><path d="M3 3l18 18"/>
   </svg>
 </button>
 </div>
@@ -360,6 +398,98 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
   </div>
 </section>
 
+<!-- ============ 目次（したいことから選ぶ） ============ -->
+<section id="sitemap">
+  <h2>目次<span class="cnt">したいことから選ぶ</span></h2>
+  <p class="lead" style="margin:0 0 14px;text-align:left">
+  行きたいところをここから選べます。どこにいても、右下の<b>「目次」</b>でここに戻れます。
+  </p>
+  <div class="cats">
+    <details class="cat" open>
+      <summary>おすすめ<span class="n">迷ったらこの4つ</span></summary>
+      <div class="inner">
+        <ul class="idx">
+          <li><a href="#p4">なわて通り</a><span>川沿いの歩行者天国。カエルの石像</span></li>
+          <li><a href="#nakamachi">中町通り</a><span>白と黒のなまこ壁。歩くだけで成立する</span></li>
+          <li><a href="#p11">珈琲まるも</a><span>松本民芸家具の店内と、かためのプリン</span></li>
+          <li><a href="#p18">松本民芸館</a><span>バス停の目の前。宿まで徒歩7分</span></li>
+        </ul>
+      </div>
+    </details>
+    <details class="cat">
+      <summary>歩く<span class="n">4か所</span></summary>
+      <div class="inner">
+        <ul class="idx">
+          <li><a href="#p4">なわて通り</a><span>24時間 歩行者天国・全長250m</span></li>
+          <li><a href="#nakamachi">中町通り</a><span>全長400m。端から端まで6分</span></li>
+          <li><a href="#p3">千歳橋</a><span>武家地と町人地の境目だった橋</span></li>
+          <li><a href="#p17">源智の井戸</a><span>毎分200L。通りから南へ200m</span></li>
+        </ul>
+      </div>
+    </details>
+    <details class="cat">
+      <summary>見る<span class="n">7か所</span></summary>
+      <div class="inner">
+        <ul class="idx">
+          <li><a href="#p9">松本城</a><span>お堀端は無料。天守は60分待ちも</span></li>
+          <li><a href="#p10">国宝 旧開智学校校舎</a><span>明治9年の擬洋風。700円</span></li>
+          <li><a href="#p8">松本市立博物館</a><span>1階は無料。雨宿りにも</span></li>
+          <li><a href="#p13">中町・蔵シック館</a><span>無料。造り酒屋の移築</span></li>
+          <li><a href="#p14">はかり資料館</a><span>無料。約1,300点</span></li>
+          <li><a href="#p18">松本民芸館</a><span>大人500円・小中無料</span></li>
+          <li><a href="#p6">四柱神社</a><span>境内自由。願いごとむすびの神</span></li>
+        </ul>
+      </div>
+    </details>
+    <details class="cat">
+      <summary>食べる<span class="n">6か所</span></summary>
+      <div class="inner">
+        <ul class="idx">
+          <li><a href="#p12">女鳥羽そば</a><span>昼食に。小上がりと椅子席</span></li>
+          <li><a href="#p11">珈琲まるも</a><span>深煎りと自家製プリン300円</span></li>
+          <li><a href="#p5">たい焼き ふるさと</a><span>1946年創業の一本焼き</span></li>
+          <li><a href="#p7">翁堂 本店</a><span>タヌキケーキ</span></li>
+          <li><a href="#p2">開運堂 本店</a><span>手土産。真味糖・開運老松</span></li>
+          <li><a href="#p21">ワイナリーのガレット</a><span>宿の隣。昼で閉まる</span></li>
+        </ul>
+      </div>
+    </details>
+    <details class="cat">
+      <summary>遊ぶ・体験<span class="n">5つ</span></summary>
+      <div class="inner">
+        <ul class="idx">
+          <li><a href="#r-jinrikisha">人力車</a><span>松本城黒門前。要予約</span></li>
+          <li><a href="#r-sneaker">タウンスニーカー</a><span>周遊バス。1日券500円</span></li>
+          <li><a href="#r-cycle">シェアサイクル</a><span>電動あり。アプリ登録が要る</span></li>
+          <li><a href="#r-omotenashi">松本城おもてなし隊</a><span>甲冑と忍者。一緒に写真</span></li>
+          <li><a href="#r-sobauchi">そば打ち体験</a><span>白糸の湯2階。1週間前までに予約</span></li>
+        </ul>
+      </div>
+    </details>
+    <details class="cat">
+      <summary>浸る<span class="n">2か所</span></summary>
+      <div class="inner">
+        <ul class="idx">
+          <li><a href="#p19">追分屋旅館</a><span>アルカリ性単純温泉。露天3・内湯2</span></li>
+          <li><a href="#p20">白糸の湯</a><span>宿から徒歩2分。400円</span></li>
+        </ul>
+      </div>
+    </details>
+    <details class="cat">
+      <summary>調べる<span class="n">実務の話</span></summary>
+      <div class="inner">
+        <ul class="idx">
+          <li><a href="#nimotsu">荷物をどうするか</a><span>預けると駅へ戻ることになる</span></li>
+          <li><a href="#idou">宿へ移動する</a><span>バス・タクシー・乗り場</span></li>
+          <li><a href="#kuruma">車の人へ</a><span>駐車場を場所ごとに</span></li>
+          <li><a href="#asa">翌朝と持ちもの</a><span>寒さ・雨・特産</span></li>
+          <li><a href="#kono-hi">この日だけの前提</a><span>日の入り16:41・紅葉・休みの日</span></li>
+        </ul>
+      </div>
+    </details>
+  </div>
+</section>
+
 <!-- ============ 荷物 ============ -->
 <section id="nimotsu">
   <h2>まず、荷物をどうするか</h2>
@@ -368,19 +498,19 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
   </div>
 
   <div class="twocol">
-  <div class="card">
+  <div class="card" id="bag-a">
     <h4><span class="num opt">A</span>宿へ先に送ってしまう <span class="ruby">いちばん身軽</span></h4>
     <p class="body">大きい荷物は宅配便で追分屋旅館へ前日までに送っておく。手ぶらで歩けて、戻る必要もありません。送る前に宿へ一報を（0263-33-3378／受付 8:15〜20:30）。</p>
     <dl class="dl"><div><dt>歩き方</dt><dd>駅 → 城下町 → <b>中町からそのままバス</b>で宿</dd></div></dl>
   </div>
 
-  <div class="card">
+  <div class="card" id="bag-b">
     <h4><span class="num opt">B</span>持ったまま、ゆっくり歩く</h4>
     <p class="body">小さめの荷物ならこれが素直です。市街地はほぼ平坦（標高差3m）で、歩く距離も1.5km程度。重ければ、中町までタクシーで飛ばして、そこから歩き出すのもあり。</p>
     <dl class="dl"><div><dt>歩き方</dt><dd>駅 → 城下町 → <b>中町からそのままバス</b>で宿</dd></div></dl>
   </div>
 
-  <div class="card">
+  <div class="card" id="bag-c">
     <h4><span class="num opt">C</span>駅のロッカーに預ける <span class="ruby">戻る前提</span></h4>
     <p class="body">身軽に歩けますが、<b>最後に松本駅まで戻ります</b>。中町から駅までは徒歩10〜15分。戻ってから、駅前のバスターミナル3番のりばで宿行きに乗るか、タクシー。<br>
     ロッカーは駅ビルMIDORI松本と、バスターミナル（アルピコプラザ）。小400円〜特大1,000円。</p>
@@ -390,7 +520,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
     </dl>
   </div>
 
-  <div class="card soft">
+  <div class="card soft" id="bag-d">
     <h4><span class="num opt">D</span>車で来る場合</h4>
     <p class="body">荷物は車に置いたままでいいので、いちばん気楽です。城下町では一か所の駐車場に入れて歩き、そのまま宿へ。停める場所は<a href="#kuruma">「車の人へ」</a>にポイントごとにまとめました。</p>
   </div>
@@ -563,7 +693,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
   </figure>
 
   <div class="spots">
-  <div class="card">
+  <div class="card" id="p1">
     <h4><span class="num">1</span>松本駅 お城口</h4>
     <p class="body">東口が「お城口」。城下町へは、駅前通りを東へ→本町通りを北へ、で10分ほどです。<br>
     ここが<b>乗り物のハブ</b>でもあります。美ヶ原温泉行きバスは<b>3番のりば</b>、周遊バスのタウンスニーカーは北コースが21番・東コースが22番。タクシー乗り場もお城口の正面。シェアサイクルの置き場もあります。</p>
@@ -575,7 +705,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
 
   <p class="walk">駅前通りを東へ → 本町通りを北へ</p>
 
-  <div class="card">
+  <div class="card" id="p2">
     <h4><span class="num">2</span>開運堂 本店 <span class="ruby">かいうんどう</span></h4>
     <p class="body">明治17年創業の和菓子屋。くるみと蜂蜜の「真味糖（しんみとう）」と、ニッキの生地で餡を巻いた蒸し菓子「開運老松」が看板です。<b>宿への手土産をここで済ませておくと、あとが身軽</b>。店内にカフェも併設。</p>
     <dl class="dl">
@@ -588,7 +718,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
 
   <p class="walk">さらに北へ 約250m・4分</p>
 
-  <div class="card">
+  <div class="card" id="p3">
     <h4><span class="num">3</span>千歳橋 <span class="ruby">せんさいばし</span></h4>
     <p class="body">女鳥羽川を渡る橋。もとは木の「大手橋」で、たびたび流されました。明治9年、取り壊した大手門の門台の石を使って石造アーチに架け替え、東京の万世橋にならって改名。<b>石だから流されない、千年でも万年でも</b>、という名前です。いまの橋は昭和39年の架け替えで、親柱の照明にその名残があります。<br>
     江戸時代はこの川が境目で、<b>北が武家地、南が町人地</b>。渡った先で空気が変わるのはそのせいです。</p>
@@ -603,17 +733,17 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
   <details>
     <summary>北へ足を伸ばすなら（博物館・松本城・旧開智学校）</summary>
     <div class="inner">
-      <p><b>8. 松本市立博物館</b>（四柱神社から徒歩2分）<br>
+      <p id="p8"><b>8. 松本市立博物館</b>（四柱神社から徒歩2分）<br>
       2023年10月に松本城公園内から移転した新しい博物館。<b>1階は無料</b>で、休憩がてら入れます。有料は3階の常設展だけ。<br>
       9:00〜17:00（1階は21:00まで／受付16:30）／大人500円・<b>高校生以下無料</b>／火曜休（→11/14は開館）／大手3-2-21</p>
 
-      <p><b>9. 松本城</b>（四柱神社から徒歩7分）<br>
+      <p id="p9"><b>9. 松本城</b>（四柱神社から徒歩7分）<br>
       <b>お堀のまわりを歩いて外から眺めるだけなら無料</b>。紅葉と黒い天守の組み合わせはこの時期がいちばんきれいです。<br>
       ただし<b>天守に登るのは今回の日程だと分が悪い</b>。11月中旬の土曜は紅葉のピークと重なり、混む日は天守入口まで60分待ちが出ます。<br>
       8:30〜17:00（最終入場16:30）／大人1,200円（電子）・1,300円（当日窓口）・小中400円<br>
       本丸庭園（有料エリア）には<b>国宝松本城おもてなし隊</b>が9:00〜16:00ごろ出没します。甲冑姿の武士や忍者で、一緒に写真を撮ってくれます。</p>
 
-      <p><b>10. 国宝 旧開智学校校舎</b>（松本城から徒歩7分）<br>
+      <p id="p10"><b>10. 国宝 旧開智学校校舎</b>（松本城から徒歩7分）<br>
       明治9年、地元の大工棟梁・立石清重が設計施工した<button class="term" type="button" data-tip="明治のはじめ、日本の大工が見よう見まねで洋風を取り入れた建築。窓や塔は洋館ふうなのに、骨組みは日本の伝統工法のまま——という、時代の継ぎ目そのものみたいな建物です。">擬洋風建築</button>。2019年、近代の学校建築として初めて<b>国宝</b>になりました。耐震工事で長く閉まっていましたが2024年11月に再開し、<b>2026年4月、創建150年に合わせて12部屋の展示をリニューアル</b>したばかり。<br>
       9:00〜17:00（入館16:30）／一般700円（窓口）・600円（電子）・小中300円／3〜11月は第3火曜休（→11/14は開館）／駐車20台・無料<br>
       ※<b>松本城との共通券（電子）が一般1,600円</b>。両方入るなら200円お得です</p>
@@ -726,7 +856,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
   </figure>
 
   <div class="spots">
-  <div class="card">
+  <div class="card" id="p4">
     <h4><span class="num">4</span>なわて通り・カエル大明神</h4>
     <p class="body">女鳥羽川の土手沿いに、小さな店が長屋のように並ぶ通り。「縄のように長い土手」が名前の由来です。2016年から24時間歩行者天国なので、車を気にせず歩けます。<br>
     あちこちにカエルの石像がいるのは、昔この川にいた<button class="term" type="button" data-tip="きれいな渓流にしか棲まないカエル。鳴き声が鹿に似ているので「河鹿」と書きます。その声が聞こえなくなったことが、この通りの願かけの始まりでした。">カジカガエル</button>がまた棲めるように、と昭和46年に「カエル大明神」を祀ったのが始まり。</p>
@@ -737,7 +867,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
     <div class="tools"><a class="sv" href="https://www.google.com/maps/@?api=1&amp;map_action=pano&amp;viewpoint=36.23485,137.97060">ストリートビューで見る</a></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="p5">
     <h4><span class="num">5</span>たい焼き ふるさと</h4>
     <p class="body">1946年創業。<button class="term" type="button" data-tip="たい焼きを一匹ずつ一丁の型で焼く方法。まとめて焼く「養殖もの」に対して、こちらは「天然もの」と呼ばれます。">一本焼き</button>の店です。あんこは北海道産小豆と国産砂糖3種。歩きながら一つ、がちょうどいい規模感。</p>
     <dl class="dl">
@@ -747,7 +877,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
     <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=%E3%81%9F%E3%81%84%E7%84%BC%E3%81%8D%20%E3%81%B5%E3%82%8B%E3%81%95%E3%81%A8%20%E6%9D%BE%E6%9C%AC%E5%B8%82%E5%A4%A7%E6%89%8B4-1">地図</a><a href="tel:0263395552">0263-39-5552</a></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="p6">
     <h4><span class="num">6</span>四柱神社 <span class="ruby">よはしらじんじゃ</span></h4>
     <p class="body">名前のとおり、天之御中主神・高皇産霊神・神皇産霊神・天照大神の<b>四柱</b>をまとめて祀っています。全部そろっているので「願いごとむすびの神」。明治12年に今の場所へ。境内が開けていて、腰を下ろすのにちょうどいいです。</p>
     <dl class="dl">
@@ -757,7 +887,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
     <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=%E5%9B%9B%E6%9F%B1%E7%A5%9E%E7%A4%BE%20%E6%9D%BE%E6%9C%AC%E5%B8%82">地図</a></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="p7">
     <h4><span class="num opt">7</span>翁堂 本店 <span class="ruby">おきなどう</span></h4>
     <p class="body">なわて通りの東の先。昭和の喫茶がそのまま残っている和洋菓子店で、名物は<b>タヌキケーキ</b>——ロールケーキをバタークリームとチョコで包んだもので、誕生は昭和32年ごろ。顔つきがいちいち良い。店内でパフェも食べられます。</p>
     <dl class="dl">
@@ -895,7 +1025,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
     <p><a class="sv" href="https://www.google.com/maps/@?api=1&amp;map_action=pano&amp;viewpoint=36.23375,137.97170">通りの様子をストリートビューで見る</a></p>
   </div>
 
-  <div class="card">
+  <div class="card" id="p11">
     <h4><span class="num">11</span>珈琲 まるも</h4>
     <p class="body">昭和31年（1956）から。<button class="term" type="button" data-tip="安土桃山時代に始まる松本の家具。ミズメザクラという硬くて粘りのある木を使います。昭和51年、家具業界では全国で初めて伝統的工芸品に指定されました。">松本民芸家具</button>の創始者・池田三四郎が設計した店で、開店のとき柳宗悦が見に来て褒めたという逸話つき。椅子もテーブルも松本民芸家具です。深煎りの珈琲と、かための自家製プリン（300円）。</p>
     <dl class="dl">
@@ -905,7 +1035,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
     <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=%E7%8F%88%E7%90%B2%E3%81%BE%E3%82%8B%E3%82%82%20%E6%9D%BE%E6%9C%AC%E5%B8%82%E4%B8%AD%E5%A4%AE3-3-10">地図</a><a href="tel:0263320115">0263-32-0115</a></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="p12">
     <h4><span class="num">12</span>女鳥羽そば <span class="ruby">めとばそば・昼食</span></h4>
     <p class="body">中町通りの手打ちそば屋。そばの実を<b>自店の石臼で挽いて</b>います。名物は「みかさね」という三重そば。<br>
     ここも<b>店内が松本民芸家具</b>で、まるも・松本民芸館と話がつながります。小上がりと椅子席の両方があるので、足腰が気になる人がいても大丈夫。</p>
@@ -917,7 +1047,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
     <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=%E5%A5%B3%E9%B3%A5%E7%BE%BD%E3%81%9D%E3%81%B0%20%E6%9D%BE%E6%9C%AC%E5%B8%82%E4%B8%AD%E5%A4%AE3-4-8">地図</a><a href="tel:0263358502">0263-35-8502</a></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="p13">
     <h4><span class="num">13</span>中町・蔵シック館</h4>
     <p class="body">隣の宮村町にあった造り酒屋「大禮酒造」の母屋（明治21年）・土蔵・離れ（大正12年）を移築して、平成8年10月に開館した施設。<b>母屋と離れは無料で入れます</b>。天井を抜いた<button class="term" type="button" data-tip="屋根を支える骨組みのこと。ふつうは天井裏に隠れていますが、天井を張らずに見せると、一本ものの太い梁がどう組まれているかが丸見えになります。">小屋組み</button>の梁が見どころ。<br>
     庭に深さ25m・年じゅう15℃の井戸があり、手漕ぎポンプを自由に使えます。</p>
@@ -929,7 +1059,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
     <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=%E4%B8%AD%E7%94%BA%E3%83%BB%E8%94%B5%E3%82%B7%E3%83%83%E3%82%AF%E9%A4%A8%20%E6%9D%BE%E6%9C%AC%E5%B8%82">地図</a><a href="tel:0263363053">0263-36-3053</a></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="p14">
     <h4><span class="num">14</span>松本市はかり資料館</h4>
     <p class="body">「測る・計る・量る」道具ばかり約1,300点。棹秤から分銅まで並んでいて、想像よりずっと面白い。<b>令和7年4月から観覧料が無料</b>になりました。</p>
     <dl class="dl">
@@ -943,17 +1073,17 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
   <details>
     <summary>15・16　うつわと工芸を見るなら</summary>
     <div class="inner">
-      <p><b>15. ちきりや工芸店</b>／中央3-4-18<br>
+      <p id="p15"><b>15. ちきりや工芸店</b>／中央3-4-18<br>
       中町の民芸店の代表格。全国の焼きものと、松本の手仕事が並びます。<br>
       10:00〜17:30／火・水曜休（→11/14は営業）／0263-33-2522</p>
-      <p><b>16. 陶片木</b>（とうへんぼく）／中央3-5-10<br>
+      <p id="p16"><b>16. 陶片木</b>（とうへんぼく）／中央3-5-10<br>
       1975年からの「うつわ屋」。食器専門で、普段使いの一枚を探すならこちら。<br>
       火・水曜休（→11/14は営業）／0263-32-0646</p>
       <p>ほかに松本の手仕事としては、<b>松本手まり</b>、押絵の技法でつくる立体的なひな人形の<b>松本押絵雛</b>、和紙の<b>松本姉様人形</b>、<b>松本ほうき</b>（野溝ほうき）などがあります。中町・なわての店先で見かけたら、それです。</p>
     </div>
   </details>
 
-  <div class="card">
+  <div class="card" id="p17">
     <h4><span class="num opt">17</span>源智の井戸 <span class="ruby">げんちのいど・寄り道200m</span></h4>
     <p class="body">中町通りから南へ2〜3分。城下町ができる前から飲み水に使われていた井戸で、<b>いまも毎分およそ200リットル</b>湧いています。松本市の特別史跡。明治13年に明治天皇が松本へ来たときは、ここの水が<button class="term" type="button" data-tip="天皇の食事に使うための水のこと。わざわざこの井戸から運ばせた、という記録が残っています。">御膳水</button>に使われました。<br>
     松本の町は扇状地の末端にあたり、あちこちで地下水が湧きます。まとめて「<button class="term" type="button" data-tip="松本城下のあちこちに点在する湧き水の総称。平成20年に環境省の「平成の名水百選」に選ばれました。歩いていると、路地の隅に突然ふつうに湧いていたりします。">まつもと城下町湧水群</button>」。</p>
@@ -971,7 +1101,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
 <section id="norimono">
   <h2>乗り物と体験<span class="cnt">歩くのに飽きたら</span></h2>
 
-  <div class="card">
+  <div class="card" id="r-jinrikisha">
     <h4><span class="num ride">車</span>人力車 <span class="ruby">松本人力車の会</span></h4>
     <p class="body"><b>松本城の黒門前から乗れます。</b>2012年に7年ぶりに復活した人力車で、車夫のガイドを聞きながら回ります。2名まで一緒に乗車可。<br>
     <b>宿までは行けません</b>（3.5km先の山あいなので）。ただし<b>下町周遊コースなら、中町通り・なわて通りを人力車で回れます</b>。歩くのがしんどい人がいるなら、これはかなり効きます。</p>
@@ -985,7 +1115,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
   </div>
 
   <div class="twocol">
-  <div class="card">
+  <div class="card" id="r-sneaker">
     <h4><span class="num ride">バ</span>タウンスニーカー <span class="ruby">周遊バス</span></h4>
     <p class="body">松本市内をぐるぐる回る小型バス。<b>美ヶ原温泉へは行きません</b>が、城下町の中で足を休めたいときに便利です。<br>
     <b>北コース</b>（駅21番のりば）＝松本城・旧開智学校方面／<b>東コース</b>（駅22番のりば）＝市立博物館・蔵のまち中町・あがたの森方面。</p>
@@ -995,7 +1125,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
     </dl>
   </div>
 
-  <div class="card">
+  <div class="card" id="r-cycle">
     <h4><span class="num ride">自</span>シェアサイクル <span class="ruby">HELLO CYCLING</span></h4>
     <p class="body">松本市内に41か所のステーション、175台。<b>電動アシスト</b>もあり、松本駅お城口広場に e-BIKE が置かれています。<br>
     アプリ（HELLO CYCLING）の登録が要るので、その場の思いつきだと少し手間。<b>使うなら前日までに入れておく</b>と楽です。</p>
@@ -1005,12 +1135,12 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
     </dl>
   </div>
 
-  <div class="card">
+  <div class="card" id="r-omotenashi">
     <h4><span class="num ride">武</span>国宝松本城おもてなし隊</h4>
     <p class="body">松本城の<b>本丸庭園（有料エリア）</b>に、甲冑姿の武士や忍者が9:00〜16:00ごろ出没します。誰が出てくるかはその日しだい。一緒に写真を撮ってくれます。天候により変更あり。</p>
   </div>
 
-  <div class="card">
+  <div class="card" id="r-sobauchi">
     <h4><span class="num ride">蕎</span>そば打ち体験 <span class="ruby">白糸の湯 2階</span></h4>
     <p class="body">宿のすぐ隣、日帰り温泉「白糸の湯」の2階が研修室になっていて、そば打ち体験ができます。<b>1週間前までの予約が必要</b>（前日・当日は不可）。料金は要問い合わせ。<br>
     親族で集まるなら、翌朝の余興としては悪くない選択肢です。</p>
@@ -1171,7 +1301,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
   </figure>
 
   <div class="spots">
-  <div class="card">
+  <div class="card" id="p18">
     <h4><span class="num">18</span>松本民芸館</h4>
     <p class="body">バス停「松本民芸館」の目の前で、<b>宿までも徒歩7分</b>。バスを降りてここに寄り、そのまま歩いて宿へ、がいちばん無駄がありません。<br>
     丸山太郎という松本の商人が、いいと思った民芸品を集めて昭和37年に自力で建てた館です（昭和58年に市へ寄贈）。所蔵は約6,800点、うち700点あまりを常時展示。建物じたいが<b>中町と同じなまこ壁の蔵造り</b>なので、午前中に見た街並みとつながります。庭に大きなケヤキとブナ。</p>
@@ -1186,7 +1316,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
 
   <p class="walk">ゆるい上りを 約400m・7分</p>
 
-  <div class="card">
+  <div class="card" id="p19">
     <h4><span class="num">19</span>美ヶ原温泉 追分屋旅館 <span class="ruby">ゴール</span></h4>
     <p class="body">美ヶ原温泉は1300年あまりの歴史があり、古くは「<button class="term" type="button" data-tip="美ヶ原温泉の古い呼び名。のちに「白糸の湯」「山辺温泉」「湯の原温泉」とも呼ばれてきました。いまの外湯の名前「白糸の湯」は、その時代の名残です。">束間の湯</button>」と呼ばれていました。<br>
     お湯は<button class="term" type="button" data-tip="溶け込んでいる成分が、温泉法の規定量に満たないお湯のこと。成分が薄いぶん肌あたりが軽く、長く入っていられます。">アルカリ性単純温泉</button>。露天が3つ（岩・檜・太古の虹）、内湯が2つ（黒御影石・赤御影お座敷）、マイクロバブルの「泡エステの湯」、それに足湯テラス。貸切風呂「辻の花」もあります。</p>
@@ -1200,7 +1330,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
     <div class="tools"><a href="tel:0263333378">0263-33-3378</a><a href="https://www.google.com/maps/search/?api=1&amp;query=%E8%BF%BD%E5%88%86%E5%B1%8B%E6%97%85%E9%A4%A8%20%E6%9D%BE%E6%9C%AC%E5%B8%82%E9%87%8C%E5%B1%B1%E8%BE%BA1145">地図</a><a class="sv" href="https://www.google.com/maps/@?api=1&amp;map_action=pano&amp;viewpoint=36.24556,137.99796">ストビュー</a><a href="https://www.oiwakeya.com/">公式</a></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="p20">
     <h4><span class="num">20</span>ふれあい山辺館「白糸の湯」 <span class="ruby">宿から徒歩2分</span></h4>
     <p class="body">美ヶ原温泉で唯一の日帰り温泉。白壁の蔵づくりの建物で、露天もあります。2階はそば打ち体験の研修室。<br>
     宿の風呂で足りているなら無理に行く必要はありませんが、<b>朝、散歩がてら</b>にはちょうどいい距離です。</p>
@@ -1215,7 +1345,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
   <details>
     <summary>宿に併設のワイナリー</summary>
     <div class="inner">
-      <p><b>ドメーヌ・ド・ユノハラ／Cave a vin de Yunohara</b>（ワイナリー2階）<br>
+      <p id="p21"><b>ドメーヌ・ド・ユノハラ／Cave a vin de Yunohara</b>（ワイナリー2階）<br>
       追分屋が2023年に始めた自社ワイナリー。長野県産そば粉のガレットと、自社のワイン・シードル。<br>
       ワインショップ 10:00〜14:30／カフェ 〜14:00 L.O.／レストラン 11:30〜13:30 L.O.<br>
       <b>昼で閉まるので、行くなら翌日の午前</b>。定休日は要確認です。</p>
@@ -1328,66 +1458,76 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
 
 </div>
 
+<div class="fab" id="fab" hidden>
+  <button type="button" id="fabBack" hidden>&#8592; 戻る</button>
+  <a href="#zentai">全体図</a>
+  <a href="#sitemap">目次</a>
+</div>
 <script>
 (function(){
   "use strict";
   var KEY = "matsumoto-walk-sound";
   var reduced = false;
   try { reduced = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch(e){}
-
   var soundOn = true;
   try { soundOn = localStorage.getItem(KEY) !== "off"; } catch(e){}
 
-  var btn = document.getElementById("snd");
+  var btn  = document.getElementById("snd");
+  var fab  = document.getElementById("fab");
+  var back = document.getElementById("fabBack");
+  var navEl = document.querySelector(".nav");
+  var bar  = document.querySelector(".navbar");
+
   function paint(){
     if(!btn) return;
     btn.setAttribute("aria-pressed", soundOn ? "true" : "false");
-    btn.setAttribute("aria-label", soundOn ? "鈴の音を消す" : "鈴の音を出す");
+    btn.setAttribute("aria-label", soundOn ? "音を消す" : "音を出す");
   }
   paint();
-  if(btn){
-    btn.addEventListener("click", function(){
-      soundOn = !soundOn;
-      try { localStorage.setItem(KEY, soundOn ? "on" : "off"); } catch(e){}
-      paint();
-      if(soundOn) ring();
-    });
-  }
+  if(btn) btn.addEventListener("click", function(){
+    soundOn = !soundOn;
+    try { localStorage.setItem(KEY, soundOn ? "on" : "off"); } catch(e){}
+    paint();
+    if(soundOn) plink();
+  });
 
-  /* ---- 鈴。音源ファイルは使わず、その場で合成する ---- */
+  /* ---- りん。かすかに「リーン」と残る音
+         耳障りだった原因は3つ。周波数が高すぎた／倍音が多すぎた／立ち上がりが速すぎた。
+         全部下げる：基音を1オクターブ下げ、倍音を2本に絞り、14msかけて立ち上げる。
+         わずかにずらした2本の唸りが「リーン」の揺れになる ---- */
   var ctx = null;
-  function ring(){
+  function plink(){
     if(!soundOn) return;
     try{
       var AC = window.AudioContext || window.webkitAudioContext;
       if(!AC) return;
       if(!ctx) ctx = new AC();
       if(ctx.state === "suspended") ctx.resume();
-      var t0 = ctx.currentTime;
+      var t = ctx.currentTime;
+
+      var lp = ctx.createBiquadFilter();
+      lp.type = "lowpass"; lp.frequency.value = 2800; lp.Q.value = 0.3;
       var out = ctx.createGain();
-      out.gain.value = 0.16;
-      out.connect(ctx.destination);
-      /* 小さな鈴を3つ、わずかにずらして鳴らすと「シャラン」になる */
-      [0, 0.045, 0.092].forEach(function(delay, k){
-        var detune = 1 + (k - 1) * 0.021;
-        /* 整数倍でない倍音を重ねると金属質になる */
-        [[2349, 1.0, 1.15], [3520, 0.52, 0.95], [4699, 0.30, 0.78], [6272, 0.16, 0.6]]
-        .forEach(function(pt){
-          var t = t0 + delay;
-          var o = ctx.createOscillator(), g = ctx.createGain();
-          o.type = "sine";
-          o.frequency.value = pt[0] * detune;
-          g.gain.setValueAtTime(0, t);
-          g.gain.linearRampToValueAtTime(pt[1] * (1 - k * 0.18), t + 0.004);
-          g.gain.exponentialRampToValueAtTime(0.0001, t + pt[2]);
-          o.connect(g); g.connect(out);
-          o.start(t); o.stop(t + pt[2] + 0.05);
-        });
-      });
+      out.gain.value = 0.11;                 /* かすかに */
+      lp.connect(out); out.connect(ctx.destination);
+
+      function tone(freq, amp, dur, attack){
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = "sine";
+        o.frequency.value = freq;
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(amp, t + attack);   /* 緩く立ち上げる */
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        o.connect(g); g.connect(lp);
+        o.start(t); o.stop(t + dur + 0.05);
+      }
+      tone(1174,     0.55, 2.4, 0.014);      /* 基音 */
+      tone(1174*1.0016, 0.5, 2.4, 0.014);    /* わずかにずらす＝ゆっくり唸る */
+      tone(2349,     0.11, 1.5, 0.020);      /* 1オクターブ上を薄く */
     }catch(e){}
   }
 
-  /* ---- シャラッと払って、次のエリアへ ---- */
+  /* ---- 画面を払う ---- */
   function sweep(){
     if(reduced) return;
     var el = document.createElement("div");
@@ -1397,31 +1537,53 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
     setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 900);
   }
 
-  function jump(hash){
+  /* ---- 閉じている details の中へも飛べるようにする ---- */
+  function reveal(el){
+    var d = el.closest ? el.closest("details") : null;
+    while(d){
+      d.open = true;
+      var up = d.parentNode;
+      d = (up && up.closest) ? up.closest("details") : null;
+    }
+  }
+
+  /* ブラウザの自動スクロール復元を止める。
+     これを切らないと、戻ったときに復元が後から走って位置を上書きする */
+  try { if("scrollRestoration" in history) history.scrollRestoration = "manual"; } catch(e){}
+
+  var depth = 0;
+  function jump(hash, fromHistory){
     var target;
     try { target = document.querySelector(hash); } catch(e){ return false; }
     if(!target) return false;
-    var bar = document.querySelector(".navbar");
-    var gap = bar ? bar.getBoundingClientRect().height + 10 : 10;
+    reveal(target);                                   /* 開いてから位置を測る */
+    var gap = (bar ? bar.getBoundingClientRect().height : 0) + 12;
     var y = target.getBoundingClientRect().top + window.pageYOffset - gap;
-    var root = document.documentElement;
-    var keep = root.style.scrollBehavior;
+    var root = document.documentElement, keep = root.style.scrollBehavior;
     root.style.scrollBehavior = "auto";
     window.scrollTo(0, y < 0 ? 0 : y);
     root.style.scrollBehavior = keep;
-    try { history.pushState(null, "", hash); } catch(e){}
+    if(!fromHistory){
+      try { history.pushState(null, "", hash); depth++; } catch(e){}
+    }
+    if(!reduced){
+      target.classList.remove("landed");
+      void target.offsetWidth;
+      target.classList.add("landed");
+      setTimeout(function(){ target.classList.remove("landed"); }, 1400);
+    }
+    refresh();
     return true;
   }
 
   document.addEventListener("click", function(e){
     var a = e.target.closest ? e.target.closest("a") : null;
     if(!a) return;
-    var href = a.getAttribute("href");           /* SVGのaは a.href が文字列でない */
+    var href = a.getAttribute("href");      /* SVGのaは href が文字列ではない */
     if(!href || href.charAt(0) !== "#" || href.length < 2) return;
     if(!document.querySelector(href)) return;
-
     e.preventDefault();
-    ring();
+    plink();
     if(reduced){ jump(href); return; }
     sweep();
     document.body.classList.add("leaving");
@@ -1432,6 +1594,66 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
       setTimeout(function(){ document.body.classList.remove("arriving"); }, 360);
     }, 225);
   }, false);
+
+  if(back) back.addEventListener("click", function(){
+    plink();
+    try { history.back(); } catch(e){}
+  });
+
+  window.addEventListener("popstate", function(){
+    if(depth > 0) depth--;
+    var h = location.hash;
+    if(h && h.length > 1 && document.querySelector(h)) jump(h, true);
+    else { window.scrollTo(0, 0); refresh(); }
+  });
+
+  /* ---- いま見ているところを目次に映す ---- */
+  var secs = [].slice.call(document.querySelectorAll("section[id]"));
+  var chips = {};
+  [].forEach.call(document.querySelectorAll(".nav a[href^='#']"), function(a){
+    chips[a.getAttribute("href").slice(1)] = a;
+  });
+  var cur = null, ticking = false;
+
+  function centerChip(el){
+    if(!navEl || navEl.scrollWidth <= navEl.clientWidth + 2) return;
+    var to = el.offsetLeft - navEl.clientWidth / 2 + el.offsetWidth / 2;
+    if(to < 0) to = 0;
+    try { navEl.scrollTo({left: to, behavior: reduced ? "auto" : "smooth"}); }
+    catch(e){ navEl.scrollLeft = to; }
+  }
+
+  function refresh(){
+    ticking = false;
+    if(fab){
+      fab.hidden = window.pageYOffset < 260;
+      if(back) back.hidden = (depth === 0);
+    }
+    var line = (bar ? bar.getBoundingClientRect().height : 0) + 26;
+    var best = null;
+    for(var i = 0; i < secs.length; i++){
+      if(secs[i].getBoundingClientRect().top <= line) best = secs[i];
+    }
+    if(window.innerHeight + window.pageYOffset >= document.documentElement.scrollHeight - 4){
+      best = secs[secs.length - 1];
+    }
+    var id = best ? best.id : null;
+    if(id === cur) return;
+    if(cur && chips[cur]) chips[cur].classList.remove("here");
+    cur = id;
+    if(id && chips[id]){ chips[id].classList.add("here"); centerChip(chips[id]); }
+  }
+
+  window.addEventListener("scroll", function(){
+    if(!ticking){ ticking = true; requestAnimationFrame(refresh); }
+  }, {passive:true});
+  window.addEventListener("resize", function(){ requestAnimationFrame(refresh); }, {passive:true});
+  refresh();
+
+  /* URLに#付きで開かれた場合 */
+  if(location.hash && location.hash.length > 1){
+    setTimeout(function(){ jump(location.hash, true); }, 60);
+  }
 })();
 </script>
 </body>

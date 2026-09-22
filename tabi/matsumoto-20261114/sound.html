@@ -182,10 +182,10 @@ var CANDS=[
   modes:[[1600,26,.45,1],[2400,24,.38,.65],[3300,20,.30,.4],[4300,18,.22,.2]], body:520, sustain:true, trim:0.171},
 
  {id:"leaves", name:"落ち葉を踏む",
-  desc:"カサッと乾いた音。鳴らすたび高さと長さが少し変わります",
+  desc:"カサッと乾いた音。「乾き」を上げるほど、からからに振れます",
   kind:"crunch",
-  p:{vol:1,bright:11000,ring:.85,wood:0,hits:9,spread:75,pitch:1.15,dense:0,wobble:.55},
-  modes:null, body:0, trim:0.064,
+  p:{vol:.75,bright:13400,ring:.55,wood:0,hits:3,spread:105,pitch:1.62,dense:0,wobble:.95,dryness:.7},
+  modes:null, body:0, trim:0.0755,
   labels:{hits:["ざらつきの細かさ","粗い（豆をまいた感じ）↔ 細かい（葉が潰れる感じ）"],
           spread:["長さ","さっと ↔ じっくり（ミリ秒）"],
           pitch:["かさつき","しっとり ↔ かさかさ"]}},
@@ -219,7 +219,8 @@ var LABELS=[
  ["hits","打つ回数","1回 ↔ たくさん（玉が跳ねる数）",1,14,1],
  ["spread","打の間隔","詰める ↔ ばらける（ミリ秒）",15,200,5],
  ["pitch","高さ","低い ↔ 高い",.5,2.6,.02],
- ["wobble","ゆらぎ","毎回おなじ ↔ 鳴らすたび高さと長さが変わる",0,1,.05]
+ ["wobble","ゆらぎ","毎回おなじ ↔ 鳴らすたび高さと長さが変わる",0,1,.05],
+ ["dryness","乾き","しっとり ↔ からから（低い方を削り、高い方を持ち上げる）",0,1,.05]
 ];
 
 var cur=CANDS[0], P=Object.assign({},cur.p);
@@ -239,13 +240,28 @@ function play(){
     var wl = 1 + (Math.random()-.5)*0.60*w;      /* 長さ  ±30%まで */
     var pit = P.pitch*wp;
     var dur=Math.max(.05, P.spread/1000*2*P.ring*wl);
+    /* 乾き：低い方を削って、高い方を持ち上げるほど「からから」になる */
+    var dr = (P.dryness==null ? .5 : P.dryness);
     var src=ctx.createBufferSource();
-    src.buffer=crunchBuf(dur, Math.max(60,Math.round(P.hits*110)), .40, pit);
+    src.buffer=crunchBuf(dur, Math.max(40,Math.round(P.hits*110)), .40, pit*(1+dr*0.5));
     var hp=ctx.createBiquadFilter();
-    hp.type="highpass"; hp.frequency.value=1200*pit; hp.Q.value=.7;
+    hp.type="highpass"; hp.frequency.value=(950+1750*dr)*pit; hp.Q.value=.7;
+    var sh=ctx.createBiquadFilter();                     /* 高い方を持ち上げて傾ける */
+    sh.type="highshelf"; sh.frequency.value=3200*pit; sh.gain.value=-3+13*dr;
     var pk2=ctx.createBiquadFilter();
-    pk2.type="peaking"; pk2.frequency.value=4600*pit; pk2.Q.value=1.0; pk2.gain.value=7;
-    src.connect(hp); hp.connect(pk2); pk2.connect(lp);
+    pk2.type="peaking"; pk2.frequency.value=4600*pit; pk2.Q.value=1.0; pk2.gain.value=7-4*dr;
+    /* 乾かすほど高域を持ち上げるぶん音量も上がってしまう。
+       音色だけが変わるよう打ち消す。係数は実効値を5回ずつ測って作った表 */
+    var RV=[[0,1],[0.25,1.192],[0.5,1.335],[0.7,1.979],[0.85,2.331],[1,2.594]];
+    var rr=1;
+    for(var q=0;q<RV.length-1;q++){
+      if(dr>=RV[q][0] && dr<=RV[q+1][0]){
+        var f=(dr-RV[q][0])/(RV[q+1][0]-RV[q][0]);
+        rr=RV[q][1]+(RV[q+1][1]-RV[q][1])*f; break;
+      }
+    }
+    var comp=ctx.createGain(); comp.gain.value = 1/rr;
+    src.connect(hp); hp.connect(sh); sh.connect(pk2); pk2.connect(comp); comp.connect(lp);
     src.start(t0); src.stop(t0+dur+.05);
     return;
   }
@@ -344,6 +360,7 @@ function build(){
   LABELS.forEach(function(L){
     var key=L[0];
     if(key==="wood" && !cur.body) return;
+    if(key==="dryness" && cur.kind!=="crunch") return;
     var ov=(cur.labels&&cur.labels[key])||null;
     var nm=ov?ov[0]:L[1], ht=ov?ov[1]:L[2];
     var row=document.createElement("div"); row.className="row";
@@ -368,11 +385,13 @@ function fmt(k,v){
   if(k==="hits")   return String(Math.round(v));
   if(k==="vol")    return "×"+(Math.round(v*100)/100).toFixed(2);
   if(k==="wobble") return v<=0 ? "なし" : Math.round(v*100)+" %";
+  if(k==="dryness") return Math.round(v*100)+" %";
   return (Math.round(v*100)/100).toString();
 }
 function dump(){
   var o={候補:cur.name, id:cur.id};
   LABELS.forEach(function(L){ if(L[0]==="wood" && !cur.body) return;
+    if(L[0]==="dryness" && cur.kind!=="crunch") return;
     var ov=(cur.labels&&cur.labels[L[0]])||null; o[ov?ov[0]:L[1]]=fmt(L[0],P[L[0]]); });
   document.getElementById("dump").textContent=JSON.stringify(o,null,1)
     .replace(/[{}"]/g,"").split("\n").filter(function(x){return x.trim();}).join("\n");

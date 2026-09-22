@@ -88,7 +88,29 @@ body.arriving .wrap{animation:settle .34s ease-out}
   body.arriving .wrap{animation:none}
 }
 
-header{padding-block:26px 6px;text-align:center}
+/* 表紙。絵は江戸の絵地図。文字は画像に焼き込まず、ここで重ねる（崩れないので）。
+   題は上に置く。この絵は下のほうが賑やかで、上の左右がいちばん静かなため */
+.cover{margin:0 -16px 4px;position:relative;line-height:0;
+  background:var(--card);border-bottom:1px solid var(--line)}
+.cover img{width:100%;height:auto;display:block}
+/* 下端を地の色へ溶かす。明るい画面では地が生成りなので見えない（暗い画面用） */
+.cover::after{content:"";position:absolute;left:0;right:0;bottom:0;height:9%;
+  pointer-events:none;background:linear-gradient(to bottom,transparent,var(--bg))}
+/* 題箋（だいせん）。絵図に貼る紙の札。ぼかしで覆うと山が消えるので、
+   小さい札にして、絵はそのまま見せる */
+.cover figcaption{position:absolute;top:5.2%;left:4%;line-height:1.3;
+  padding:9px 13px 8px;text-align:left;pointer-events:none;
+  background:#f6efe0;border:1px solid #cbbb97;
+  box-shadow:0 1px 0 rgba(90,74,44,.16),1px 2px 5px rgba(60,48,26,.13)}
+.cover .ev{display:block;font-size:16px;font-weight:700;color:#2a241a;
+  letter-spacing:.06em}
+.cover .ev2{display:block;font-size:11px;color:#6b5f49;letter-spacing:.14em;
+  margin-top:2px}
+@media (min-width:430px){
+  .cover .ev{font-size:21px} .cover .ev2{font-size:12.5px}
+  .cover figcaption{padding:12px 17px 11px}
+}
+header{padding-block:22px 6px;text-align:center}
 .eyebrow{font-size:11.5px;letter-spacing:.24em;color:var(--sub);margin:0 0 10px;font-variant-numeric:tabular-nums}
 h1{font-family:var(--mincho);font-size:27px;line-height:1.5;margin:0;font-weight:600;letter-spacing:.06em;text-wrap:balance}
 h1 .sm{display:block;font-family:var(--sans);font-size:12.5px;font-weight:500;color:var(--sub);letter-spacing:.06em;margin-top:11px;line-height:1.7}
@@ -282,7 +304,11 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
   .wrap{max-width:1140px;padding-left:32px;padding-right:32px}
   .navbar{margin:0 -32px;padding:9px 32px}
   .nav{justify-content:center}
-  header{padding-block:44px 10px}
+  header{padding-block:36px 10px}
+  .cover{margin-inline:-32px;border-radius:0}
+  .cover figcaption{padding:15px 22px 13px}
+  .cover .ev{font-size:27px}
+  .cover .ev2{font-size:14px;margin-top:4px}
   h1{font-size:38px}
   h1 .sm{font-size:14px}
   .namako{max-width:760px;margin:20px auto 0;height:15px}
@@ -332,6 +358,15 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
   </svg>
 </button>
 </div>
+
+<figure class="cover">
+  <img src="img/cover.webp" width="1200" height="670" fetchpriority="high"
+       alt="松本城と城下町を空から見た絵図。堀と赤い橋、白壁となまこ壁の町並み、紅葉、奥に雪をかぶった北アルプス。">
+  <figcaption>
+    <span class="ev">第2回いとこ会</span>
+    <span class="ev2">〜 松本旅行編 〜</span>
+  </figcaption>
+</figure>
 
 <header>
   <p class="eyebrow">2026.11.14 SAT</p>

@@ -132,37 +132,37 @@ function noise(){
 var CANDS=[
  {id:"suzu", name:"鈴（玉が殻を叩く）",
   desc:"打撃音を共鳴させる作り。玉と胴の低い音を混ぜてあります",
-  p:{vol:.20,bright:4200,ring:1,wood:.85,hits:3,spread:60,pitch:1,dense:0},
-  modes:[[1200,18,.30,1],[1900,16,.24,.6],[2800,14,.18,.3]], body:380},
+  p:{vol:1,bright:4200,ring:1,wood:.85,hits:3,spread:60,pitch:1,dense:0},
+  modes:[[1200,18,.34,1],[1900,16,.26,.55],[2800,14,.18,.25]], body:380, sustain:true, trim:0.123},
 
  {id:"harmony", name:"ハーモニーボール",
   desc:"小さな粒が無数に鳴る、かすれたシャラーン。粒の数を増やせます",
-  p:{vol:.16,bright:5200,ring:1.5,wood:.25,hits:9,spread:130,pitch:1.15,dense:1},
-  modes:[[1600,26,.45,1],[2400,24,.38,.7],[3300,20,.30,.45],[4300,18,.22,.25]], body:520},
+  p:{vol:1,bright:5200,ring:1.5,wood:.25,hits:9,spread:130,pitch:1.15,dense:1},
+  modes:[[1600,26,.45,1],[2400,24,.38,.65],[3300,20,.30,.4],[4300,18,.22,.2]], body:520, sustain:true, trim:0.171},
 
  {id:"rin", name:"りん（仏具）",
-  desc:"低めで、長く残ります。打ったあとの余韻が長いタイプ",
-  p:{vol:.18,bright:3000,ring:2.4,wood:.5,hits:1,spread:40,pitch:.7,dense:0},
-  modes:[[820,34,1.6,1],[1240,30,1.2,.5],[2050,24,.8,.2]], body:300},
+  desc:"低めで、数秒のびます。打撃音に、伸びる成分を足してあります",
+  p:{vol:1,bright:3000,ring:2.4,wood:.5,hits:1,spread:40,pitch:.7,dense:0},
+  modes:[[820,34,1.6,1],[1240,30,1.2,.45],[2050,24,.8,.18]], body:300, sustain:true, trim:0.144},
 
  {id:"wood", name:"木だけ（かたい音）",
-  desc:"金属の響きを抜いた、こつん という音",
-  p:{vol:.22,bright:2200,ring:.6,wood:1.4,hits:1,spread:40,pitch:1,dense:0},
-  modes:[[700,9,.10,1],[1100,7,.07,.4]], body:300},
+  desc:"金属の響きを抜いた、こつん という音。短いので音量は大きめ",
+  p:{vol:1,bright:2600,ring:1,wood:1.4,hits:1,spread:40,pitch:1,dense:0},
+  modes:[[520,20,.22,1],[840,16,.14,.5]], body:300, sustain:true, trim:0.151},
 
  {id:"drop", name:"水滴",
   desc:"音程が上がる ぽちゃん。共鳴ではなく正弦波です",
-  p:{vol:.24,bright:2400,ring:1,wood:0,hits:1,spread:40,pitch:1,dense:0},
-  modes:null, body:0},
+  p:{vol:1,bright:2400,ring:1,wood:0,hits:1,spread:40,pitch:1,dense:0},
+  modes:null, body:0, trim:0.139},
 
  {id:"cloth", name:"かすれた払い（音程なし）",
   desc:"しゃっ という擦れ。音程を感じさせたくない場合",
-  p:{vol:.16,bright:6000,ring:.8,wood:.2,hits:2,spread:70,pitch:1,dense:0},
-  modes:[[2600,2.2,.22,1],[5200,1.8,.16,.5]], body:900}
+  p:{vol:1,bright:6000,ring:.8,wood:.2,hits:2,spread:70,pitch:1,dense:0},
+  modes:[[2600,2.2,.22,1],[5200,1.8,.16,.5]], body:900, trim:0.339}
 ];
 
 var LABELS=[
- ["vol","音量","小さく ↔ 大きく",0,.5,.01],
+ ["vol","音量","小さく ↔ 大きく（候補どうしは同じ音量に揃えてあります）",0,2,.05],
  ["bright","明るさ","こもる ↔ 明るい（高い成分をどこまで残すか）",600,8000,50],
  ["ring","響きの長さ","短い ↔ 長く残る",.2,3,.05],
  ["wood","木っぽさ","金属だけ ↔ 胴の低い音を足す",0,1.6,.05],
@@ -178,7 +178,7 @@ function play(){
   var t0=ctx.currentTime;
   var lp=ctx.createBiquadFilter();
   lp.type="lowpass"; lp.frequency.value=P.bright; lp.Q.value=.4;
-  var out=ctx.createGain(); out.gain.value=P.vol;
+  var out=ctx.createGain(); out.gain.value=P.vol*(cur.trim||1);   /* trim＝候補ごとの音量補正。実測して揃えてある */
   lp.connect(out); out.connect(ctx.destination);
 
   if(!cur.modes){                       /* 水滴だけは正弦波のスイープ */
@@ -215,22 +215,39 @@ function hit(at, amp, jit, lp){
   src.connect(env);
 
   cur.modes.forEach(function(m){
+    /* バンドパスは狭いほど通る量が減る（Q=34なら帯域は17Hzしかない）。
+       そのぶんを持ち上げないと、高いQの候補が無音になる */
+    var qcomp = Math.sqrt(m[1]) * 0.55;
     var bp=ctx.createBiquadFilter();
     bp.type="bandpass";
     bp.frequency.value=m[0]*P.pitch*jit;
     bp.Q.value=m[1];
     var g=ctx.createGain();
-    g.gain.setValueAtTime(amp*m[3],at);
-    g.gain.exponentialRampToValueAtTime(.0001,at+m[2]*P.ring);
+    g.gain.setValueAtTime(amp*m[3]*qcomp,at);
+    g.gain.exponentialRampToValueAtTime(.0001,at+Math.max(.04,m[2]*P.ring));
     env.connect(bp); bp.connect(g); g.connect(lp);
+
+    /* りんのように「打ったあと長く伸びる」楽器は、打撃音だけでは作れない。
+       60msのノイズでは、フィルタは20msほどで鳴き止んでしまうため。
+       伸びる成分は正弦波で別に足す */
+    if(cur.sustain){
+      var o=ctx.createOscillator(), og=ctx.createGain();
+      o.type="sine";
+      o.frequency.value=m[0]*P.pitch*jit;
+      og.gain.setValueAtTime(0,at);
+      og.gain.linearRampToValueAtTime(amp*m[3]*0.55,at+.012);
+      og.gain.exponentialRampToValueAtTime(.0001,at+m[2]*P.ring);
+      o.connect(og); og.connect(lp);
+      o.start(at); o.stop(at+m[2]*P.ring+.1);
+    }
   });
 
   if(P.wood>0 && cur.body){
     var b=ctx.createBiquadFilter();
     b.type="bandpass"; b.frequency.value=cur.body*P.pitch*jit; b.Q.value=3;
     var bg=ctx.createGain();
-    bg.gain.setValueAtTime(amp*P.wood,at);
-    bg.gain.exponentialRampToValueAtTime(.0001,at+.05*P.ring);
+    bg.gain.setValueAtTime(amp*P.wood*1.7,at);
+    bg.gain.exponentialRampToValueAtTime(.0001,at+Math.max(.05,.09*P.ring));
     env.connect(b); b.connect(bg); bg.connect(lp);
   }
   src.start(at); src.stop(at+1.2);
@@ -277,7 +294,7 @@ function fmt(k,v){
   if(k==="bright") return Math.round(v)+" Hz";
   if(k==="spread") return Math.round(v)+" ms";
   if(k==="hits")   return Math.round(v)+" 回";
-  if(k==="vol")    return Math.round(v*100)+" %";
+  if(k==="vol")    return "×"+(Math.round(v*100)/100).toFixed(2);
   return (Math.round(v*100)/100).toString();
 }
 function dump(){

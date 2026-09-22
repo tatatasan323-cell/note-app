@@ -178,6 +178,23 @@ footer{margin:44px 0 0;padding-top:18px;border-top:1px solid var(--line);font-si
 footer a{color:var(--sub)}
 footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
 
+/* 天気 */
+.wx{margin:9px 0 0;background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:12px 14px;box-shadow:var(--shadow);font-size:13px}
+.wx[hidden]{display:none}
+.wx .ttl{font-size:11px;letter-spacing:.08em;color:var(--sub);margin:0 0 9px}
+.wxdays{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.wxd{background:var(--chip);border-radius:10px;padding:10px 11px}
+.wxd .d{font-size:11px;color:var(--sub);letter-spacing:.04em}
+.wxd .w{display:flex;align-items:center;gap:7px;margin:4px 0 2px}
+.wxd .w svg{width:26px;height:26px;flex:none}
+.wxd .w b{font-family:var(--mincho);font-size:15.5px;font-weight:600;letter-spacing:.03em;line-height:1.3}
+.wxd .t{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+.wxd .t i{font-style:normal;font-size:11.5px;font-weight:500;color:var(--sub)}
+.wxd .r{font-size:11.5px;color:var(--sub);font-variant-numeric:tabular-nums}
+.wx .src{font-size:11px;color:var(--sub);line-height:1.6;margin:9px 0 0}
+.wx .soon{font-size:12.5px;color:var(--sub);line-height:1.8;margin:0}
+
 /* 目次：したいことから選ぶ */
 .cats{display:grid;gap:8px}
 .cat{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
@@ -293,9 +310,10 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
   <dl class="facts">
     <div class="fact"><dt>日の入り</dt><dd>16:41<small>暗くなり切るのは17:10ごろ</small></dd></div>
     <div class="fact"><dt>チェックイン</dt><dd>15:00<small>追分屋旅館／OUT 10:00</small></dd></div>
-    <div class="fact"><dt>気温のめやす</dt><dd>14 / 3℃<small>松本 11月の平年値</small></dd></div>
+    <div class="fact" id="tempTile"><dt>気温のめやす</dt><dd id="tempVal">14 / 3℃<small id="tempSub">松本 11月の平年値</small></dd></div>
     <div class="fact"><dt>紅葉</dt><dd>ほぼ見頃<small>松本城周辺は10月下旬〜11月中旬</small></dd></div>
   </dl>
+  <div class="wx" id="wx" hidden></div>
   <div class="note">
     <p><b>土曜日なので、</b>この案内に出てくるところは<b>全部あいています</b>。松本の資料館は火曜休みが多く、中町のお店も火・水休みが多いので、これは運がよかったところです（人力車も火曜休みなので、これも大丈夫）。</p>
     <p>ただ、<b>日が短いです。</b>16:41に日が沈みます。城下町を歩くなら<b>11時台に松本駅を出て、14時台には宿へ向かう</b>くらいがちょうどいいと思います。夕方は急に冷えるので、羽織るものを一枚どうぞ。</p>
@@ -1454,7 +1472,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
   バスの運賃は2026年3月に改定があったので、幅を持たせて書いています。<b>当日、念のため確認してください。</b><br>
   地図は実際の緯度経度をもとに起こした略図です。通りの並びと位置関係は正しいですが、<b>縮尺は正確ではありません</b>。隣り合う店の前後関係など細かいところは、各カードの「地図」「ストリートビュー」から実地図でご確認ください。
   <h5>主な出典</h5>
-  <a href="https://www.oiwakeya.com/">追分屋旅館</a>／<a href="https://matsu-haku.com/">松本まるごと博物館</a>／<a href="https://matsumoto-city-museum.jp/">松本市立博物館</a>／<a href="https://nakamachi.org/">中町商店街</a>／<a href="https://www.nawate.net/">なわて通り商店街</a>／<a href="https://www.alpico.co.jp/traffic/local/matsumoto/utsukushigaharaonsen/">アルピコ交通</a>／<a href="https://utsukushigahara-onsen.com/">美ヶ原温泉旅館組合</a>／<a href="https://www.matsumoto-castle.jp/">国宝松本城</a>／<a href="https://visitmatsumoto.com/">松本市公式観光サイト</a>／松本市／気象庁／国土地理院
+  <a href="https://www.oiwakeya.com/">追分屋旅館</a>／<a href="https://matsu-haku.com/">松本まるごと博物館</a>／<a href="https://matsumoto-city-museum.jp/">松本市立博物館</a>／<a href="https://nakamachi.org/">中町商店街</a>／<a href="https://www.nawate.net/">なわて通り商店街</a>／<a href="https://www.alpico.co.jp/traffic/local/matsumoto/utsukushigaharaonsen/">アルピコ交通</a>／<a href="https://utsukushigahara-onsen.com/">美ヶ原温泉旅館組合</a>／<a href="https://www.matsumoto-castle.jp/">国宝松本城</a>／<a href="https://visitmatsumoto.com/">松本市公式観光サイト</a>／松本市／気象庁／国土地理院／天気予報は <a href="https://open-meteo.com/">Open-Meteo</a>
 </footer>
 
 </div>
@@ -1691,6 +1709,133 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
   if(location.hash && location.hash.length > 1){
     setTimeout(function(){ jump(location.hash, true); }, 60);
   }
+})();
+
+/* ============ 天気 ============
+   Open-Meteo（APIキー不要・CORS可）。11/14を名指しで頼むと範囲外エラーになるので、
+   16日分を取って、その中に目的の日があるかを探す。
+   取れなければ静かに何も出さない。平年値の表示は常に残す。 */
+(function(){
+  "use strict";
+  var LAT = 36.2383, LON = 137.9720;          /* 松本市中心部 */
+  var DAYS = ["2026-11-14", "2026-11-15"];
+  var NAMES = ["11/14（土）", "11/15（日）"];
+
+  /* 11月に予報が出たときの見え方は、いまの日付では確認できない。
+     URLに ?wx=today を付けると、対象日を今日・明日に差し替えて同じ表示を試せる。
+     本番の動作には影響しない */
+  if(location.search.indexOf("wx=today") >= 0){
+    var d0 = new Date(), d1 = new Date(Date.now() + 86400000);
+    var iso = function(d){ return d.getFullYear() + "-" +
+      ("0"+(d.getMonth()+1)).slice(-2) + "-" + ("0"+d.getDate()).slice(-2); };
+    var wd = "日月火水木金土";
+    var jp = function(d){ return (d.getMonth()+1) + "/" + d.getDate() + "（" + wd[d.getDay()] + "）"; };
+    DAYS = [iso(d0), iso(d1)];
+    NAMES = [jp(d0) + " ※確認用", jp(d1)];
+  }
+  var box = document.getElementById("wx");
+  if(!box || !window.fetch) return;
+
+  /* WMOの天気コード → 日本語と絵 */
+  function wmo(c){
+    if(c === 0) return ["快晴","sun"];
+    if(c === 1) return ["おおむね晴れ","sun"];
+    if(c === 2) return ["晴れ時々くもり","suncloud"];
+    if(c === 3) return ["くもり","cloud"];
+    if(c === 45 || c === 48) return ["霧","cloud"];
+    if(c >= 51 && c <= 57) return ["霧雨","rain"];
+    if(c === 61) return ["小雨","rain"];
+    if(c === 63) return ["雨","rain"];
+    if(c === 65) return ["強い雨","rain"];
+    if(c === 66 || c === 67) return ["凍る雨","rain"];
+    if(c === 71) return ["小雪","snow"];
+    if(c === 73) return ["雪","snow"];
+    if(c === 75) return ["強い雪","snow"];
+    if(c === 77) return ["霧雪","snow"];
+    if(c >= 80 && c <= 82) return ["にわか雨","rain"];
+    if(c === 85 || c === 86) return ["にわか雪","snow"];
+    if(c >= 95) return ["雷雨","rain"];
+    return ["—","cloud"];
+  }
+  var ICON = {
+    sun:'<circle cx="12" cy="12" r="4.6" fill="var(--gold)"/><g stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round"><path d="M12 2.4v2.6M12 19v2.6M2.4 12h2.6M19 12h2.6M5.2 5.2l1.9 1.9M16.9 16.9l1.9 1.9M18.8 5.2l-1.9 1.9M7.1 16.9l-1.9 1.9"/></g>',
+    suncloud:'<circle cx="8.6" cy="8.4" r="3.4" fill="var(--gold)"/><path d="M17 19H8.4a3.9 3.9 0 0 1 0-7.8 5 5 0 0 1 9.4 1.2A3.3 3.3 0 0 1 17 19z" fill="var(--sub)" opacity=".55"/>',
+    cloud:'<path d="M17.2 19H8a4.2 4.2 0 0 1 0-8.4 5.4 5.4 0 0 1 10.2 1.3A3.6 3.6 0 0 1 17.2 19z" fill="var(--sub)" opacity=".62"/>',
+    rain:'<path d="M17 15.4H8.2a4 4 0 0 1 0-8 5.2 5.2 0 0 1 9.8 1.2A3.4 3.4 0 0 1 17 15.4z" fill="var(--sub)" opacity=".55"/><g stroke="var(--waterdeep)" stroke-width="1.9" stroke-linecap="round"><path d="M9.4 17.6l-1 2.8M13 17.6l-1 2.8M16.6 17.6l-1 2.8"/></g>',
+    snow:'<path d="M17 15.4H8.2a4 4 0 0 1 0-8 5.2 5.2 0 0 1 9.8 1.2A3.4 3.4 0 0 1 17 15.4z" fill="var(--sub)" opacity=".55"/><g stroke="var(--waterdeep)" stroke-width="1.7" stroke-linecap="round"><path d="M9 19.4h.01M12.5 20.6h.01M16 19.4h.01M9 19.4l0 0M12.5 20.6l0 0"/><path d="M8.2 18.6l1.6 1.6M9.8 18.6l-1.6 1.6M15.2 18.6l1.6 1.6M16.8 18.6l-1.6 1.6"/></g>'
+  };
+  function svg(kind){
+    return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">' + (ICON[kind] || ICON.cloud) + '</svg>';
+  }
+  function esc(x){ return String(x).replace(/[&<>]/g, function(m){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[m]; }); }
+
+  var url = "https://api.open-meteo.com/v1/forecast?latitude=" + LAT + "&longitude=" + LON +
+            "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
+            "&timezone=Asia%2FTokyo&forecast_days=16";
+
+  var ctl = null, timer = null;
+  try { ctl = new AbortController(); timer = setTimeout(function(){ ctl.abort(); }, 6000); } catch(e){}
+
+  fetch(url, ctl ? {signal: ctl.signal} : undefined)
+    .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+    .then(function(j){
+      if(timer) clearTimeout(timer);
+      var t = j && j.daily && j.daily.time;
+      if(!t) throw 0;
+
+      var cards = [], first = null;
+      for(var i = 0; i < DAYS.length; i++){
+        var k = t.indexOf(DAYS[i]);
+        if(k < 0) continue;
+        var w  = wmo(j.daily.weather_code[k]);
+        var hi = Math.round(j.daily.temperature_2m_max[k]);
+        var lo = Math.round(j.daily.temperature_2m_min[k]);
+        var pr = j.daily.precipitation_probability_max[k];
+        if(first === null) first = {hi: hi, lo: lo};
+        cards.push(
+          '<div class="wxd"><div class="d">' + NAMES[i] + '</div>' +
+          '<div class="w">' + svg(w[1]) + '<b>' + esc(w[0]) + '</b></div>' +
+          '<div class="t">' + hi + '<i>℃</i> / ' + lo + '<i>℃</i></div>' +
+          '<div class="r">降水 ' + (pr == null ? "—" : pr + "%") + '</div></div>'
+        );
+      }
+
+      if(cards.length){
+        var now = new Date();
+        box.innerHTML =
+          '<p class="ttl">松本の天気予報</p><div class="wxdays">' + cards.join("") + '</div>' +
+          '<p class="src">Open-Meteo の予報を、このページを開いた時点（' +
+          (now.getMonth()+1) + '/' + now.getDate() + ' ' +
+          ("0"+now.getHours()).slice(-2) + ':' + ("0"+now.getMinutes()).slice(-2) +
+          '）で取得したものです。直前にもう一度開くと更新されます。</p>';
+        box.hidden = false;
+
+        /* 気温タイルを、平年値から実際の予報に差し替える */
+        if(first){
+          var v = document.getElementById("tempVal"), sub = document.getElementById("tempSub");
+          if(v && sub){
+            v.childNodes[0].nodeValue = first.hi + " / " + first.lo + "℃";
+            sub.textContent = "11/14の予報";
+          }
+        }
+      } else {
+        /* まだ予報の範囲に入っていない */
+        var last = t[t.length - 1];
+        var open = new Date(DAYS[0] + "T00:00:00+09:00");
+        open.setDate(open.getDate() - 15);
+        box.innerHTML = '<p class="soon"><b>天気予報はここに出ます。</b>' +
+          '予報が届くのは16日先までなので、11/14ぶんが出るのは' +
+          (open.getMonth()+1) + '月' + open.getDate() + '日ごろから。' +
+          'いまは上の平年値（14 / 3℃）が目安です。<br>' +
+          '<span style="opacity:.75">いま取れている予報は ' + esc(last) + ' まで</span></p>';
+        box.hidden = false;
+      }
+    })
+    .catch(function(){
+      if(timer) clearTimeout(timer);
+      /* 圏外・APIの不調。何も出さない。平年値はそのまま残る */
+      box.hidden = true;
+    });
 })();
 </script>
 </body>

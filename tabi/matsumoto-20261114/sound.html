@@ -143,13 +143,13 @@ function crunchBuf(dur, density, decay, dry){
   var mod=0.6, target=0.6, hold=0;
   for(var i=0;i<len;i++){
     if(hold-- <= 0){
-      target = Math.pow(Math.random(), 0.65);
+      target = Math.pow(Math.random(), 1.35);        /* 低め寄り＝谷ができる */
       hold = Math.max(2, Math.floor(sr*step*(0.35+Math.random()*1.5)));
     }
-    mod += (target-mod)*0.30;                     /* 速く追従させる＝ざらつく */
+    mod += (target-mod)*0.34;                     /* 速く追従させる＝ざらつく */
     var t=i/len;
-    var env = Math.min(1, t/0.08) * Math.exp(-t*decay*3.2);
-    d[i] = (Math.random()*2-1) * (0.30 + mod*0.70) * env;   /* 0にしない＝途切れさせない */
+    var env = Math.min(1, t/0.045) * Math.exp(-t*decay*6.0);   /* 速く崩れる */
+    d[i] = (Math.random()*2-1) * (0.08 + mod*0.92) * env;      /* 底を下げる＝ムラが出る */
   }
 
   /* 少数のアクセント。これが「パキッ」の混じり */
@@ -158,7 +158,7 @@ function crunchBuf(dur, density, decay, dry){
     var at=Math.floor(Math.random()*len*0.75);
     var gl=Math.max(3, Math.floor(sr*(0.0006+Math.random()*0.0022)/dry));
     var am=0.5+Math.random()*0.5;
-    var t2=at/len, ev=Math.min(1,t2/0.08)*Math.exp(-t2*decay*3.2);
+    var t2=at/len, ev=Math.min(1,t2/0.045)*Math.exp(-t2*decay*6.0);
     for(var k=0;k<gl && at+k<len;k++){
       d[at+k] += (Math.random()*2-1)*am*ev*Math.exp(-k/(gl*0.2));
     }
@@ -173,41 +173,41 @@ function crunchBuf(dur, density, decay, dry){
 var CANDS=[
  {id:"suzu", name:"鈴（玉が殻を叩く）",
   desc:"打撃音を共鳴させる作り。玉と胴の低い音を混ぜてあります",
-  p:{vol:1,bright:4200,ring:1,wood:.85,hits:3,spread:60,pitch:1,dense:0},
+  p:{vol:1,bright:4200,ring:1,wood:.85,hits:3,spread:60,pitch:1,dense:0,wobble:0.35},
   modes:[[1200,18,.34,1],[1900,16,.26,.55],[2800,14,.18,.25]], body:380, sustain:true, trim:0.123},
 
  {id:"harmony", name:"ハーモニーボール",
   desc:"小さな粒が無数に鳴る、かすれたシャラーン。粒の数を増やせます",
-  p:{vol:1,bright:5200,ring:1.5,wood:.25,hits:9,spread:130,pitch:1.15,dense:1},
+  p:{vol:1,bright:5200,ring:1.5,wood:.25,hits:9,spread:130,pitch:1.15,dense:1,wobble:0.5},
   modes:[[1600,26,.45,1],[2400,24,.38,.65],[3300,20,.30,.4],[4300,18,.22,.2]], body:520, sustain:true, trim:0.171},
 
  {id:"leaves", name:"落ち葉を踏む",
-  desc:"カサッと乾いた音。「かさつき」を上げるほど粒が短く、高く乾きます",
+  desc:"カサッと乾いた音。鳴らすたび高さと長さが少し変わります",
   kind:"crunch",
-  p:{vol:1,bright:11000,ring:1,wood:0,hits:9,spread:110,pitch:1.15,dense:0},
-  modes:null, body:0, trim:0.058,
+  p:{vol:1,bright:11000,ring:.85,wood:0,hits:9,spread:75,pitch:1.15,dense:0,wobble:.55},
+  modes:null, body:0, trim:0.064,
   labels:{hits:["ざらつきの細かさ","粗い（豆をまいた感じ）↔ 細かい（葉が潰れる感じ）"],
           spread:["長さ","さっと ↔ じっくり（ミリ秒）"],
           pitch:["かさつき","しっとり ↔ かさかさ"]}},
 
  {id:"rin", name:"りん（仏具）",
   desc:"低めで、数秒のびます。打撃音に、伸びる成分を足してあります",
-  p:{vol:1,bright:3000,ring:2.4,wood:.5,hits:1,spread:40,pitch:.7,dense:0},
+  p:{vol:1,bright:3000,ring:2.4,wood:.5,hits:1,spread:40,pitch:.7,dense:0,wobble:0.25},
   modes:[[820,34,1.6,1],[1240,30,1.2,.45],[2050,24,.8,.18]], body:300, sustain:true, trim:0.144},
 
  {id:"wood", name:"木だけ（かたい音）",
   desc:"金属の響きを抜いた、こつん という音。短いので音量は大きめ",
-  p:{vol:1,bright:2600,ring:1,wood:1.4,hits:1,spread:40,pitch:1,dense:0},
+  p:{vol:1,bright:2600,ring:1,wood:1.4,hits:1,spread:40,pitch:1,dense:0,wobble:0.3},
   modes:[[520,20,.22,1],[840,16,.14,.5]], body:300, sustain:true, trim:0.151},
 
  {id:"drop", name:"水滴",
   desc:"音程が上がる ぽちゃん。共鳴ではなく正弦波です",
-  p:{vol:1,bright:2400,ring:1,wood:0,hits:1,spread:40,pitch:1,dense:0},
+  p:{vol:1,bright:2400,ring:1,wood:0,hits:1,spread:40,pitch:1,dense:0,wobble:0.4},
   modes:null, body:0, trim:0.139},
 
  {id:"cloth", name:"かすれた払い（音程なし）",
   desc:"しゃっ という擦れ。音程を感じさせたくない場合",
-  p:{vol:1,bright:6000,ring:.8,wood:.2,hits:2,spread:70,pitch:1,dense:0},
+  p:{vol:1,bright:6000,ring:.8,wood:.2,hits:2,spread:70,pitch:1,dense:0,wobble:0.45},
   modes:[[2600,2.2,.22,1],[5200,1.8,.16,.5]], body:900, trim:0.339}
 ];
 
@@ -218,7 +218,8 @@ var LABELS=[
  ["wood","木っぽさ","金属だけ ↔ 胴の低い音を足す",0,1.6,.05],
  ["hits","打つ回数","1回 ↔ たくさん（玉が跳ねる数）",1,14,1],
  ["spread","打の間隔","詰める ↔ ばらける（ミリ秒）",15,200,5],
- ["pitch","高さ","低い ↔ 高い",.5,2.6,.02]
+ ["pitch","高さ","低い ↔ 高い",.5,2.6,.02],
+ ["wobble","ゆらぎ","毎回おなじ ↔ 鳴らすたび高さと長さが変わる",0,1,.05]
 ];
 
 var cur=CANDS[0], P=Object.assign({},cur.p);
@@ -232,13 +233,18 @@ function play(){
   lp.connect(out); out.connect(ctx.destination);
 
   if(cur.kind==="crunch"){              /* 落ち葉 */
-    var dur=Math.max(.08, P.spread/1000*2*P.ring);
+    /* 毎回まったく同じだと機械に聞こえる。高さと長さを少しだけ振る */
+    var w  = (P.wobble==null ? .5 : P.wobble);
+    var wp = 1 + (Math.random()-.5)*0.24*w;      /* 高さ  ±12%まで */
+    var wl = 1 + (Math.random()-.5)*0.60*w;      /* 長さ  ±30%まで */
+    var pit = P.pitch*wp;
+    var dur=Math.max(.05, P.spread/1000*2*P.ring*wl);
     var src=ctx.createBufferSource();
-    src.buffer=crunchBuf(dur, Math.max(60,Math.round(P.hits*110)), .40, P.pitch);
+    src.buffer=crunchBuf(dur, Math.max(60,Math.round(P.hits*110)), .40, pit);
     var hp=ctx.createBiquadFilter();
-    hp.type="highpass"; hp.frequency.value=1200*P.pitch; hp.Q.value=.7;
+    hp.type="highpass"; hp.frequency.value=1200*pit; hp.Q.value=.7;
     var pk2=ctx.createBiquadFilter();
-    pk2.type="peaking"; pk2.frequency.value=4600*P.pitch; pk2.Q.value=1.0; pk2.gain.value=7;
+    pk2.type="peaking"; pk2.frequency.value=4600*pit; pk2.Q.value=1.0; pk2.gain.value=7;
     src.connect(hp); hp.connect(pk2); pk2.connect(lp);
     src.start(t0); src.stop(t0+dur+.05);
     return;
@@ -260,8 +266,10 @@ function play(){
   }
 
   var n=Math.max(1,Math.round(P.hits));
+  var w0 = (P.wobble==null ? .5 : P.wobble);
+  var shot = 1 + (Math.random()-.5)*0.10*w0;    /* 一打ちごとに全体の高さを少し振る */
   for(var i=0;i<n;i++){
-    var jit = 1 + (i===0?0:(Math.random()-.5)*.05);
+    var jit = shot * (1 + (i===0?0:(Math.random()-.5)*.05));
     var at  = t0 + (P.dense ? (i*P.spread/1000)*(0.4+Math.random()*1.2) : i*P.spread/1000);
     var amp = (i===0?1:Math.pow(.55,i)) * (P.dense ? (.35+Math.random()*.5) : 1);
     hit(at, amp, jit, lp);
@@ -359,6 +367,7 @@ function fmt(k,v){
   if(k==="spread") return Math.round(v)+" ms";
   if(k==="hits")   return String(Math.round(v));
   if(k==="vol")    return "×"+(Math.round(v*100)/100).toFixed(2);
+  if(k==="wobble") return v<=0 ? "なし" : Math.round(v*100)+" %";
   return (Math.round(v*100)/100).toString();
 }
 function dump(){

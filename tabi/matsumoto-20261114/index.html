@@ -158,7 +158,9 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
   .area{display:grid;grid-template-columns:minmax(320px,430px) 1fr;gap:38px;align-items:start}
   .area > figure{position:sticky;top:76px}
   .area > .spots{min-width:0}
-  .overview{max-width:920px;margin:0 auto}
+  /* 全体図は模式図。引き伸ばすと粗が目立つので幅を止める */
+  .overview{max-width:700px;margin:0 auto}
+  .overview svg{max-width:560px;margin-left:auto;margin-right:auto}
   .twocol{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
   .twocol > *{margin:0}
   footer{max-width:920px;margin-left:auto;margin-right:auto}
@@ -219,64 +221,74 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
   <h2>全体図<span class="cnt">枠をタップで拡大図へ</span></h2>
   <div class="mapbox overview">
   <figure>
-  <svg viewBox="0 0 340 208" role="img" aria-label="西から順に松本インター、松本駅、城下町エリア、美ヶ原温泉エリアが並ぶ位置関係図。松本駅から城下町は徒歩10分、城下町から温泉はバスで約15分。">
-    <text x="170" y="14" text-anchor="middle" font-size="9.5" fill="var(--sub)">西 ←　　　松本の街は、駅の北東に城下町、その東の山あいに温泉　　　→ 東</text>
+  <svg viewBox="0 0 340 214" role="img" aria-label="西から東へ、松本インター、松本駅、城下町、美ヶ原温泉の順に並ぶ位置関係図。城下町は松本駅の北東すぐ、美ヶ原温泉はそこからさらに東の山あい。">
+    <g aria-hidden="true">
+      <defs>
+        <linearGradient id="waZ" x1="0" y1="1" x2="0.35" y2="0">
+          <stop offset="0" stop-color="var(--leaf)" stop-opacity=".085"/>
+          <stop offset=".5" stop-color="var(--leaf)" stop-opacity=".025"/>
+          <stop offset="1" stop-color="var(--leaf)" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <rect width="340" height="214" fill="url(#waZ)"/>
+      <g fill="none" stroke-linecap="round">
+        <path d="M6 148 C 70 136, 142 156, 212 140 C 272 126, 312 142, 338 132" stroke="var(--leaf)" stroke-width="5" opacity=".17" stroke-dasharray="20 7 44 10 13 15 32 8"/>
+        <path d="M14 160 C 78 150, 148 164, 216 150 C 274 138, 314 150, 338 144" stroke="var(--leaf)" stroke-width="2.4" opacity=".13" stroke-dasharray="28 12 10 8 36 14"/>
+        <path d="M148 34 C 196 22, 250 38, 300 24 C 320 18, 332 24, 340 20" stroke="var(--leaf2)" stroke-width="4.2" opacity=".2" stroke-dasharray="24 9 38 12 16 8"/>
+        <path d="M176 48 C 220 38, 268 50, 312 40" stroke="var(--leaf2)" stroke-width="2" opacity=".15" stroke-dasharray="30 13 12 9 26 7"/>
+      </g>
+    </g>
 
-    <!-- 山なみ -->
-    <path d="M248 52 l20 -22 l20 22 z" fill="var(--line)"/>
-    <path d="M286 54 l17 -19 l17 19 z" fill="var(--line)"/>
-    <path d="M312 56 l14 -16 l14 16 z" fill="var(--line)"/>
 
-    <!-- 女鳥羽川 -->
-    <path d="M300 88 C 256 100, 214 96, 178 112 C 150 124, 110 128, 60 142"
-          fill="none" stroke="var(--water)" stroke-width="4.5" stroke-linecap="round"/>
-    <text x="78" y="156" font-size="9" fill="var(--waterdeep)">女鳥羽川</text>
-
-    <!-- 道路 -->
     <g stroke="var(--line)" stroke-width="7" stroke-linecap="round" fill="none">
-      <path d="M26 148 L139 155"/>
-      <path d="M139 155 L175 132"/>
-      <path d="M186 118 L272 82"/>
+      <path d="M38 150 L126 156"/>
+      <path d="M126 156 L200 110"/>
+      <path d="M200 110 L296 64"/>
     </g>
 
-    <!-- 松本IC -->
     <g>
-      <rect x="10" y="140" width="38" height="16" rx="3" fill="var(--sub)"/>
-      <text x="29" y="151.5" font-size="9" fill="var(--bg)" text-anchor="middle">松本IC</text>
-      <text x="29" y="170" font-size="9" fill="var(--sub)" text-anchor="middle">長野自動車道</text>
+      <rect x="12" y="142" width="52" height="17" rx="3.5" fill="var(--sub)"/>
+      <text x="38" y="154" font-size="9.5" fill="var(--bg)" text-anchor="middle">松本IC</text>
+      <text x="38" y="174" font-size="8.5" fill="var(--sub)" text-anchor="middle">長野自動車道</text>
     </g>
-    <text x="86" y="146" font-size="9" fill="var(--sub)" text-anchor="middle">約6km／車20分</text>
 
-    <!-- 松本駅 -->
-    <circle cx="139" cy="155" r="6.5" fill="var(--accent)"/>
-    <text x="139" y="176" font-size="10.5" fill="var(--ink)" text-anchor="middle">松本駅</text>
-    <text x="139" y="188" font-size="8.5" fill="var(--sub)" text-anchor="middle">標高586m</text>
+    <circle cx="126" cy="156" r="7" fill="var(--accent)"/>
+    <text x="126" y="178" font-size="11" fill="var(--ink)" text-anchor="middle">松本駅</text>
+    <text x="126" y="191" font-size="8.5" fill="var(--sub)" text-anchor="middle">標高586m</text>
 
-    <!-- 城下町ゾーン -->
     <a href="#jokamachi">
-      <rect x="137" y="72" width="80" height="50" rx="10" fill="var(--block)" stroke="var(--accent)" stroke-width="1.6"/>
-      <text x="177" y="90" font-size="11.5" fill="var(--ink)" text-anchor="middle">城下町</text>
-      <text x="177" y="103" font-size="8.5" fill="var(--sub)" text-anchor="middle">なわて・中町</text>
-      <text x="177" y="114" font-size="8.5" fill="var(--sub)" text-anchor="middle">松本城・旧開智学校</text>
+      <text x="200" y="80" font-size="8.5" fill="var(--sub)" text-anchor="middle">なわて・中町・松本城</text>
+      <text x="200" y="94" font-size="12" fill="var(--ink)" text-anchor="middle">城下町</text>
+      <circle cx="200" cy="110" r="9" fill="none" stroke="var(--accent)" stroke-width="1.6" opacity=".45"/>
+      <circle cx="200" cy="110" r="5.5" fill="var(--accent)"/>
+      <text x="200" y="134" font-size="8.5" fill="var(--accent2)" text-anchor="middle">拡大図へ</text>
     </a>
-    <text x="146" y="138" font-size="8.5" fill="var(--sub)" transform="rotate(-32 146 138)">徒歩10分</text>
 
-    <!-- 温泉ゾーン -->
     <a href="#onsen">
-      <rect x="248" y="58" width="84" height="48" rx="10" fill="var(--block)" stroke="var(--gold)" stroke-width="1.6"/>
-      <text x="290" y="76" font-size="11.5" fill="var(--ink)" text-anchor="middle">美ヶ原温泉</text>
-      <text x="290" y="89" font-size="8.5" fill="var(--sub)" text-anchor="middle">追分屋・松本民芸館</text>
-      <text x="290" y="100" font-size="8.5" fill="var(--sub)" text-anchor="middle">標高621m</text>
+      <text x="296" y="34" font-size="8.5" fill="var(--sub)" text-anchor="middle">追分屋・松本民芸館</text>
+      <text x="296" y="48" font-size="12" fill="var(--ink)" text-anchor="middle">美ヶ原温泉</text>
+      <circle cx="296" cy="64" r="9.5" fill="none" stroke="var(--gold)" stroke-width="1.6" opacity=".5"/>
+      <circle cx="296" cy="64" r="6" fill="var(--gold)"/>
+      <text x="296" y="88" font-size="8.5" fill="var(--accent2)" text-anchor="middle">拡大図へ</text>
     </a>
-    <text x="222" y="92" font-size="9" fill="var(--accent2)" text-anchor="middle" transform="rotate(-23 222 92)">バス約15分</text>
-    <text x="230" y="106" font-size="8.5" fill="var(--sub)" text-anchor="middle" transform="rotate(-23 230 106)">約3.5km</text>
 
-    <text x="334" y="126" font-size="8.5" fill="var(--sub)" text-anchor="end">美ヶ原高原は、ここから車で1時間</text>
-
-    <text x="6" y="200" font-size="8.5" fill="var(--sub)">※枠の大きさは見やすさのためのもので、実際の広さではありません</text>
+    <text x="8" y="16" font-size="9" fill="var(--sub)">西</text>
+    <text x="332" y="16" font-size="9" fill="var(--sub)" text-anchor="end">東</text>
+    <text x="170" y="16" font-size="9" fill="var(--sub)" text-anchor="middle">駅の北東が城下町、その東の山あいが温泉</text>
+    <text x="170" y="209" font-size="8.5" fill="var(--sub)" text-anchor="middle">※位置関係の図です。距離と時間は下の表に</text>
   </svg>
-  <figcaption>枠をタップすると、そのエリアの拡大図に飛びます</figcaption>
+  <figcaption>文字をタップすると、そのエリアの拡大図に飛びます</figcaption>
   </figure>
+
+  <div class="tbl"><table>
+    <tr><th>松本IC → 松本駅</th><td>約6km ／ 車 20分</td></tr>
+    <tr><th>松本駅 → 城下町</th><td>約700m ／ <b>徒歩 10分</b>（ほぼ平坦）</td></tr>
+    <tr><th>城下町 → 美ヶ原温泉</th><td>約3.5km ／ <b>バス 15分</b>・タクシー 15分／標高差 35m</td></tr>
+    <tr><th>松本駅 → 美ヶ原温泉</th><td>約5km ／ バス 20分・340円前後／タクシー 2,500円前後</td></tr>
+    <tr><th>松本IC → 宿</th><td>車 25分</td></tr>
+    <tr><th>（参考）美ヶ原高原</th><td>温泉街から車 1時間。<b>温泉とは別の場所</b>です</td></tr>
+  </table></div>
+
   <div class="maplinks">
     <a href="#jokamachi">城下町ぜんたい</a>
     <a href="#nawate">なわて通り</a>
@@ -329,10 +341,23 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
   <div class="area">
   <figure class="mapbox">
   <svg viewBox="0 0 340 500" role="img" aria-label="松本駅から東へ進み、本町通りを北上して千歳橋で女鳥羽川を渡る。川の北側になわて通りと四柱神社、南側に中町通り。さらに北へ進むと松本市立博物館、松本城、旧開智学校。バス停は本町と大名町、人力車は松本城黒門前。">
-    <defs>
-      <g id="tree"><circle cx="0" cy="0" r="4.2" fill="var(--leaf)"/><rect x="-0.8" y="3" width="1.6" height="4" fill="var(--roof)"/></g>
-      <g id="tree2"><circle cx="0" cy="0" r="4.2" fill="var(--leaf2)"/><rect x="-0.8" y="3" width="1.6" height="4" fill="var(--roof)"/></g>
-    </defs>
+    <g aria-hidden="true">
+      <defs>
+        <linearGradient id="waJ" x1="0" y1="1" x2="0.35" y2="0">
+          <stop offset="0" stop-color="var(--leaf)" stop-opacity=".085"/>
+          <stop offset=".5" stop-color="var(--leaf)" stop-opacity=".025"/>
+          <stop offset="1" stop-color="var(--leaf)" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <rect width="340" height="500" fill="url(#waJ)"/>
+      <g fill="none" stroke-linecap="round">
+        <path d="M6 126 C 72 112, 148 134, 220 116 C 276 102, 314 116, 338 108" stroke="var(--leaf2)" stroke-width="5.5" opacity=".18" stroke-dasharray="22 8 46 11 14 16 34 9"/>
+        <path d="M18 142 C 84 130, 156 146, 226 130" stroke="var(--leaf2)" stroke-width="2.4" opacity=".13" stroke-dasharray="30 12 11 8 38 14"/>
+        <path d="M8 270 C 76 258, 150 274, 222 258 C 278 246, 316 258, 338 250" stroke="var(--leaf)" stroke-width="5" opacity=".15" stroke-dasharray="26 9 40 13 15 10 30 8"/>
+        <path d="M10 420 C 80 408, 156 424, 228 408 C 282 396, 316 408, 338 400" stroke="var(--leaf)" stroke-width="4.5" opacity=".12" stroke-dasharray="18 10 44 9 20 13"/>
+      </g>
+    </g>
+
 
     <!-- 街区 -->
     <g fill="var(--block)">
@@ -360,13 +385,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
           fill="none" stroke="var(--water)" stroke-width="11" stroke-linecap="round"/>
     <text x="8" y="352" font-size="10" fill="var(--waterdeep)">女鳥羽川</text>
     <rect x="169" y="313" width="17" height="12" rx="2" fill="var(--card)" stroke="var(--sub)" stroke-width="1.5"/>
-
-    <!-- 紅葉 -->
-    <use href="#tree" x="212" y="288"/><use href="#tree2" x="240" y="290"/>
-    <use href="#tree" x="150" y="196"/><use href="#tree2" x="206" y="200"/>
-    <use href="#tree" x="206" y="168"/><use href="#tree2" x="148" y="164"/>
-
-    <!-- 松本城 -->
+<!-- 松本城 -->
     <g>
       <rect x="160" y="168" width="34" height="9" fill="var(--roof)"/>
       <path d="M162 168 l15 -13 l15 13 z" fill="var(--roof)"/>
@@ -526,10 +545,23 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
   <div class="area">
   <figure class="mapbox">
   <svg viewBox="0 0 340 284" role="img" aria-label="女鳥羽川の北岸に沿ってなわて通りが東西に伸び、西端近くに四柱神社、通りの途中にカエル大明神とたい焼きふるさと、東端の先に翁堂本店。南岸に千歳橋があり、渡ると中町通りへ。">
-    <defs>
-      <g id="t3"><circle cx="0" cy="0" r="4" fill="var(--leaf)"/><rect x="-0.7" y="2.8" width="1.4" height="4" fill="var(--roof)"/></g>
-      <g id="t4"><circle cx="0" cy="0" r="4" fill="var(--leaf2)"/><rect x="-0.7" y="2.8" width="1.4" height="4" fill="var(--roof)"/></g>
-    </defs>
+    <g aria-hidden="true">
+      <defs>
+        <linearGradient id="waN" x1="0" y1="1" x2="0.35" y2="0">
+          <stop offset="0" stop-color="var(--leaf)" stop-opacity=".085"/>
+          <stop offset=".5" stop-color="var(--leaf)" stop-opacity=".025"/>
+          <stop offset="1" stop-color="var(--leaf)" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <rect width="340" height="284" fill="url(#waN)"/>
+      <g fill="none" stroke-linecap="round">
+        <path d="M6 44 C 72 32, 146 50, 216 34 C 272 22, 312 34, 338 26" stroke="var(--leaf2)" stroke-width="4.8" opacity=".2" stroke-dasharray="22 8 42 11 14 15 30 9"/>
+        <path d="M16 58 C 82 48, 152 62, 220 48" stroke="var(--leaf2)" stroke-width="2.2" opacity=".14" stroke-dasharray="28 12 10 8 34 13"/>
+        <path d="M8 244 C 76 232, 150 248, 222 232 C 278 220, 316 232, 338 224" stroke="var(--leaf)" stroke-width="5" opacity=".16" stroke-dasharray="24 9 44 12 16 10"/>
+        <path d="M18 258 C 84 248, 154 262, 224 248" stroke="var(--leaf)" stroke-width="2.2" opacity=".12" stroke-dasharray="32 13 11 9 28 8"/>
+      </g>
+    </g>
+
 
     <rect x="76" y="26" width="242" height="48" rx="5" fill="var(--block)"/>
     <rect x="76" y="238" width="242" height="30" rx="5" fill="var(--block)"/>
@@ -569,10 +601,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
       <text x="152" y="148" text-anchor="middle">カエル大明神</text>
     </g>
     <text x="178" y="170" font-size="9.5" fill="var(--sub)" text-anchor="middle">なわて通り　24時間 歩行者天国・全長約250m</text>
-
-    <use href="#t3" x="112" y="90"/><use href="#t4" x="196" y="68"/><use href="#t3" x="282" y="90"/>
-
-    <path d="M6 198 C 70 190, 130 206, 190 194 C 244 183, 282 200, 334 190"
+<path d="M6 198 C 70 190, 130 206, 190 194 C 244 183, 282 200, 334 190"
           fill="none" stroke="var(--water)" stroke-width="13" stroke-linecap="round"/>
     <rect x="49" y="189" width="18" height="14" rx="2" fill="var(--card)" stroke="var(--sub)" stroke-width="1.5"/>
     <circle cx="58" cy="196" r="9" fill="var(--accent)"/><text x="58" y="199.5" font-size="9.5" font-weight="700" fill="var(--oncolor)" text-anchor="middle">3</text>
@@ -647,6 +676,23 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
   <div class="area">
   <figure class="mapbox">
   <svg viewBox="0 0 340 306" role="img" aria-label="中町通りが東西に伸び、西端の本町通り側から蔵シック館、珈琲まるも、はかり資料館、女鳥羽そば、ちきりや工芸店、陶片木の順に並ぶ。通りから南へ200メートル外れたところに源智の井戸。西端の本町通りに美ヶ原温泉行きのバス停。">
+    <g aria-hidden="true">
+      <defs>
+        <linearGradient id="waK" x1="0" y1="1" x2="0.35" y2="0">
+          <stop offset="0" stop-color="var(--leaf)" stop-opacity=".085"/>
+          <stop offset=".5" stop-color="var(--leaf)" stop-opacity=".025"/>
+          <stop offset="1" stop-color="var(--leaf)" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <rect width="340" height="306" fill="url(#waK)"/>
+      <g fill="none" stroke-linecap="round">
+        <path d="M6 42 C 72 30, 146 48, 216 32 C 272 20, 312 32, 338 24" stroke="var(--leaf2)" stroke-width="4.4" opacity=".17" stroke-dasharray="20 8 44 10 15 14 30 8"/>
+        <path d="M8 286 C 76 274, 150 290, 222 274 C 278 262, 316 274, 338 266" stroke="var(--leaf)" stroke-width="4.8" opacity=".15" stroke-dasharray="26 10 40 12 14 9"/>
+        <path d="M18 300 C 84 290, 154 302, 224 290" stroke="var(--leaf)" stroke-width="2.2" opacity=".11" stroke-dasharray="30 12 12 8 32 10"/>
+      </g>
+    </g>
+
+
     <defs>
       <pattern id="nm" width="9" height="9" patternUnits="userSpaceOnUse">
         <rect width="9" height="9" fill="var(--roof)"/>
@@ -895,13 +941,35 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
   <div class="area">
   <figure class="mapbox">
   <svg viewBox="0 0 340 358" role="img" aria-label="松本市街から東へ上ってきた道沿いに、まずバス停松本民芸館と松本民芸館。そこから北東へ400メートル進むと追分屋旅館、さらに90メートル先に日帰り温泉の白糸の湯。終点の辻堂バス停は旅館のすぐそば。">
+    <g aria-hidden="true">
+      <defs>
+        <linearGradient id="waO" x1="0" y1="1" x2="0.35" y2="0">
+          <stop offset="0" stop-color="var(--leaf)" stop-opacity=".085"/>
+          <stop offset=".5" stop-color="var(--leaf)" stop-opacity=".025"/>
+          <stop offset="1" stop-color="var(--leaf)" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="wbO" x1="0" y1="0" x2="0.2" y2="1">
+          <stop offset="0" stop-color="var(--leaf2)" stop-opacity=".16"/>
+          <stop offset="1" stop-color="var(--leaf2)" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <rect width="340" height="358" fill="url(#waO)"/>
+      <rect x="119" y="0" width="221" height="150" fill="url(#wbO)"/>
+      <g fill="none" stroke-linecap="round">
+        <path d="M110 24 C 160 10, 216 28, 268 14 C 300 6, 322 16, 340 10" stroke="var(--leaf2)" stroke-width="5.5" opacity=".22" stroke-dasharray="24 9 46 12 16 15 32 8"/>
+        <path d="M148 44 C 196 32, 250 46, 300 34 C 320 29, 332 34, 340 31" stroke="var(--leaf2)" stroke-width="2.6" opacity=".16" stroke-dasharray="30 13 11 9 36 12"/>
+        <path d="M180 84 C 228 72, 282 88, 330 74" stroke="var(--leaf)" stroke-width="4" opacity=".16" stroke-dasharray="20 10 42 11 15 9"/>
+        <path d="M6 250 C 74 238, 148 254, 220 238 C 276 226, 314 238, 338 230" stroke="var(--leaf)" stroke-width="5" opacity=".15" stroke-dasharray="26 9 40 13 15 10 30 8"/>
+        <path d="M16 264 C 82 254, 152 268, 222 254" stroke="var(--leaf)" stroke-width="2.2" opacity=".11" stroke-dasharray="32 13 11 9 28 8"/>
+      </g>
+    </g>
+
+
     <defs>
       <pattern id="nm2" width="9" height="9" patternUnits="userSpaceOnUse">
         <rect width="9" height="9" fill="var(--roof)"/>
         <path d="M4.5 0 L9 4.5 L4.5 9 L0 4.5 Z" fill="none" stroke="var(--card)" stroke-width="1.6"/>
       </pattern>
-      <g id="t5"><circle cx="0" cy="0" r="5" fill="var(--leaf)"/><rect x="-1" y="3.4" width="2" height="5" fill="var(--roof)"/></g>
-      <g id="t6"><circle cx="0" cy="0" r="5" fill="var(--leaf2)"/><rect x="-1" y="3.4" width="2" height="5" fill="var(--roof)"/></g>
     </defs>
 
     <!-- 山なみ -->
@@ -912,11 +980,7 @@ footer h5{font-size:12px;margin:14px 0 4px;color:var(--ink);font-weight:700}
     <g stroke="var(--line)" stroke-width="15" stroke-linecap="round" fill="none">
       <path d="M12 318 L66 300 L152 206 L232 106 L308 66"/>
     </g>
-
-    <use href="#t5" x="112" y="238"/><use href="#t6" x="192" y="150"/>
-    <use href="#t5" x="272" y="122"/><use href="#t6" x="100" y="282"/>
-
-    <g>
+<g>
       <rect x="48" y="270" width="32" height="19" rx="2" fill="url(#nm2)"/>
       <path d="M46 270 l18 -11 l18 11 z" fill="var(--roof)"/>
     </g>

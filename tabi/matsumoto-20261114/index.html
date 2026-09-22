@@ -106,6 +106,10 @@ body.arriving .wrap{animation:settle .34s ease-out}
   letter-spacing:.06em}
 .cover .ev2{display:block;font-size:11px;color:#6b5f49;letter-spacing:.14em;
   margin-top:2px}
+/* 温泉マークは地図記号。端末の明朝を先に当てて、カラー絵文字に化けるのを減らす
+   （字形指定 U+FE0E だけだと、無視する端末がある） */
+.cover .mk{font-family:"Hiragino Mincho ProN","Yu Mincho","YuMincho",
+  "Noto Serif JP","MS PMincho",serif}
 @media (min-width:430px){
   .cover .ev{font-size:21px} .cover .ev2{font-size:12.5px}
   .cover figcaption{padding:12px 17px 11px}
@@ -363,8 +367,8 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
   <img src="img/cover.webp" width="1200" height="670" fetchpriority="high"
        alt="松本城と城下町を空から見た絵図。堀と赤い橋、白壁となまこ壁の町並み、紅葉、奥に雪をかぶった北アルプス。">
   <figcaption>
-    <span class="ev">第2回いとこ会</span>
-    <span class="ev2">〜 松本温泉編 〜</span>
+    <span class="ev">第2回 いとこ会</span>
+    <span class="ev2">〜 松本温泉<span class="mk">♨︎</span>編 〜</span>
   </figcaption>
 </figure>
 

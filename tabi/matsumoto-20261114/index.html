@@ -324,7 +324,17 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
   .area{display:grid;grid-template-columns:minmax(320px,430px) 1fr;gap:38px;align-items:start}
   .area > figure{position:sticky;top:76px}
   .area > .spots{min-width:0}
-  /* 全体図は模式図。引き伸ばすと粗が目立つので幅を止める */
+  /* 全体図には絵を敷いてある。紙の上の絵なので、暗い画面でも
+   文字の色は明るい画面のものに固定する（反転すると紙の上で消える） */
+.overview svg{--ink:#232019;--sub:#6d6455;--line:#e2d9c8;--bg:#f7f3ea;
+  --accent:#1e4033;--accent2:#b24e28;--gold:#a8843a;--oncolor:#fffdf9}
+/* 絵の上に文字を置くので、地図の定石どおり紙色の縁取りを回す。
+   絵を薄くして逃げると絵が消えるので、こちらで受ける。
+   塗りつぶしの札の中の文字（--oncolor）は地が濃いので除く */
+.overview svg text:not([fill="var(--oncolor)"]):not([fill="var(--bg)"]){
+  paint-order:stroke fill;stroke:var(--bg);stroke-width:2.2px;
+  stroke-linejoin:round;stroke-opacity:.92}
+/* 全体図は模式図。引き伸ばすと粗が目立つので幅を止める */
   .cats{grid-template-columns:1fr 1fr;align-items:start}
   .fab{right:24px;bottom:24px}
   .overview{max-width:700px;margin:0 auto}
@@ -421,36 +431,8 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
   <div class="mapbox overview">
   <figure>
   <svg viewBox="0 0 340 214" role="img" aria-label="西から東へ、松本インター、松本駅、城下町、美ヶ原温泉の順に並ぶ位置関係図。城下町は松本駅の北東すぐ、美ヶ原温泉はそこからさらに東の山あい。">
-    <g aria-hidden="true">
-      <defs>
-        <radialGradient id="sp1">
-          <stop offset="0" stop-color="var(--leaf2)" stop-opacity="0.26"/>
-          <stop offset=".45" stop-color="var(--leaf2)" stop-opacity="0.117"/>
-          <stop offset=".82" stop-color="var(--leaf2)" stop-opacity="0.031"/>
-          <stop offset="1" stop-color="var(--leaf2)" stop-opacity="0"/>
-        </radialGradient>
-        <radialGradient id="sp2">
-          <stop offset="0" stop-color="var(--leaf)" stop-opacity="0.2"/>
-          <stop offset=".45" stop-color="var(--leaf)" stop-opacity="0.090"/>
-          <stop offset=".82" stop-color="var(--leaf)" stop-opacity="0.024"/>
-          <stop offset="1" stop-color="var(--leaf)" stop-opacity="0"/>
-        </radialGradient>
-        <radialGradient id="sp3">
-          <stop offset="0" stop-color="var(--leaf)" stop-opacity="0.14"/>
-          <stop offset=".45" stop-color="var(--leaf)" stop-opacity="0.063"/>
-          <stop offset=".82" stop-color="var(--leaf)" stop-opacity="0.017"/>
-          <stop offset="1" stop-color="var(--leaf)" stop-opacity="0"/>
-        </radialGradient>
-      </defs>
-      <circle cx="292" cy="42" r="74" fill="url(#sp1)"/>
-      <g fill="var(--leaf2)"><circle cx="357.6" cy="69.9" r="1.8" opacity="0.15"/><circle cx="329.3" cy="81.2" r="1.6" opacity="0.11"/><circle cx="349.3" cy="31.5" r="1.7" opacity="0.21"/><circle cx="251.6" cy="-16.2" r="1.1" opacity="0.12"/><circle cx="296.1" cy="100.0" r="1.8" opacity="0.16"/><circle cx="352.6" cy="-11.5" r="1.8" opacity="0.14"/><circle cx="214.0" cy="51.4" r="1.5" opacity="0.18"/><circle cx="376.4" cy="33.3" r="1.0" opacity="0.10"/><circle cx="249.9" cy="-10.1" r="1.7" opacity="0.09"/><circle cx="346.0" cy="69.1" r="0.7" opacity="0.16"/><circle cx="354.5" cy="27.5" r="1.8" opacity="0.09"/><circle cx="313.8" cy="-16.5" r="0.7" opacity="0.19"/><circle cx="316.4" cy="-13.5" r="0.6" opacity="0.14"/><circle cx="227.1" cy="39.9" r="1.3" opacity="0.21"/><circle cx="259.9" cy="98.3" r="1.6" opacity="0.20"/><circle cx="374.7" cy="19.2" r="1.2" opacity="0.10"/><circle cx="234.8" cy="44.6" r="1.5" opacity="0.18"/><circle cx="291.0" cy="-26.3" r="1.6" opacity="0.16"/><circle cx="290.0" cy="115.0" r="1.2" opacity="0.17"/><circle cx="361.8" cy="15.0" r="1.7" opacity="0.19"/><circle cx="276.2" cy="-19.9" r="1.7" opacity="0.18"/><circle cx="348.7" cy="28.4" r="1.8" opacity="0.11"/><circle cx="318.2" cy="-17.9" r="1.6" opacity="0.07"/><circle cx="224.3" cy="87.8" r="1.4" opacity="0.14"/><circle cx="335.2" cy="85.0" r="1.7" opacity="0.16"/><circle cx="287.7" cy="-27.7" r="1.7" opacity="0.19"/><circle cx="277.8" cy="118.0" r="1.6" opacity="0.12"/><circle cx="347.6" cy="39.0" r="1.7" opacity="0.08"/><circle cx="246.9" cy="92.5" r="1.8" opacity="0.08"/><circle cx="344.4" cy="-20.2" r="0.9" opacity="0.20"/><circle cx="347.3" cy="83.5" r="1.1" opacity="0.18"/><circle cx="279.2" cy="-28.2" r="0.6" opacity="0.10"/><circle cx="273.5" cy="104.8" r="0.6" opacity="0.12"/><circle cx="221.9" cy="15.9" r="1.5" opacity="0.16"/><circle cx="272.5" cy="117.7" r="0.7" opacity="0.10"/><circle cx="288.4" cy="118.8" r="1.6" opacity="0.08"/><circle cx="353.0" cy="49.6" r="0.9" opacity="0.11"/><circle cx="219.3" cy="74.4" r="0.6" opacity="0.10"/><circle cx="369.7" cy="69.6" r="1.0" opacity="0.12"/><circle cx="290.2" cy="115.6" r="1.3" opacity="0.14"/><circle cx="251.1" cy="83.8" r="0.9" opacity="0.16"/><circle cx="262.9" cy="-31.1" r="1.2" opacity="0.17"/><circle cx="344.0" cy="-0.3" r="1.1" opacity="0.10"/><circle cx="315.0" cy="118.6" r="1.4" opacity="0.19"/><circle cx="221.5" cy="70.3" r="1.4" opacity="0.16"/></g>
-      <circle cx="56" cy="176" r="62" fill="url(#sp2)"/>
-      <g fill="var(--leaf)"><circle cx="1.8" cy="194.9" r="1.9" opacity="0.10"/><circle cx="14.4" cy="225.8" r="0.6" opacity="0.07"/><circle cx="9.0" cy="166.4" r="1.4" opacity="0.09"/><circle cx="65.1" cy="121.6" r="0.6" opacity="0.11"/><circle cx="125.0" cy="176.1" r="0.9" opacity="0.14"/><circle cx="105.3" cy="198.4" r="1.0" opacity="0.18"/><circle cx="38.1" cy="234.7" r="1.8" opacity="0.11"/><circle cx="75.0" cy="216.9" r="0.8" opacity="0.06"/><circle cx="61.0" cy="124.5" r="0.6" opacity="0.15"/><circle cx="93.4" cy="118.3" r="0.6" opacity="0.11"/><circle cx="28.4" cy="238.8" r="1.4" opacity="0.12"/><circle cx="16.7" cy="210.5" r="0.7" opacity="0.09"/><circle cx="115.8" cy="212.1" r="1.1" opacity="0.16"/><circle cx="10.0" cy="209.8" r="1.8" opacity="0.13"/><circle cx="59.3" cy="112.8" r="0.8" opacity="0.12"/><circle cx="126.1" cy="165.6" r="1.8" opacity="0.10"/><circle cx="86.4" cy="136.8" r="0.8" opacity="0.16"/><circle cx="-6.5" cy="199.4" r="1.0" opacity="0.15"/><circle cx="43.8" cy="227.3" r="1.5" opacity="0.13"/><circle cx="37.0" cy="124.1" r="1.8" opacity="0.17"/><circle cx="112.1" cy="175.4" r="0.8" opacity="0.07"/><circle cx="75.3" cy="133.8" r="1.2" opacity="0.14"/><circle cx="58.7" cy="244.9" r="0.6" opacity="0.16"/><circle cx="49.2" cy="124.6" r="0.9" opacity="0.08"/><circle cx="99.3" cy="132.7" r="1.2" opacity="0.17"/><circle cx="74.1" cy="133.9" r="0.5" opacity="0.13"/><circle cx="11.7" cy="216.4" r="0.9" opacity="0.13"/><circle cx="-11.0" cy="192.3" r="1.9" opacity="0.07"/><circle cx="96.0" cy="211.2" r="0.5" opacity="0.18"/><circle cx="14.2" cy="198.8" r="1.4" opacity="0.06"/><circle cx="43.0" cy="106.0" r="1.2" opacity="0.14"/><circle cx="63.5" cy="226.8" r="1.2" opacity="0.06"/><circle cx="52.4" cy="121.8" r="0.9" opacity="0.14"/><circle cx="8.4" cy="214.5" r="1.0" opacity="0.16"/><circle cx="14.0" cy="217.3" r="0.7" opacity="0.16"/><circle cx="84.8" cy="136.3" r="0.9" opacity="0.08"/><circle cx="-12.1" cy="185.3" r="1.0" opacity="0.06"/><circle cx="123.1" cy="183.0" r="1.9" opacity="0.16"/></g>
-      <circle cx="196" cy="132" r="52" fill="url(#sp3)"/>
-      <g fill="var(--leaf)"><circle cx="147.0" cy="166.8" r="1.4" opacity="0.08"/><circle cx="183.4" cy="174.6" r="0.9" opacity="0.12"/><circle cx="232.4" cy="165.4" r="0.7" opacity="0.07"/><circle cx="165.3" cy="158.4" r="1.8" opacity="0.06"/><circle cx="233.5" cy="147.1" r="1.5" opacity="0.07"/><circle cx="169.2" cy="90.8" r="1.8" opacity="0.09"/><circle cx="165.6" cy="171.7" r="0.8" opacity="0.05"/><circle cx="208.6" cy="89.7" r="0.9" opacity="0.10"/><circle cx="154.9" cy="95.2" r="1.5" opacity="0.10"/><circle cx="239.9" cy="124.4" r="0.7" opacity="0.10"/><circle cx="198.7" cy="177.3" r="1.8" opacity="0.12"/><circle cx="228.4" cy="171.7" r="1.6" opacity="0.06"/><circle cx="243.2" cy="149.2" r="1.1" opacity="0.08"/><circle cx="181.4" cy="179.5" r="0.5" opacity="0.09"/><circle cx="202.1" cy="180.7" r="1.1" opacity="0.08"/><circle cx="157.7" cy="98.5" r="1.3" opacity="0.09"/><circle cx="243.5" cy="133.9" r="0.9" opacity="0.05"/><circle cx="156.8" cy="93.8" r="1.9" opacity="0.12"/><circle cx="165.2" cy="157.5" r="1.3" opacity="0.09"/><circle cx="154.3" cy="154.5" r="1.1" opacity="0.08"/><circle cx="161.5" cy="150.8" r="1.2" opacity="0.08"/><circle cx="162.3" cy="86.1" r="0.6" opacity="0.05"/><circle cx="145.0" cy="145.8" r="0.7" opacity="0.08"/><circle cx="150.9" cy="148.7" r="1.5" opacity="0.07"/><circle cx="160.5" cy="157.7" r="0.9" opacity="0.07"/><circle cx="170.3" cy="87.9" r="0.9" opacity="0.10"/><circle cx="169.5" cy="86.7" r="1.8" opacity="0.06"/><circle cx="190.0" cy="88.9" r="1.2" opacity="0.11"/><circle cx="249.2" cy="152.0" r="1.0" opacity="0.07"/><circle cx="164.3" cy="182.1" r="0.7" opacity="0.05"/><circle cx="243.6" cy="148.0" r="0.9" opacity="0.08"/><circle cx="226.5" cy="88.0" r="1.3" opacity="0.05"/></g>
-      <path d="M18 196 L44 191 L70 167 L95 165 L122 145 L150 139 L176 114 L205 112" fill="none" stroke="var(--leaf)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity=".16" stroke-dasharray="26 20 28 27 32 34 20 21"/>
-      <path d="M230 12 L250 32 L271 36 L291 60 L311 66 L332 90" fill="none" stroke="var(--leaf2)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity=".20" stroke-dasharray="7 15 32 31 8 19 23 18"/>
-    </g>
+    <image href="img/map-zentai.webp" x="0" y="0" width="340" height="214"
+           preserveAspectRatio="xMidYMid slice" aria-hidden="true"/>
 
 
 

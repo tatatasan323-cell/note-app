@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"><Document>
+<name>第2回いとこ会 松本まちあるき（2026/11/14）</name>
+<description>営業時間・料金は2026年9月時点で公式サイト確認。案内: https://tatatasan323-cell.github.io/note-app/tabi/matsumoto-20261114/</description>
+<Folder><name>泊まる</name>
+<Placemark><name>【宿】美ヶ原温泉 追分屋旅館</name><description>11/14 チェックイン15:00／11/15 チェックアウト10:00。0263-33-3378。駐車35台無料</description><Point><coordinates>137.997955,36.245564,0</coordinates></Point></Placemark>
+</Folder>
+<Folder><name>起点</name>
+<Placemark><name>【起点】松本駅 お城口</name><description>バス3番のりば・タウンスニーカー21/22番のりば・タクシー乗り場・コインロッカー</description><Point><coordinates>137.965363,36.230938,0</coordinates></Point></Placemark>
+</Folder>
+<Folder><name>歩く</name>
+<Placemark><name>千歳橋</name><description>女鳥羽川。北が武家地、南が町人地だった境目</description><Point><coordinates>137.9697,36.2343,0</coordinates></Point></Placemark>
+<Placemark><name>なわて通り・カエル大明神</name><description>24時間 歩行者天国・全長250m</description><Point><coordinates>137.97033,36.23448,0</coordinates></Point></Placemark>
+<Placemark><name>中町通り</name><description>なまこ壁の蔵並み。全長400m</description><Point><coordinates>137.9715,36.2338,0</coordinates></Point></Placemark>
+<Placemark><name>源智の井戸</name><description>毎分約200L。松本市特別史跡</description><Point><coordinates>137.972853,36.232406,0</coordinates></Point></Placemark>
+</Folder>
+<Folder><name>見る</name>
+<Placemark><name>四柱神社</name><description>境内自由／社務所9:00-16:30</description><Point><coordinates>137.970356,36.234898,0</coordinates></Point></Placemark>
+<Placemark><name>松本市立博物館</name><description>1階は無料。9:00-17:00・火曜休</description><Point><coordinates>137.969543,36.23518,0</coordinates></Point></Placemark>
+<Placemark><name>国宝 松本城</name><description>8:30-17:00（最終16:30）／大人1,200円（電子）。お堀端は無料</description><Point><coordinates>137.969513,36.238808,0</coordinates></Point></Placemark>
+<Placemark><name>国宝 旧開智学校校舎</name><description>9:00-17:00（入館16:30）／一般700円。3〜11月は第3火曜休</description><Point><coordinates>137.967834,36.242748,0</coordinates></Point></Placemark>
+<Placemark><name>中町・蔵シック館</name><description>無料。9:00-17:00（夏期17:30）</description><Point><coordinates>137.971344,36.233761,0</coordinates></Point></Placemark>
+<Placemark><name>松本市はかり資料館</name><description>無料。9:00-17:00（入館16:30）・火曜休</description><Point><coordinates>137.97261,36.233871,0</coordinates></Point></Placemark>
+<Placemark><name>松本民芸館</name><description>大人500円・小中無料。9:00-17:00（入館16:30）・火曜休。宿まで徒歩7分</description><Point><coordinates>137.995071,36.242893,0</coordinates></Point></Placemark>
+</Folder>
+<Folder><name>食べる</name>
+<Placemark><name>女鳥羽そば</name><description>11:00-19:00頃・水曜と第3火曜休。手打ち。小上がりと椅子席</description><Point><coordinates>137.973099,36.234463,0</coordinates></Point></Placemark>
+<Placemark><name>珈琲まるも</name><description>9:00-16:00（LO15:30）・月火休。自家製プリン300円</description><Point><coordinates>137.972458,36.234283,0</coordinates></Point></Placemark>
+<Placemark><name>たい焼き ふるさと</name><description>10:00-17:00・火水休。1946年創業の一本焼き</description><Point><coordinates>137.970963,36.234699,0</coordinates></Point></Placemark>
+<Placemark><name>翁堂 本店</name><description>9:00-19:00・第1第3水曜休。タヌキケーキ</description><Point><coordinates>137.972504,36.235126,0</coordinates></Point></Placemark>
+<Placemark><name>開運堂 本店</name><description>9:00-18:00・元旦のみ休。真味糖・開運老松</description><Point><coordinates>137.969208,36.232536,0</coordinates></Point></Placemark>
+</Folder>
+<Folder><name>買う</name>
+<Placemark><name>ちきりや工芸店</name><description>10:00-17:30・火水休</description><Point><coordinates>137.973175,36.233883,0</coordinates></Point></Placemark>
+<Placemark><name>陶片木</name><description>火水休。うつわ屋</description><Point><coordinates>137.973297,36.233822,0</coordinates></Point></Placemark>
+</Folder>
+<Folder><name>浸る</name>
+<Placemark><name>ふれあい山辺館 白糸の湯</name><description>10-3月 7:00-22:00／大人400円。宿から徒歩2分</description><Point><coordinates>137.998762,36.24602,0</coordinates></Point></Placemark>
+</Folder>
+<Folder><name>乗る</name>
+<Placemark><name>バス停「本町」</name><description>美ヶ原温泉行き。中町の西端から北へ2分</description><Point><coordinates>137.96938,36.23344,0</coordinates></Point></Placemark>
+<Placemark><name>バス停「大名町」</name><description>美ヶ原温泉行き。千歳橋のすぐ北</description><Point><coordinates>137.96955,36.23497,0</coordinates></Point></Placemark>
+<Placemark><name>松本バスターミナル 3番のりば</name><description>美ヶ原温泉行きの始発</description><Point><coordinates>137.96667,36.23011,0</coordinates></Point></Placemark>
+<Placemark><name>タクシー乗り場（松本駅お城口）</name><description>配車 アルピコタクシー 0263-87-0555</description><Point><coordinates>137.96509,36.23084,0</coordinates></Point></Placemark>
+<Placemark><name>人力車 乗り場（松本城 黒門前）</name><description>9:30-16:30・火曜休・要予約 080-4806-8177</description><Point><coordinates>137.96945,36.23845,0</coordinates></Point></Placemark>
+</Folder>
+<Folder><name>停める</name>
+<Placemark><name>松本城大手門駐車場（立体）</name><description>437台・7:30-22:30・30分150円</description><Point><coordinates>137.96868,36.23515,0</coordinates></Point></Placemark>
+<Placemark><name>蔵のある街 中町駐車場</name><description>約10台・1時間300円・5分以内無料</description><Point><coordinates>137.971,36.2337,0</coordinates></Point></Placemark>
+</Folder>
+</Document></kml>

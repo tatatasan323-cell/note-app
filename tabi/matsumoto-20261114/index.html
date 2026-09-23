@@ -431,59 +431,66 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
   <h2>全体図<span class="cnt">タップで拡大図へ</span></h2>
   <div class="mapbox overview">
   <figure>
-  <svg viewBox="0 0 340 214" role="img" aria-label="西から東へ、松本インター、松本駅、城下町、美ヶ原温泉の順に並ぶ位置関係図。城下町は松本駅の北東すぐ、美ヶ原温泉はそこからさらに東の山あい。">
+  <svg viewBox="0 0 340 214" role="img" aria-label="上が北、右が東の位置図。左下に松本IC、そこから東へ松本駅。松本駅の真北に城下町。城下町から東へ上ったところが美ヶ原温泉。">
     <image href="img/map-zentai.webp" x="0" y="0" width="340" height="214"
            preserveAspectRatio="xMidYMid slice" aria-hidden="true"/>
 
-
-
+    <!-- 道すじ。IC→駅は東、駅→城下町は北、城下町→温泉は東。
+         上が北・右が東になるように置いてある（実際の方角どおり） -->
     <defs><g id="rt">
-      <path d="M38 150 L126 156"/>
-      <path d="M126 156 L200 110"/>
-      <path d="M200 110 L296 64"/>
+      <path d="M40 166 L120 166"/>
+      <path d="M120 166 L134 84"/>
+      <path d="M134 84 L288 58"/>
     </g></defs>
-    <g fill="none" stroke-linecap="round">
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
       <use href="#rt" stroke="var(--bg)" stroke-width="11" opacity=".95"/>
       <use href="#rt" stroke="var(--sub)" stroke-width="3.2" opacity=".42"/>
     </g>
 
     <g>
       <a href="#kuruma">
-        <rect x="8" y="138" width="60" height="42" fill="transparent"/>
-        <rect x="12" y="142" width="52" height="17" rx="3.5" fill="var(--sub)"/>
-        <text x="38" y="154" font-size="9.5" fill="var(--bg)" text-anchor="middle">松本IC ›</text>
-        <text x="38" y="175" font-size="9.4" fill="var(--sub)" text-anchor="middle">長野自動車道</text>
+        <rect x="8" y="152" width="62" height="44" fill="transparent"/>
+        <rect x="14" y="157" width="52" height="17" rx="3.5" fill="var(--sub)"/>
+        <text x="40" y="169" font-size="9.5" fill="var(--bg)" text-anchor="middle">松本IC ›</text>
+        <text x="40" y="189" font-size="9.4" fill="var(--sub)" text-anchor="middle">長野自動車道</text>
       </a>
     </g>
 
     <a href="#p1" class="lbl">
-      <rect x="98" y="148" width="56" height="34" fill="transparent"/>
-      <circle cx="126" cy="156" r="7" fill="var(--accent)"/>
-      <text x="126" y="178" font-size="11" fill="var(--ink)" text-anchor="middle">松本駅</text>
+      <rect x="94" y="158" width="52" height="36" fill="transparent"/>
+      <circle cx="120" cy="166" r="7" fill="var(--accent)"/>
+      <text x="120" y="189" font-size="11" fill="var(--ink)" text-anchor="middle">松本駅</text>
     </a>
-    <text x="126" y="192" font-size="9.4" fill="var(--sub)" text-anchor="middle">標高586m</text>
+    <text x="146" y="189" font-size="9.4" fill="var(--sub)">標高586m</text>
 
     <a href="#jokamachi">
-      <text x="200" y="79" font-size="9.4" fill="var(--sub)" text-anchor="middle">なわて・中町・松本城</text>
-      <text x="200" y="94" font-size="12" fill="var(--ink)" text-anchor="middle">城下町</text>
-      <circle cx="200" cy="110" r="9" fill="none" stroke="var(--accent)" stroke-width="1.6" opacity=".45"/>
-      <circle cx="200" cy="110" r="5.5" fill="var(--accent)"/>
-      <rect x="172" y="124" width="56" height="15" rx="7.5" fill="var(--accent2)"/>
-      <text x="200" y="134.5" font-size="9" fill="var(--oncolor)" text-anchor="middle">拡大図へ ›</text>
+      <text x="134" y="55" font-size="9.4" fill="var(--sub)" text-anchor="middle">なわて・中町・松本城</text>
+      <text x="134" y="70" font-size="12" fill="var(--ink)" text-anchor="middle">城下町</text>
+      <circle cx="134" cy="84" r="9" fill="none" stroke="var(--accent)" stroke-width="1.6" opacity=".45"/>
+      <circle cx="134" cy="84" r="5.5" fill="var(--accent)"/>
+      <rect x="106" y="96" width="56" height="15" rx="7.5" fill="var(--accent2)"/>
+      <text x="134" y="106.5" font-size="9" fill="var(--oncolor)" text-anchor="middle">拡大図へ ›</text>
     </a>
+    <text x="127" y="130" font-size="9" fill="var(--sub)" text-anchor="end">↑ 駅から歩いて10分</text>
 
     <a href="#onsen">
-      <text x="294" y="33" font-size="9.4" fill="var(--sub)" text-anchor="middle">追分屋・松本民芸館</text>
-      <text x="296" y="48" font-size="12" fill="var(--ink)" text-anchor="middle">美ヶ原温泉</text>
-      <circle cx="296" cy="64" r="9.5" fill="none" stroke="var(--gold)" stroke-width="1.6" opacity=".5"/>
-      <circle cx="296" cy="64" r="6" fill="var(--gold)"/>
-      <rect x="268" y="78" width="56" height="15" rx="7.5" fill="var(--accent2)"/>
-      <text x="296" y="88.5" font-size="9" fill="var(--oncolor)" text-anchor="middle">拡大図へ ›</text>
+      <text x="286" y="29" font-size="9.4" fill="var(--sub)" text-anchor="middle">追分屋・松本民芸館</text>
+      <text x="288" y="44" font-size="12" fill="var(--ink)" text-anchor="middle">美ヶ原温泉</text>
+      <circle cx="288" cy="58" r="9.5" fill="none" stroke="var(--gold)" stroke-width="1.6" opacity=".5"/>
+      <circle cx="288" cy="58" r="6" fill="var(--gold)"/>
+      <rect x="260" y="70" width="56" height="15" rx="7.5" fill="var(--accent2)"/>
+      <text x="288" y="80.5" font-size="9" fill="var(--oncolor)" text-anchor="middle">拡大図へ ›</text>
     </a>
+    <text x="232" y="110" font-size="9" fill="var(--sub)" text-anchor="middle">東へ3.5km・バス15分 →</text>
+
+    <g transform="translate(314,150)">
+      <path d="M0 -13 L5 6 L0 2 L-5 6 Z" fill="var(--sub)" opacity=".75"/>
+      <text x="0" y="19" font-size="9" fill="var(--sub)" text-anchor="middle">北</text>
+    </g>
 
     <text x="8" y="16" font-size="9" fill="var(--sub)">西</text>
     <text x="332" y="16" font-size="9" fill="var(--sub)" text-anchor="end">東</text>
-    <text x="170" y="16" font-size="9" fill="var(--sub)" text-anchor="middle">駅の北東が城下町、その東の山あいが温泉</text>
+    <text x="164" y="16" font-size="9" fill="var(--sub)" text-anchor="middle">駅の北が城下町、そこから東へ上ると温泉</text>
     <text x="170" y="209" font-size="8.5" fill="var(--sub)" text-anchor="middle">※位置関係の図です。距離と時間は下の表に</text>
   </svg>
   <figcaption>名前をタップすると、そのあたりの拡大図に飛びます</figcaption>

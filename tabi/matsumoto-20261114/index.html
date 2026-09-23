@@ -105,8 +105,10 @@ body.arriving .wrap{animation:settle .34s ease-out}
 .grounded svg{--ink:#232019;--sub:#6d6455;--line:#e2d9c8;--bg:#f7f3ea;
   --accent:#1e4033;--accent2:#b24e28;--gold:#a8843a;--oncolor:#fffdf9}
 /* 地を敷くと、区画の四角が「文字の入っていない札」に見えてしまう。
-   土地の質感は絵が持っているので、区切りが分かる程度まで薄くする */
-.grounded svg g[fill="var(--block)"]{opacity:.34}
+   薄くしても四角は四角なので、地を敷いた図では消す。
+   街区の形は、通り（紙色の縁＋芯）と地の絵が受け持つ */
+.grounded svg g[fill="var(--block)"],
+.grounded svg rect[fill="var(--block)"]{display:none}
 /* 絵の上に文字を置くので、地図の定石どおり紙色の縁取りを回す。
    絵を薄くして逃げると絵が消えるので、こちらで受ける。
    塗りつぶしの札の中の文字（--oncolor）は地が濃いので除く */

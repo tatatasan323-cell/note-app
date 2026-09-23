@@ -100,6 +100,26 @@ body.arriving .wrap{animation:settle .34s ease-out}
 .cover.back figcaption{margin:13px auto 15px;padding:9px 18px 8px}
 .cover.back .ev2{letter-spacing:.2em;margin:0 0 3px}
 .cover.back .ev{font-size:15px}
+/* 全体図には絵を敷いてある。紙の上の絵なので、暗い画面でも
+   文字の色は明るい画面のものに固定する（反転すると紙の上で消える） */
+.grounded svg{--ink:#232019;--sub:#6d6455;--line:#e2d9c8;--bg:#f7f3ea;
+  --accent:#1e4033;--accent2:#b24e28;--gold:#a8843a;--oncolor:#fffdf9}
+/* 地を敷くと、区画の四角が「文字の入っていない札」に見えてしまう。
+   土地の質感は絵が持っているので、区切りが分かる程度まで薄くする */
+.grounded svg g[fill="var(--block)"]{opacity:.34}
+/* 絵の上に文字を置くので、地図の定石どおり紙色の縁取りを回す。
+   絵を薄くして逃げると絵が消えるので、こちらで受ける。
+   塗りつぶしの札の中の文字（--oncolor）は地が濃いので除く */
+/* 中間色のままだと、無地の上でも比2.9しかなく基準の4.5に届かない。
+   地を敷いた図の中だけ濃くする（ピンの塗りはそのまま） */
+.grounded svg text[fill="var(--waterdeep)"]{fill:#39687f}
+.grounded svg text[fill="var(--gold)"]{fill:#7a5c1f}
+.grounded svg text[fill="var(--sub)"]{fill:#5a5243}
+.grounded svg text[fill="var(--park)"]{fill:#3d5f7a}
+.grounded svg text:not([fill="var(--oncolor)"]):not([fill="var(--bg)"]){
+  paint-order:stroke fill;stroke:var(--bg);stroke-width:3px;
+  stroke-linejoin:round;stroke-opacity:1}
+
 @media (min-width:900px){ .cover.back .ev{font-size:18px} }
 /* 下端を地の色へ溶かす。明るい画面では地が生成りなので見えない（暗い画面用） */
 .cover::after{content:"";position:absolute;left:0;right:0;bottom:0;height:9%;
@@ -333,22 +353,6 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
   .area{display:grid;grid-template-columns:minmax(320px,430px) 1fr;gap:38px;align-items:start}
   .area > figure{position:sticky;top:76px}
   .area > .spots{min-width:0}
-  /* 全体図には絵を敷いてある。紙の上の絵なので、暗い画面でも
-   文字の色は明るい画面のものに固定する（反転すると紙の上で消える） */
-.grounded svg{--ink:#232019;--sub:#6d6455;--line:#e2d9c8;--bg:#f7f3ea;
-  --accent:#1e4033;--accent2:#b24e28;--gold:#a8843a;--oncolor:#fffdf9}
-/* 絵の上に文字を置くので、地図の定石どおり紙色の縁取りを回す。
-   絵を薄くして逃げると絵が消えるので、こちらで受ける。
-   塗りつぶしの札の中の文字（--oncolor）は地が濃いので除く */
-/* 中間色のままだと、無地の上でも比2.9しかなく基準の4.5に届かない。
-   地を敷いた図の中だけ濃くする（ピンの塗りはそのまま） */
-.grounded svg text[fill="var(--waterdeep)"]{fill:#39687f}
-.grounded svg text[fill="var(--gold)"]{fill:#7a5c1f}
-.grounded svg text[fill="var(--sub)"]{fill:#5a5243}
-.grounded svg text[fill="var(--park)"]{fill:#3d5f7a}
-.grounded svg text:not([fill="var(--oncolor)"]):not([fill="var(--bg)"]){
-  paint-order:stroke fill;stroke:var(--bg);stroke-width:3px;
-  stroke-linejoin:round;stroke-opacity:1}
 /* 全体図は模式図。引き伸ばすと粗が目立つので幅を止める */
   .cats{grid-template-columns:1fr 1fr;align-items:start}
   .fab{right:24px;bottom:24px}
@@ -747,7 +751,7 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
     <g font-size="9.5" fill="var(--sub)">
       <text x="164" y="392" text-anchor="end">本町通り</text>
       <text x="188" y="236">大名町通り</text>
-      <text x="104" y="434">駅前通り</text>
+      <text x="104" y="428">駅前通り</text>
     </g>
 
     <!-- 乗り場 -->
@@ -772,7 +776,7 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
 
     <!-- 駐車場 -->
     <g>
-      <a href="https://www.google.com/maps/search/?api=1&amp;query=36.235150%2C137.968680" class="lbl">
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=36.234864%2C137.968732" class="lbl">
         <rect x="58" y="280" width="86" height="32" fill="transparent"/>
         <rect x="126" y="294" width="17" height="16" rx="3" fill="var(--park)"/>
         <text x="134.5" y="306" font-size="10" fill="var(--bg)" text-anchor="middle" style="text-decoration:none">P</text>
@@ -798,7 +802,7 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
     <g font-size="10.5" fill="var(--ink)">
       <a href="#p1" class="lbl"><rect x="70" y="432" width="78" height="17" fill="transparent"/><text x="74" y="444">松本駅 お城口</text></a>
       <a href="#p2" class="lbl"><rect x="187" y="379" width="46" height="17" fill="transparent"/><text x="191" y="391">開運堂</text></a>
-      <a href="#p3" class="lbl"><rect x="187" y="311" width="46" height="17" fill="transparent"/><text x="191" y="323">千歳橋</text></a>
+      <a href="#p3" class="lbl"><rect x="187" y="318" width="46" height="17" fill="transparent"/><text x="191" y="330">千歳橋</text></a>
       <a href="#p8" class="lbl"><rect x="183" y="248" width="90" height="17" fill="transparent"/><text x="187" y="260">松本市立博物館</text></a>
     </g>
 
@@ -862,20 +866,20 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
       <p id="p8"><b>8. 松本市立博物館</b>（四柱神社から徒歩2分）<br>
       2023年10月に松本城公園内から移転した新しい博物館。<b>1階は無料</b>で、休憩がてら入れます。有料は3階の常設展だけ。<br>
       9:00〜17:00（1階は21:00まで／受付16:30）／大人500円・<b>高校生以下無料</b>／火曜休（→11/14は開館）／大手3-2-21</p>
-      <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=36.235180%2C137.969543">松本市立博物館の地図</a></div>
+      <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=%E6%9D%BE%E6%9C%AC%E5%B8%82%E7%AB%8B%E5%8D%9A%E7%89%A9%E9%A4%A8%20%E6%9D%BE%E6%9C%AC%E5%B8%82%E5%A4%A7%E6%89%8B3-2-21">松本市立博物館の地図</a></div>
 
       <p id="p9"><b>9. 松本城</b>（四柱神社から徒歩7分）<br>
       <b>お堀のまわりを歩いて外から眺めるだけなら無料</b>。紅葉と黒い天守の組み合わせはこの時期がいちばんきれいです。<br>
       ただ、<b>天守に登るのは今回だとちょっと厳しいかもしれません</b>。11月中旬の土曜は紅葉のピークと重なるので、混む日は天守の入口まで60分待ちが出ます。<br>
       8:30〜17:00（最終入場16:30）／大人1,200円（電子）・1,300円（当日窓口）・小中400円<br>
       本丸庭園（有料エリア）には<b>国宝松本城おもてなし隊</b>が9:00〜16:00ごろ出没します。甲冑姿の武士や忍者で、一緒に写真を撮ってくれます。</p>
-      <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=36.238808%2C137.969513">松本城の地図</a></div>
+      <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=%E6%9D%BE%E6%9C%AC%E5%9F%8E">松本城の地図</a></div>
 
       <p id="p10"><b>10. 国宝 旧開智学校校舎</b>（松本城から徒歩7分）<br>
       明治9年、地元の大工棟梁・立石清重が設計施工した<button class="term" type="button" data-tip="明治のはじめ、日本の大工が見よう見まねで洋風を取り入れた建築。窓や塔は洋館ふうなのに、骨組みは日本の伝統工法のまま——という、時代の継ぎ目そのものみたいな建物です。">擬洋風建築</button>。2019年、近代の学校建築として初めて<b>国宝</b>になりました。耐震工事で長く閉まっていましたが2024年11月に再開し、<b>2026年4月、創建150年に合わせて12部屋の展示をリニューアル</b>したばかり。<br>
       9:00〜17:00（入館16:30）／一般700円（窓口）・600円（電子）・小中300円／3〜11月は第3火曜休（→11/14は開館）／駐車20台・無料<br>
       ※<b>松本城との共通券（電子）が一般1,600円</b>。両方入るなら200円お得です</p>
-      <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=36.242748%2C137.967834">旧開智学校の地図</a></div>
+      <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=%E5%9B%BD%E5%AE%9D%E6%97%A7%E9%96%8B%E6%99%BA%E5%AD%A6%E6%A0%A1%E6%A0%A1%E8%88%8E">旧開智学校の地図</a></div>
 
       <p>3つ全部まわると、城下町だけで3時間近くかかります。<b>宿へ向かう日なら、どれか一つ</b>くらいがちょうどいいと思います。</p>
     </div>
@@ -1066,11 +1070,11 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
         <rect x="6" y="162" width="58" height="16" rx="8" fill="var(--accent2)"/>
         <text x="35" y="173.5" font-size="8.5" fill="var(--oncolor)" text-anchor="middle">バス 本町 ›</text>
       </a>
-      <text x="70" y="174" font-size="9.5" fill="var(--accent2)">← 美ヶ原温泉行き（西端から2分）</text>
+      <text x="70" y="174" font-size="9.5" fill="var(--accent2)">← 美ヶ原温泉行き</text>
     </g>
 
     <g>
-      <a href="https://www.google.com/maps/search/?api=1&amp;query=36.233700%2C137.971000" class="lbl">
+      <a href="https://www.google.com/maps/search/?api=1&amp;query=%E8%94%B5%E3%81%AE%E3%81%82%E3%82%8B%E8%A1%97%E4%B8%AD%E7%94%BA%E9%A7%90%E8%BB%8A%E5%A0%B4" class="lbl">
         <rect x="204" y="158" width="110" height="20" fill="transparent"/>
         <rect x="206" y="160" width="17" height="16" rx="3" fill="var(--park)"/>
         <text x="214.5" y="172" font-size="10" fill="var(--bg)" text-anchor="middle" style="text-decoration:none">P</text>
@@ -1167,11 +1171,11 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
       <p id="p15"><b>15. ちきりや工芸店</b>／中央3-4-18<br>
       中町の民芸店の代表格。全国の焼きものと、松本の手仕事が並びます。<br>
       10:00〜17:30／火・水曜休（→11/14は営業）／0263-33-2522</p>
-      <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=36.233883%2C137.973175">ちきりや工芸店の地図</a></div>
+      <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=%E3%81%A1%E3%81%8D%E3%82%8A%E3%82%84%E5%B7%A5%E8%8A%B8%E5%BA%97%20%E6%9D%BE%E6%9C%AC%E5%B8%82%E4%B8%AD%E5%A4%AE3-4-18">ちきりや工芸店の地図</a></div>
       <p id="p16"><b>16. 陶片木</b>（とうへんぼく）／中央3-5-10<br>
       1975年からの「うつわ屋」。食器専門で、普段使いの一枚を探すならこちら。<br>
       火・水曜休（→11/14は営業）／0263-32-0646</p>
-      <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=36.233822%2C137.973297">陶片木の地図</a></div>
+      <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=%E9%99%B6%E7%89%87%E6%9C%A8%20%E6%9D%BE%E6%9C%AC%E5%B8%82%E4%B8%AD%E5%A4%AE3-5-10">陶片木の地図</a></div>
       <p>ほかに松本の手仕事としては、<b>松本手まり</b>、押絵の技法でつくる立体的なひな人形の<b>松本押絵雛</b>、和紙の<b>松本姉様人形</b>、<b>松本ほうき</b>（野溝ほうき）などがあります。中町・なわての店先で見かけたら、それです。</p>
     </div>
   </details>
@@ -1315,7 +1319,7 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
     <!-- 山なみ -->
     <path d="M186 60 l34 -36 l34 36 z" fill="var(--block)"/>
     <path d="M244 64 l30 -32 l30 32 z" fill="var(--block)"/>
-    <text x="252" y="80" font-size="9.5" fill="var(--sub)" text-anchor="middle">美ヶ原の山すそ</text>
+    <text x="252" y="66" font-size="9.5" fill="var(--sub)" text-anchor="middle">美ヶ原の山すそ</text>
 
     <defs><g id="st-onsen">
       <path d="M12 318 L66 300 L152 206 L232 106 L308 66"/>
@@ -1400,7 +1404,7 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
       <div><dt>休館</dt><dd>火曜・12/29〜1/3 <span class="ok">→ 11/14は開館</span></dd></div>
       <div><dt>駐車</dt><dd><span class="pk">館前4台＋第2駐車場15台</span></dd></div>
     </dl>
-    <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=%E6%9D%BE%E6%9C%AC%E6%B0%91%E8%8A%B8%E9%A4%A8">地図</a><a class="sv" href="https://www.google.com/maps/@?api=1&amp;map_action=pano&amp;viewpoint=36.24265,137.99530">ストビュー</a><a href="tel:0263331569">0263-33-1569</a></div>
+    <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=%E6%9D%BE%E6%9C%AC%E6%B0%91%E8%8A%B8%E9%A4%A8">地図</a><a href="tel:0263331569">0263-33-1569</a></div>
   </div>
 
   <p class="walk">ゆるい上りを 約400m・7分</p>
@@ -1416,7 +1420,7 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
       <div><dt>売店</dt><dd>7:00〜21:00（ワインショップ併設）</dd></div>
       <div><dt>駐車</dt><dd><span class="pk">35台・無料・先着順</span></dd></div>
     </dl>
-    <div class="tools"><a href="tel:0263333378">0263-33-3378</a><a href="https://www.google.com/maps/search/?api=1&amp;query=%E8%BF%BD%E5%88%86%E5%B1%8B%E6%97%85%E9%A4%A8%20%E6%9D%BE%E6%9C%AC%E5%B8%82%E9%87%8C%E5%B1%B1%E8%BE%BA1145">地図</a><a class="sv" href="https://www.google.com/maps/@?api=1&amp;map_action=pano&amp;viewpoint=36.24556,137.99796">ストビュー</a><a href="https://www.oiwakeya.com/">公式</a></div>
+    <div class="tools"><a href="tel:0263333378">0263-33-3378</a><a href="https://www.google.com/maps/search/?api=1&amp;query=%E8%BF%BD%E5%88%86%E5%B1%8B%E6%97%85%E9%A4%A8%20%E6%9D%BE%E6%9C%AC%E5%B8%82%E9%87%8C%E5%B1%B1%E8%BE%BA1145">地図</a><a href="https://www.oiwakeya.com/">公式</a></div>
   </div>
 
   <div class="card" id="p20">
@@ -1428,7 +1432,7 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
       <div><dt>料金</dt><dd>大人400円・小中200円・幼児無料</dd></div>
       <div><dt>休館</dt><dd>第1・第3火曜 <span class="ok">→ 11/14・15は営業</span></dd></div>
     </dl>
-    <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=36.246020%2C137.998762">白糸の湯の地図</a><a href="tel:0263359076">0263-35-9076</a></div>
+    <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=%E7%99%BD%E7%B3%B8%E3%81%AE%E6%B9%AF%20%E6%9D%BE%E6%9C%AC%E5%B8%82%E9%87%8C%E5%B1%B1%E8%BE%BA">白糸の湯の地図</a><a href="tel:0263359076">0263-35-9076</a></div>
   </div>
 
   <details>
@@ -1462,6 +1466,7 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
   <div class="card">
     <h4>城下町ぜんぶ回るなら</h4>
     <p class="body"><b>松本城大手門駐車場（立体）</b>／大手2-3-10<br>
+    <b>現地の看板は「東洋計器大手門駐車場」</b>です。2023年4月からの愛称で、正式名称は変わっていません。カーナビや看板でこの名前が出ても、ここで合っています。<br>
     437台と大きく、松本城・なわて・中町のどこへも歩ける位置。迷ったらここ。</p>
     <dl class="dl">
       <div><dt>時間</dt><dd>7:30〜22:30</dd></div>
@@ -1477,7 +1482,7 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
     通り沿いで約10台。係の人がいるので、店のことを聞けます。<b>5分以内なら無料</b>。</p>
     <dl class="dl">
       <div><dt>料金</dt><dd>1時間300円／17:30以降は800円</dd></div>
-      <div><dt>ほか</dt><dd>蔵の町パーキング（30分100円）、松本商工会議所中町駐車場（60分300円）</dd></div>
+      <div><dt>ほか</dt><dd>蔵の街パーキング（中央2-10-14・24時間）、松本商工会議所 中町駐車場（中央2-10-17・24時間）</dd></div>
     </dl>
   </div>
 
@@ -1494,6 +1499,19 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
       <tr><th>白糸の湯</th><td>広め（50台前後）</td></tr>
       <tr><th>追分屋旅館</th><td><b>35台・無料・先着順</b></td></tr>
     </table></div>
+  </div>
+
+  <div class="card">
+    <h4>先に宿へ置けるか、聞いてみる <span class="ruby">うまくいけばいちばんラク</span></h4>
+    <p class="body">チェックインは15時ですが、<b>その前に駐車場だけ使わせてもらえることがあります。</b>
+    温泉地の宿は、チェックアウトのあとの昼間は駐車場が空いていることが多いからです。<br>
+    もしOKなら、<b>車も荷物も先に宿へ置いて、手ぶらでバスに乗って城下町へ出る</b>という手が使えます。
+    帰りは歩いてもバスでも好きにできて、駐車場所を探す手間もなくなります。
+    この案内を<b>逆から読む</b>形になりますが、身軽さでは、たぶんこれがいちばんです。</p>
+    <p class="body"><b>できるかどうかは宿の都合次第</b>なので、早く着いてしまいそうなら、
+    まず一本電話を入れてみてください。</p>
+    <div class="tools"><a href="tel:0263333378">追分屋旅館 0263-33-3378</a></div>
+    <p class="body" style="font-size:12.5px;color:var(--sub)">受付は8:15〜20:30。当日の朝でも間に合います。</p>
   </div>
   </div>
 </section>

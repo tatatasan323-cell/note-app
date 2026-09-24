@@ -320,11 +320,24 @@ svg a .glow circle,svg a .glow rect,svg a .glow path,svg a .glow line{
   50%    {filter:drop-shadow(0 0 3px rgba(239,200,115,.95))
                  drop-shadow(0 0 9px rgba(224,180,86,.5))}
 }
-.tools a,.maplinks a,.idx li a,.nav a,.fab a,.fab button,.cat a{
+.tools a,.maplinks a,.idx li a,.fab a,.fab button,.cat a{
   animation:tapglowBtn 3.4s ease-in-out infinite}
+/* 見出しの並びは常に画面にいるので光らせない。
+   ただし「いま見ている場所」だけは光らせて、現在地が分かるようにする */
+.nav a.here{animation:tapglowBtn 3.4s ease-in-out infinite}
 @media (prefers-reduced-motion:reduce){
-  .tools a,.maplinks a,.idx li a,.nav a,.fab a,.fab button,.cat a{animation:none}
+  .tools a,.maplinks a,.idx li a,.fab a,.fab button,.cat a,
+  .nav a.here{animation:none}
 }
+
+/* たたまれているカードは、＋／− の印だけ光らせる。
+   行ごと光らせると、見出しの文字まで光って読みにくい。
+   拍は3つに分けてずらす（疑似要素には JS で個別に指定できないため） */
+summary::after{animation:tapglowBtn 3.4s ease-in-out infinite}
+details:nth-of-type(3n+1) > summary::after{animation-delay:-.35s}
+details:nth-of-type(3n+2) > summary::after{animation-delay:-1.55s}
+details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
+@media (prefers-reduced-motion:reduce){summary::after{animation:none}}
 
 .tools a:active,.maplinks a:active,.nav a:active,.fab a:active,.fab button:active{
   background:var(--gold);color:var(--oncolor);border-color:var(--gold)}
@@ -1847,7 +1860,7 @@ svg a .glow circle,svg a .glow rect,svg a .glow path,svg a .glow line{
      行き先が同じものは揃う（地図の中と外でも揃う） */
   function beatButtons(){
     var b = document.querySelectorAll(
-      ".tools a,.maplinks a,.idx li a,.nav a,.fab a,.fab button,.cat a");
+      ".tools a,.maplinks a,.idx li a,.fab a,.fab button,.cat a");
     for(var i = 0; i < b.length; i++){
       b[i].style.animationDelay = beatOf(b[i].getAttribute("href") || ("#_b" + i));
     }

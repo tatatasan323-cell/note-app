@@ -66,16 +66,17 @@ a:focus-visible,summary:focus-visible,.term:focus-visible{outline:2px solid var(
 /* 画面の入れ替え。
    使える端末では View Transitions で、前の画面と次の画面を重ねて入れ替える。
    前の画面を消してから次を出すのではないので、途中で白くならない */
-::view-transition-old(root),
+::view-transition-old(root){
+  animation:vt-out .26s cubic-bezier(.4,0,1,1) both}
 ::view-transition-new(root){
-  animation-duration:.5s;
-  animation-timing-function:cubic-bezier(.4,0,.2,1)}
-::view-transition-old(root){animation-name:vt-out}
-::view-transition-new(root){animation-name:vt-in}
+  animation:vt-in .34s cubic-bezier(0,0,.2,1) both}
 /* blur は入れない。入れると重ね合わせ（plus-lighter）が効かなくなり、
-   2枚の合計が元の濃さにならず、画面の一部がかすれる */
+   2枚の合計が元の濃さにならず、画面の一部がかすれる。
+   前の画面は早めに引き、次の画面は少し持ち上げながら入る。
+   まっすぐ重ねるだけだと、文字どうしが二重写しになって濁る */
 @keyframes vt-out{from{opacity:1}to{opacity:0}}
-@keyframes vt-in {from{opacity:0}to{opacity:1}}
+@keyframes vt-in {from{opacity:0;transform:translateY(12px)}
+                  to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){
   ::view-transition-old(root),::view-transition-new(root){animation:none}
 }
@@ -1735,8 +1736,15 @@ svg a.lbl text{text-decoration:underline;text-decoration-thickness:.7px;
   /* ---- 画面の入れ替え。
      View Transitions が使える端末は、前の画面と次の画面を同時に持って
      重ねるので、切れ目が出ない。使えない端末は、薄くしてから入れ替える ---- */
-  function swap(run){
+  function swap(run, toY){
     if(reduced){ run(); return; }
+    /* 飛ぶ距離が画面1つぶんに満たないときは、前後の絵が重なる。
+       そこで入れ替えを走らせると、違う部分だけが薄れて「かすれ」に見えるので、
+       そのまま動かす */
+    if(typeof toY === "number" &&
+       Math.abs(toY - window.pageYOffset) < window.innerHeight){
+      run(); return;
+    }
     if(document.startViewTransition){
       try { document.startViewTransition(run); return; } catch(e){}
     }
@@ -1777,14 +1785,23 @@ svg a.lbl text{text-decoration:underline;text-decoration-thickness:.7px;
   }
 
   var depth = 0;
+  /* 飛び先の位置だけを出す（動かさない）。入れ替えを走らせるかの判断に使う */
+  function posOf(hash){
+    var target;
+    try { target = document.querySelector(hash); } catch(e){ return null; }
+    if(!target) return null;
+    reveal(target);                                   /* 開いてから位置を測る */
+    var gap = (bar ? bar.getBoundingClientRect().height : 0) + 12;
+    var y = target.getBoundingClientRect().top + window.pageYOffset - gap;
+    return y < 0 ? 0 : y;
+  }
+
   function jump(hash, fromHistory){
     var target;
     try { target = document.querySelector(hash); } catch(e){ return false; }
     if(!target) return false;
-    reveal(target);                                   /* 開いてから位置を測る */
-    var gap = (bar ? bar.getBoundingClientRect().height : 0) + 12;
-    var y = target.getBoundingClientRect().top + window.pageYOffset - gap;
-    if(y < 0) y = 0;
+    var y = posOf(hash);
+    if(y === null) return false;
     if(!fromHistory){
       /* いま居る位置を、いまの履歴エントリに記録しておく。
          これをやらないと、戻ったときに手がかりが無くて先頭へ飛ぶ */
@@ -1812,7 +1829,7 @@ svg a.lbl text{text-decoration:underline;text-decoration-thickness:.7px;
     if(!document.querySelector(href)) return;
     e.preventDefault();
     plink();
-    swap(function(){ jump(href); });
+    swap(function(){ jump(href); }, posOf(href));
   }, false);
 
   if(back) back.addEventListener("click", function(){
@@ -1829,7 +1846,7 @@ svg a.lbl text{text-decoration:underline;text-decoration-thickness:.7px;
       scrollNow(0);
       try { history.pushState({y: 0}, "", location.pathname + location.search); } catch(e){}
       refresh();
-    });
+    }, 0);
   });
 
   window.addEventListener("popstate", function(e){
@@ -1847,7 +1864,7 @@ svg a.lbl text{text-decoration:underline;text-decoration-thickness:.7px;
       }
       if(t) jump(h, true);                 /* 位置は無いがハッシュはある */
       else { scrollNow(0); refresh(); }
-    });
+    }, (st && typeof st.y === "number") ? st.y : 0);
   });
 
   /* ---- いま見ているところを目次に映す ---- */

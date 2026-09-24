@@ -290,11 +290,22 @@ summary:active{background:var(--chip)}
 svg a{cursor:pointer;-webkit-tap-highlight-color:transparent}
 svg a:active circle,svg a:active rect{opacity:.55}
 svg a.pin text{pointer-events:none}
-/* 押せる地名の下線は、CSSの text-decoration では引かない。
-   地を敷いた図では文字に紙色の縁取りを回しており、その縁が
-   一文字ごとに下線を削るので、線が断片に切れてバーコードのように見える。
-   かわりに、文字を描いたあとで1本の線として引く（下の JS） */
-svg a.lbl .ul{pointer-events:none}
+/* 押せる地名は、下線ではなく「ほのかな光」で示す。
+   下線は文字の装飾なので、文字に回している紙色の縁取りと必ずぶつかり、
+   一文字ごとに削られて断片になる。光は文字そのものに乗るのでぶつからない。
+   ひとつずつ間をずらしてあるので、いっせいに点滅せず、ゆっくり息をする */
+/* 押せるところは、うしろに金色の下地を敷いてゆっくり脈打たせる。
+   文字そのものを光らせる（drop-shadow）と、文字に回した紙色の縁取りに
+   いちばん明るい所を覆われて見えないので、うしろから照らす。
+   ひとつずつ間をずらしてあるので、そろって点滅せず、ゆっくり息をする */
+@keyframes tapglow{0%,100%{opacity:.12} 50%{opacity:.6}}
+@keyframes tapcore{0%,100%{opacity:.06} 50%{opacity:.5}}
+svg a .glow{animation:tapglow 3.4s ease-in-out infinite;pointer-events:none}
+svg a .core{animation:tapcore 3.4s ease-in-out infinite;pointer-events:none}
+@media (prefers-reduced-motion:reduce){
+  svg a .glow{animation:none;opacity:.32}
+  svg a .core{animation:none;opacity:.26}
+}
 
 .tools a:active,.maplinks a:active,.nav a:active,.fab a:active,.fab button:active{
   background:var(--gold);color:var(--oncolor);border-color:var(--gold)}
@@ -1754,41 +1765,63 @@ svg a.lbl .ul{pointer-events:none}
     }catch(e){}
   }
 
-  /* ---- 押せる地名の下線。
-     文字のあとに引くので、紙色の縁取りに削られず1本につながる ---- */
-  function underline(){
-    var list = document.querySelectorAll("svg a.lbl");
-    for(var i = 0; i < list.length; i++){
-      var a = list[i];
-      if(a.querySelector(".ul")) continue;             /* 二度引かない */
-      var texts = a.querySelectorAll("text");
-      for(var j = 0; j < texts.length; j++){
-        var t = texts[j];
-        if((t.getAttribute("style") || "").indexOf("text-decoration:none") >= 0) continue;
-        var b;
-        try { b = t.getBBox(); } catch(e){ continue; }
-        if(!b || b.width < 2) continue;
-        var y = parseFloat(t.getAttribute("y"));
-        if(isNaN(y)) y = b.y + b.height;
-        var ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        ln.setAttribute("class", "ul");
-        ln.setAttribute("x1", (b.x + 0.4).toFixed(2));
-        ln.setAttribute("x2", (b.x + b.width - 0.4).toFixed(2));
-        ln.setAttribute("y1", (y + 2.4).toFixed(2));
-        ln.setAttribute("y2", (y + 2.4).toFixed(2));
-        ln.setAttribute("stroke", "var(--accent2)");
-        ln.setAttribute("stroke-width", "0.85");
-        ln.setAttribute("opacity", ".72");
-        a.appendChild(ln);
+  /* ---- 押せるところ（地名・番号・札）のうしろに、金色の下地を敷く。
+     うしろへ入れるので、文字の紙色の縁取りに削られない ---- */
+  var NS = "http://www.w3.org/2000/svg";
+  function glowUp(){
+    var maps = document.querySelectorAll("figure svg");
+    for(var m = 0; m < maps.length; m++){
+      var svg = maps[m];
+      var links = svg.querySelectorAll("a");
+      for(var i = 0; i < links.length; i++){
+        var a = links[i];
+        if(a.querySelector(".glow")) continue;
+
+        /* 当たり判定用の透明な図形は大きすぎるので、見えているものだけで測る */
+        var kids = a.children, x1 = 1e9, y1 = 1e9, x2 = -1e9, y2 = -1e9, got = 0;
+        for(var k = 0; k < kids.length; k++){
+          var c = kids[k];
+          if(c.getAttribute("fill") === "transparent") continue;
+          var bb;
+          try { bb = c.getBBox(); } catch(e){ continue; }
+          if(!bb || (bb.width < 1 && bb.height < 1)) continue;
+          if(bb.x < x1) x1 = bb.x;
+          if(bb.y < y1) y1 = bb.y;
+          if(bb.x + bb.width  > x2) x2 = bb.x + bb.width;
+          if(bb.y + bb.height > y2) y2 = bb.y + bb.height;
+          got++;
+        }
+        if(!got) continue;
+
+        /* 外に金、内に白っぽい芯。2枚重ねると「光っている」ように見える */
+        var delay = (-((i * 0.43) % 3.4)).toFixed(2) + "s";
+        var lay = [
+          { cls: "glow", pad: 3.4, fill: "var(--gold)" },
+          { cls: "core", pad: 1.4, fill: "#fff6de" }
+        ];
+        for(var L = 0; L < lay.length; L++){
+          var q = lay[L];
+          var w = (x2 - x1) + q.pad * 2, h = (y2 - y1) + q.pad * 2;
+          var r = document.createElementNS(NS, "rect");
+          r.setAttribute("class", q.cls);
+          r.setAttribute("x", (x1 - q.pad).toFixed(2));
+          r.setAttribute("y", (y1 - q.pad).toFixed(2));
+          r.setAttribute("width",  w.toFixed(2));
+          r.setAttribute("height", h.toFixed(2));
+          r.setAttribute("rx", Math.min(h / 2, 9).toFixed(2));
+          r.setAttribute("fill", q.fill);
+          r.style.animationDelay = delay;
+          a.insertBefore(r, a.firstChild);
+        }
       }
     }
   }
-  underline();
+  glowUp();
   if(document.fonts && document.fonts.ready){
     document.fonts.ready.then(function(){
-      var old = document.querySelectorAll("svg a.lbl .ul");
+      var old = document.querySelectorAll("figure svg a .glow, figure svg a .core");
       for(var i = 0; i < old.length; i++) old[i].parentNode.removeChild(old[i]);
-      underline();                                     /* 書体が確定してから引き直す */
+      glowUp();                                        /* 書体が確定してから置き直す */
     });
   }
 

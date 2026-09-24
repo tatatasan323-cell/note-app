@@ -63,8 +63,22 @@ a:focus-visible,summary:focus-visible,.term:focus-visible{outline:2px solid var(
 .sndbtn[aria-pressed="false"] .off{display:block}
 .sndbtn[aria-pressed="false"] .on{display:none}
 
-/* 画面の入れ替え。前の画面がぼけながら薄くなり、次の画面がぼけから立ち上がる。
-   .wrap ごとかけるが、右下の丸ボタンは .wrap の外にあるので影響しない */
+/* 画面の入れ替え。
+   使える端末では View Transitions で、前の画面と次の画面を重ねて入れ替える。
+   前の画面を消してから次を出すのではないので、途中で白くならない */
+::view-transition-old(root),
+::view-transition-new(root){
+  animation-duration:.5s;
+  animation-timing-function:cubic-bezier(.4,0,.2,1)}
+::view-transition-old(root){animation-name:vt-out}
+::view-transition-new(root){animation-name:vt-in}
+@keyframes vt-out{from{opacity:1;filter:blur(0)}to{opacity:0;filter:blur(3px)}}
+@keyframes vt-in {from{opacity:0;filter:blur(3px)}to{opacity:1;filter:blur(0)}}
+@media (prefers-reduced-motion:reduce){
+  ::view-transition-old(root),::view-transition-new(root){animation:none}
+}
+
+/* 上の仕組みが無い端末むけ。こちらは一度薄くなる */
 .wrap{transition:opacity .18s ease,filter .18s ease}
 body.leaving .wrap{opacity:.12;filter:blur(6px);will-change:opacity,filter}
 body.arriving .wrap{animation:dissolve .4s cubic-bezier(.2,.72,.3,1);
@@ -1711,6 +1725,23 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
     }catch(e){}
   }
 
+  /* ---- 画面の入れ替え。
+     View Transitions が使える端末は、前の画面と次の画面を同時に持って
+     重ねるので、切れ目が出ない。使えない端末は、薄くしてから入れ替える ---- */
+  function swap(run){
+    if(reduced){ run(); return; }
+    if(document.startViewTransition){
+      try { document.startViewTransition(run); return; } catch(e){}
+    }
+    document.body.classList.add("leaving");
+    setTimeout(function(){
+      run();
+      document.body.classList.remove("leaving");
+      document.body.classList.add("arriving");
+      setTimeout(function(){ document.body.classList.remove("arriving"); }, 420);
+    }, 200);
+  }
+
   /* ---- 閉じている details の中へも飛べるようにする ---- */
   function reveal(el){
     var d = el.closest ? el.closest("details") : null;
@@ -1764,14 +1795,7 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
     if(!document.querySelector(href)) return;
     e.preventDefault();
     plink();
-    if(reduced){ jump(href); return; }
-    document.body.classList.add("leaving");
-    setTimeout(function(){
-      jump(href);
-      document.body.classList.remove("leaving");
-      document.body.classList.add("arriving");
-      setTimeout(function(){ document.body.classList.remove("arriving"); }, 420);
-    }, 200);
+    swap(function(){ jump(href); });
   }, false);
 
   if(back) back.addEventListener("click", function(){
@@ -1781,21 +1805,23 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
 
   window.addEventListener("popstate", function(e){
     if(depth > 0) depth--;
-    var h = location.hash, t = null;
-    if(h && h.length > 1){ try { t = document.querySelector(h); } catch(err){} }
-    if(t) reveal(t);                       /* 閉じていると高さが変わるので先に開く */
-
     var st = e && e.state;
-    if(st && typeof st.y === "number"){    /* 記録した位置がある＝そこへ戻す */
-      var root = document.documentElement, keep = root.style.scrollBehavior;
-      root.style.scrollBehavior = "auto";
-      window.scrollTo(0, st.y);
-      root.style.scrollBehavior = keep;
-      refresh();
-      return;
-    }
-    if(t) jump(h, true);                   /* 位置は無いがハッシュはある */
-    else { window.scrollTo(0, 0); refresh(); }
+    swap(function(){
+      var h = location.hash, t = null;
+      if(h && h.length > 1){ try { t = document.querySelector(h); } catch(err){} }
+      if(t) reveal(t);                     /* 閉じていると高さが変わるので先に開く */
+
+      if(st && typeof st.y === "number"){  /* 記録した位置がある＝そこへ戻す */
+        var root = document.documentElement, keep = root.style.scrollBehavior;
+        root.style.scrollBehavior = "auto";
+        window.scrollTo(0, st.y);
+        root.style.scrollBehavior = keep;
+        refresh();
+        return;
+      }
+      if(t) jump(h, true);                 /* 位置は無いがハッシュはある */
+      else { window.scrollTo(0, 0); refresh(); }
+    });
   });
 
   /* ---- いま見ているところを目次に映す ---- */

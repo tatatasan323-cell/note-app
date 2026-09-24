@@ -1773,7 +1773,15 @@ svg a .glow circle,svg a .glow rect,svg a .glow path,svg a .glow line{
   /* ---- 押せるところ（地名・番号・札）を、その形のまま光らせる。
      見えている図形を複製し、太らせてぼかしたものをうしろに置く ---- */
   var NS = "http://www.w3.org/2000/svg";
+  /* 番号のピンと、その場所の名前は同じ行き先を指す＝同じ場所。
+     同じ間合いで光らせて、ひと組だと分かるようにする */
+  var beat = {}, beatN = 0;
+  function beatOf(href){
+    if(!(href in beat)) beat[href] = (-((beatN++ * 0.43) % 3.4)).toFixed(2) + "s";
+    return beat[href];
+  }
   function glowUp(){
+    beat = {}; beatN = 0;
     var maps = document.querySelectorAll("figure svg");
     for(var m = 0; m < maps.length; m++){
       var svg = maps[m];
@@ -1816,7 +1824,7 @@ svg a .glow circle,svg a .glow rect,svg a .glow path,svg a .glow line{
           got++;
         }
         if(!got) continue;
-        g.style.animationDelay = (-((i * 0.43) % 3.4)).toFixed(2) + "s";
+        g.style.animationDelay = beatOf(a.getAttribute("href") || ("#_" + m + "_" + i));
         a.insertBefore(g, a.firstChild);
       }
     }

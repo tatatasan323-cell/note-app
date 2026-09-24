@@ -72,8 +72,10 @@ a:focus-visible,summary:focus-visible,.term:focus-visible{outline:2px solid var(
   animation-timing-function:cubic-bezier(.4,0,.2,1)}
 ::view-transition-old(root){animation-name:vt-out}
 ::view-transition-new(root){animation-name:vt-in}
-@keyframes vt-out{from{opacity:1;filter:blur(0)}to{opacity:0;filter:blur(3px)}}
-@keyframes vt-in {from{opacity:0;filter:blur(3px)}to{opacity:1;filter:blur(0)}}
+/* blur は入れない。入れると重ね合わせ（plus-lighter）が効かなくなり、
+   2枚の合計が元の濃さにならず、画面の一部がかすれる */
+@keyframes vt-out{from{opacity:1}to{opacity:0}}
+@keyframes vt-in {from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){
   ::view-transition-old(root),::view-transition-new(root){animation:none}
 }
@@ -197,6 +199,8 @@ h2 .cnt{font-family:var(--sans);font-size:11px;color:var(--sub);font-weight:500;
 .note.alert{border-left-color:var(--accent2)}
 .note b{color:var(--accent2)}
 .note p{margin:0 0 8px} .note p:last-child{margin:0}
+/* 用語の説明は、この中に収める。基準が無いとページ全体に広がってしまう */
+.howto{position:relative}
 
 button.term{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;
   border-bottom:1px dotted var(--accent2);cursor:pointer;-webkit-appearance:none;line-height:inherit}
@@ -269,8 +273,10 @@ summary:active{background:var(--chip)}
 svg a{cursor:pointer;-webkit-tap-highlight-color:transparent}
 svg a:active circle,svg a:active rect{opacity:.55}
 svg a.pin text{pointer-events:none}
-svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
-  text-underline-offset:2px;text-decoration-thickness:1px}
+/* 押せる地名は下線で示す。点線にすると、地を敷いた図では紙色の縁取りが
+   点ひとつずつに回り、バーコードのように見えてしまうので実線にする */
+svg a.lbl text{text-decoration:underline;text-decoration-thickness:.7px;
+  text-underline-offset:2px;text-decoration-color:var(--accent2)}
 
 .tools a:active,.maplinks a:active,.nav a:active,.fab a:active,.fab button:active{
   background:var(--gold);color:var(--oncolor);border-color:var(--gold)}
@@ -1599,6 +1605,7 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
   <button type="button" id="fabBack" hidden>&#8592; 戻る</button>
   <a href="#zentai">全体図</a>
   <a href="#sitemap">目次</a>
+  <button type="button" id="fabTop">&#8593; 先頭</button>
 </div>
 <script>
 (function(){
@@ -1756,6 +1763,19 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
      これを切らないと、戻ったときに復元が後から走って位置を上書きする */
   try { if("scrollRestoration" in history) history.scrollRestoration = "manual"; } catch(e){}
 
+  /* 瞬間移動。html に scroll-behavior:smooth があるので、そのままだと
+     「飛ぶ」が1秒以上かけて滑る。画面の入れ替えは、移動し終えてから
+     次の画面の写しを撮る必要があるので、必ず即座に動かす */
+  function scrollNow(y){
+    try { window.scrollTo({top: y, left: 0, behavior: "instant"}); } catch(e){}
+    if(Math.abs(window.pageYOffset - y) > 2){
+      var r = document.documentElement, k = r.style.scrollBehavior;
+      r.style.scrollBehavior = "auto";
+      window.scrollTo(0, y);
+      r.style.scrollBehavior = k;
+    }
+  }
+
   var depth = 0;
   function jump(hash, fromHistory){
     var target;
@@ -1770,10 +1790,7 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
          これをやらないと、戻ったときに手がかりが無くて先頭へ飛ぶ */
       try { history.replaceState({y: window.pageYOffset}, ""); } catch(e){}
     }
-    var root = document.documentElement, keep = root.style.scrollBehavior;
-    root.style.scrollBehavior = "auto";
-    window.scrollTo(0, y);
-    root.style.scrollBehavior = keep;
+    scrollNow(y);
     if(!fromHistory){
       try { history.pushState({y: y}, "", hash); depth++; } catch(e){}
     }
@@ -1803,6 +1820,18 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
     try { history.back(); } catch(e){}
   });
 
+  var top = document.getElementById("fabTop");
+  if(top) top.addEventListener("click", function(){
+    plink();
+    /* 押す直前の位置を記録してから動く。そうしないと「戻る」で元の位置へ帰れない */
+    try { history.replaceState({y: window.pageYOffset}, ""); } catch(e){}
+    swap(function(){
+      scrollNow(0);
+      try { history.pushState({y: 0}, "", location.pathname + location.search); } catch(e){}
+      refresh();
+    });
+  });
+
   window.addEventListener("popstate", function(e){
     if(depth > 0) depth--;
     var st = e && e.state;
@@ -1812,15 +1841,12 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
       if(t) reveal(t);                     /* 閉じていると高さが変わるので先に開く */
 
       if(st && typeof st.y === "number"){  /* 記録した位置がある＝そこへ戻す */
-        var root = document.documentElement, keep = root.style.scrollBehavior;
-        root.style.scrollBehavior = "auto";
-        window.scrollTo(0, st.y);
-        root.style.scrollBehavior = keep;
+        scrollNow(st.y);
         refresh();
         return;
       }
       if(t) jump(h, true);                 /* 位置は無いがハッシュはある */
-      else { window.scrollTo(0, 0); refresh(); }
+      else { scrollNow(0); refresh(); }
     });
   });
 

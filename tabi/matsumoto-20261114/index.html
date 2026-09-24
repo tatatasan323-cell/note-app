@@ -63,29 +63,20 @@ a:focus-visible,summary:focus-visible,.term:focus-visible{outline:2px solid var(
 .sndbtn[aria-pressed="false"] .off{display:block}
 .sndbtn[aria-pressed="false"] .on{display:none}
 
-/* 画面をシャラッと払う演出 */
-.shimmer{position:fixed;inset:0;z-index:90;pointer-events:none;opacity:0;
-  background:linear-gradient(108deg,transparent 36%,rgba(198,158,72,.42) 46%,rgba(198,158,72,.10) 52%,transparent 60%);
-  background:linear-gradient(108deg,
-    transparent 0 36%,
-    color-mix(in srgb, var(--gold) 46%, transparent) 46%,
-    color-mix(in srgb, var(--gold) 12%, transparent) 52%,
-    transparent 60% 100%);
-  background-size:230% 100%;background-position:128% 0}
-.shimmer.go{animation:sharan .58s cubic-bezier(.3,.7,.3,1) forwards}
-@keyframes sharan{
-  0%{background-position:128% 0;opacity:0}
-  14%{opacity:1}
-  100%{background-position:-48% 0;opacity:0}
+/* 画面の入れ替え。前の画面がぼけながら薄くなり、次の画面がぼけから立ち上がる。
+   .wrap ごとかけるが、右下の丸ボタンは .wrap の外にあるので影響しない */
+.wrap{transition:opacity .18s ease,filter .18s ease}
+body.leaving .wrap{opacity:.12;filter:blur(6px);will-change:opacity,filter}
+body.arriving .wrap{animation:dissolve .4s cubic-bezier(.2,.72,.3,1);
+  will-change:opacity,filter}
+@keyframes dissolve{
+  0%{opacity:.12;filter:blur(6px)}
+  100%{opacity:1;filter:blur(0)}
 }
-.wrap{transition:opacity .17s ease,filter .17s ease}
-body.leaving .wrap{opacity:.32;filter:blur(1.6px)}
-body.arriving .wrap{animation:settle .34s ease-out}
-@keyframes settle{from{opacity:.5}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){
-  .shimmer{display:none}
   body.leaving .wrap{opacity:1;filter:none}
   body.arriving .wrap{animation:none}
+}
 }
 
 /* 表紙。絵は江戸の絵地図。文字は画像に焼き込まず、ここで重ねる（崩れないので）。
@@ -1720,16 +1711,6 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
     }catch(e){}
   }
 
-  /* ---- 画面を払う ---- */
-  function sweep(){
-    if(reduced) return;
-    var el = document.createElement("div");
-    el.className = "shimmer";
-    document.body.appendChild(el);
-    requestAnimationFrame(function(){ el.classList.add("go"); });
-    setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 900);
-  }
-
   /* ---- 閉じている details の中へも飛べるようにする ---- */
   function reveal(el){
     var d = el.closest ? el.closest("details") : null;
@@ -1784,14 +1765,13 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
     e.preventDefault();
     plink();
     if(reduced){ jump(href); return; }
-    sweep();
     document.body.classList.add("leaving");
     setTimeout(function(){
       jump(href);
       document.body.classList.remove("leaving");
       document.body.classList.add("arriving");
-      setTimeout(function(){ document.body.classList.remove("arriving"); }, 360);
-    }, 225);
+      setTimeout(function(){ document.body.classList.remove("arriving"); }, 420);
+    }, 200);
   }, false);
 
   if(back) back.addEventListener("click", function(){
@@ -1801,7 +1781,6 @@ svg a.lbl text{text-decoration:underline;text-decoration-style:dotted;
 
   window.addEventListener("popstate", function(e){
     if(depth > 0) depth--;
-    sweep();
     var h = location.hash, t = null;
     if(h && h.length > 1){ try { t = document.querySelector(h); } catch(err){} }
     if(t) reveal(t);                       /* 閉じていると高さが変わるので先に開く */

@@ -312,6 +312,20 @@ svg a .glow circle,svg a .glow rect,svg a .glow path,svg a .glow line{
   fill:#e8c06a;stroke:#e8c06a;stroke-width:3.4px}
 @media (prefers-reduced-motion:reduce){svg a .glow{animation:none;opacity:.5}}
 
+/* 地図の外の押せるところ（地図・ストビュー・電話・〜へ・目次の行・右下の丸）も
+   同じように光らせる。box-shadow を持つものと持たないものが混ざっているので、
+   影を壊さない drop-shadow で統一する */
+@keyframes tapglowBtn{
+  0%,100%{filter:drop-shadow(0 0 0 rgba(239,200,115,0))}
+  50%    {filter:drop-shadow(0 0 3px rgba(239,200,115,.95))
+                 drop-shadow(0 0 9px rgba(224,180,86,.5))}
+}
+.tools a,.maplinks a,.idx li a,.nav a,.fab a,.fab button,.cat a{
+  animation:tapglowBtn 3.4s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){
+  .tools a,.maplinks a,.idx li a,.nav a,.fab a,.fab button,.cat a{animation:none}
+}
+
 .tools a:active,.maplinks a:active,.nav a:active,.fab a:active,.fab button:active{
   background:var(--gold);color:var(--oncolor);border-color:var(--gold)}
 
@@ -1829,7 +1843,18 @@ svg a .glow circle,svg a .glow rect,svg a .glow path,svg a .glow line{
       }
     }
   }
+  /* 地図の外のボタンにも、同じ間合いの考え方で拍をふる。
+     行き先が同じものは揃う（地図の中と外でも揃う） */
+  function beatButtons(){
+    var b = document.querySelectorAll(
+      ".tools a,.maplinks a,.idx li a,.nav a,.fab a,.fab button,.cat a");
+    for(var i = 0; i < b.length; i++){
+      b[i].style.animationDelay = beatOf(b[i].getAttribute("href") || ("#_b" + i));
+    }
+  }
+
   glowUp();
+  beatButtons();
   if(document.fonts && document.fonts.ready){
     document.fonts.ready.then(function(){
       var old = document.querySelectorAll("figure svg a .glow");

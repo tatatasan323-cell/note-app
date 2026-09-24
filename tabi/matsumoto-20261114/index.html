@@ -290,10 +290,11 @@ summary:active{background:var(--chip)}
 svg a{cursor:pointer;-webkit-tap-highlight-color:transparent}
 svg a:active circle,svg a:active rect{opacity:.55}
 svg a.pin text{pointer-events:none}
-/* 押せる地名は下線で示す。点線にすると、地を敷いた図では紙色の縁取りが
-   点ひとつずつに回り、バーコードのように見えてしまうので実線にする */
-svg a.lbl text{text-decoration:underline;text-decoration-thickness:.7px;
-  text-underline-offset:2px;text-decoration-color:var(--accent2)}
+/* 押せる地名の下線は、CSSの text-decoration では引かない。
+   地を敷いた図では文字に紙色の縁取りを回しており、その縁が
+   一文字ごとに下線を削るので、線が断片に切れてバーコードのように見える。
+   かわりに、文字を描いたあとで1本の線として引く（下の JS） */
+svg a.lbl .ul{pointer-events:none}
 
 .tools a:active,.maplinks a:active,.nav a:active,.fab a:active,.fab button:active{
   background:var(--gold);color:var(--oncolor);border-color:var(--gold)}
@@ -1751,6 +1752,44 @@ svg a.lbl text{text-decoration:underline;text-decoration-thickness:.7px;
       comp.connect(lp);
       src.start(t0); src.stop(t0 + dur + 0.05);
     }catch(e){}
+  }
+
+  /* ---- 押せる地名の下線。
+     文字のあとに引くので、紙色の縁取りに削られず1本につながる ---- */
+  function underline(){
+    var list = document.querySelectorAll("svg a.lbl");
+    for(var i = 0; i < list.length; i++){
+      var a = list[i];
+      if(a.querySelector(".ul")) continue;             /* 二度引かない */
+      var texts = a.querySelectorAll("text");
+      for(var j = 0; j < texts.length; j++){
+        var t = texts[j];
+        if((t.getAttribute("style") || "").indexOf("text-decoration:none") >= 0) continue;
+        var b;
+        try { b = t.getBBox(); } catch(e){ continue; }
+        if(!b || b.width < 2) continue;
+        var y = parseFloat(t.getAttribute("y"));
+        if(isNaN(y)) y = b.y + b.height;
+        var ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        ln.setAttribute("class", "ul");
+        ln.setAttribute("x1", (b.x + 0.4).toFixed(2));
+        ln.setAttribute("x2", (b.x + b.width - 0.4).toFixed(2));
+        ln.setAttribute("y1", (y + 2.4).toFixed(2));
+        ln.setAttribute("y2", (y + 2.4).toFixed(2));
+        ln.setAttribute("stroke", "var(--accent2)");
+        ln.setAttribute("stroke-width", "0.85");
+        ln.setAttribute("opacity", ".72");
+        a.appendChild(ln);
+      }
+    }
+  }
+  underline();
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(function(){
+      var old = document.querySelectorAll("svg a.lbl .ul");
+      for(var i = 0; i < old.length; i++) old[i].parentNode.removeChild(old[i]);
+      underline();                                     /* 書体が確定してから引き直す */
+    });
   }
 
   /* ---- 画面の入れ替え。

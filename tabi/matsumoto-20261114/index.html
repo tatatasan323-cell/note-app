@@ -70,22 +70,24 @@ a:focus-visible,summary:focus-visible,.term:focus-visible{outline:2px solid var(
    進む向きが分かるように、両方を動かす。
    下へ飛ぶとき  … 前の画面は上へ抜け、次の画面は下から上がってくる
    上へ戻るとき  … その逆。html の data-dir で切り替える */
+/* 緩急は「両端をゆるめる」。前は前の画面が終わりぎわに一気に消え、
+   次の画面が最初の3分の1で出きっていたので、指定より短く感じた */
 ::view-transition-old(root){
-  animation:.52s cubic-bezier(.4,0,1,1) both vt-out-down}
+  animation:.8s cubic-bezier(.45,0,.55,1) both vt-out-down}
 ::view-transition-new(root){
-  animation:.68s cubic-bezier(0,0,.2,1) both vt-in-down}
+  animation:1s cubic-bezier(.3,.35,.25,1) both vt-in-down}
 :root[data-dir="up"]::view-transition-old(root){animation-name:vt-out-up}
 :root[data-dir="up"]::view-transition-new(root){animation-name:vt-in-up}
 
 /* blur は入れない。入れると重ね合わせ（plus-lighter）が効かなくなり、
    2枚の合計が元の濃さにならず、画面の一部がかすれる */
 @keyframes vt-out-down{from{opacity:1;transform:none}
-                       to{opacity:0;transform:translateY(-42px)}}
-@keyframes vt-in-down {from{opacity:0;transform:translateY(42px)}
+                       to{opacity:0;transform:translateY(-56px)}}
+@keyframes vt-in-down {from{opacity:0;transform:translateY(56px)}
                        to{opacity:1;transform:none}}
 @keyframes vt-out-up  {from{opacity:1;transform:none}
-                       to{opacity:0;transform:translateY(42px)}}
-@keyframes vt-in-up   {from{opacity:0;transform:translateY(-42px)}
+                       to{opacity:0;transform:translateY(56px)}}
+@keyframes vt-in-up   {from{opacity:0;transform:translateY(-56px)}
                        to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){
   ::view-transition-old(root),::view-transition-new(root){animation:none}
@@ -93,18 +95,18 @@ a:focus-visible,summary:focus-visible,.term:focus-visible{outline:2px solid var(
 
 /* 上の仕組みが無い端末むけ。こちらは一度薄くなる */
 .wrap{transition:opacity .34s ease,transform .34s ease}
-body.leaving .wrap{opacity:0;transform:translateY(-42px);
+body.leaving .wrap{opacity:0;transform:translateY(-56px);
   will-change:opacity,transform}
-:root[data-dir="up"] body.leaving .wrap{transform:translateY(42px)}
+:root[data-dir="up"] body.leaving .wrap{transform:translateY(56px)}
 body.arriving .wrap{animation:dissolve .5s cubic-bezier(0,0,.2,1);
   will-change:opacity,transform}
 :root[data-dir="up"] body.arriving .wrap{animation-name:dissolve-up}
 @keyframes dissolve{
-  0%{opacity:0;transform:translateY(42px)}
+  0%{opacity:0;transform:translateY(56px)}
   100%{opacity:1;transform:none}
 }
 @keyframes dissolve-up{
-  0%{opacity:0;transform:translateY(-42px)}
+  0%{opacity:0;transform:translateY(-56px)}
   100%{opacity:1;transform:none}
 }
 @media (prefers-reduced-motion:reduce){

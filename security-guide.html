@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>乗っ取り対策の手引き ── パスキーでも守れない、2つの穴</title>
+<style>
+/* ──────────────────────────────────────────────────────────
+   乗っ取り対策の手引き（社内・ご家庭向け）
+   1ファイル・通信ゼロ・外部読み込みなし・スクリプトなし。図はすべてHTML/CSSで描く。
+   画面では濃紺、印刷では白地に切り替わる（@media print）。
+   「偽物の例」はすべて実際の手口を簡略化した作り物。実在の画面・会社を写したものではない。
+   ────────────────────────────────────────────────────────── */
+:root{
+  --bg:#0a0f1c;
+  --ink:#eaf3ff; --muted:#b4c7db; --dim:#a1b5ca;
+  --accent:#6ecbff;
+  --ok:#b5dc78; --ok-bg:rgba(181,220,120,.12);
+  --ng:#ff9484; --ng-bg:rgba(255,148,132,.12);
+  --warn:#ffd591; --warn-bg:rgba(255,213,145,.10);
+  --card:rgba(255,255,255,.055);
+  --line:rgba(255,255,255,.14); --line-2:rgba(110,203,255,.35);
+  --navy:#14213d;
+}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);background-color:var(--bg);
+  background-image:radial-gradient(1100px 640px at 12% 0%, rgba(92,194,255,.16), transparent 62%),
+    radial-gradient(900px 700px at 96% 100%, rgba(126,92,255,.14), transparent 62%),
+    linear-gradient(158deg,#1b2742 0%,#111a2f 48%,#090e1a 100%);
+  background-repeat:no-repeat;background-size:100% 100%;
+  font-family:"Yu Gothic UI","Yu Gothic","Hiragino Sans","Meiryo",system-ui,sans-serif;
+  font-size:17px;line-height:1.85;-webkit-font-smoothing:antialiased}
+.wrap{max-width:980px;margin:0 auto;padding:34px 20px 80px}
+b,strong{color:#fff}
+.ph{background:rgba(255,213,145,.18);border-bottom:1px dashed var(--warn);color:var(--warn);padding:0 3px;border-radius:3px}
+
+header{padding:6px 0 24px;border-bottom:1px solid var(--line-2);margin-bottom:30px}
+.eyebrow{color:var(--muted);font-size:14px;letter-spacing:.12em}
+h1{font-size:34px;line-height:1.3;margin:8px 0 8px;font-weight:800}
+h1 .em{color:var(--accent)}
+.lead{color:var(--muted);font-size:16px;margin:0}
+.meta{color:var(--dim);font-size:13px;margin-top:12px}
+
+section{margin:0 0 50px}
+/* 中見出し＝番号札つきの帯、その下にテーマの一文。小見出し＝左の色線（2026-09-27 本人「見出しが見づらい」） */
+h2{display:flex;align-items:center;gap:14px;font-size:27px;line-height:1.35;margin:0;padding:14px 18px;border-left:6px solid var(--accent);border-radius:12px;background:rgba(110,203,255,.09)}
+h2 .n{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-width:46px;height:46px;border-radius:12px;background:var(--accent);color:#08131f;font-size:20px;font-weight:800}
+.theme{margin:12px 0 22px;padding-left:6px;font-size:18px;font-weight:700;color:#dbe8f5;line-height:1.6}
+h3{display:flex;align-items:center;gap:10px;font-size:21px;margin:30px 0 10px;color:#fff}
+h3::before{content:"";flex:0 0 auto;width:6px;height:24px;border-radius:3px;background:var(--warn)}
+.ic{display:inline-block;vertical-align:middle;flex:0 0 auto}
+p{margin:0 0 14px}
+.note{color:var(--muted);font-size:15px;border-left:3px solid var(--line-2);padding:4px 14px;margin:14px 0}
+.src{color:var(--dim);font-size:13px}
+
+/* ── まとめの4つ ── */
+.four{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+.four div{padding:18px 20px;border-radius:16px;background:var(--navy);border:1px solid var(--line-2);font-size:19px;font-weight:800;line-height:1.5}
+.four div span{display:block;color:var(--accent);font-size:14px;letter-spacing:.1em;margin-bottom:4px}
+
+/* ── 強い／守れない ── */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}
+.side{padding:20px 22px;border-radius:16px;border:2px solid}
+.side h4{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-size:20px}
+.side ul{margin:0;padding-left:20px}
+.side li{margin:6px 0}
+.side.ok{border-color:var(--ok);background:var(--ok-bg)} .side.ok h4{color:var(--ok)}
+.side.ng{border-color:var(--ng);background:var(--ng-bg)} .side.ng h4{color:var(--ng)}
+
+/* ── 認証の強さ3段 ── */
+.lv{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.lv div{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;padding:16px;border-radius:14px;border:2px solid;font-size:16px;line-height:1.5;background:var(--card)}
+.lv .mk{font-size:30px;font-weight:800;line-height:1.2}
+.lv .h{display:block;font-size:18px;font-weight:800;margin-bottom:4px}
+.lv .w{border-color:var(--ng);color:var(--ng)} .lv .w .h{color:var(--ng)}
+.lv .m{border-color:var(--warn);color:var(--warn)} .lv .m .h{color:var(--warn)}
+.lv .s{border-color:var(--ok);color:var(--ok)} .lv .s .h{color:var(--ok)}
+
+/* ── 通行証の図 ── */
+.pass{display:grid;grid-template-columns:1fr 40px 1fr 40px 1fr 40px 1fr;gap:8px;align-items:center;margin:18px 0}
+.pass .st{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px;border-radius:14px;background:var(--card);border:1px solid var(--line);text-align:center;font-size:16px;line-height:1.5;color:var(--accent)}
+.pass .st .h{display:block;font-size:18px;font-weight:800;color:#fff}
+.pass .st.bad{border-color:var(--ng);background:var(--ng-bg);color:var(--ng)}
+.pass .ar{text-align:center;color:var(--accent);font-size:28px}
+.big{display:flex;gap:16px;flex-wrap:wrap;margin:14px 0}
+.big > div{flex:1 1 200px;padding:16px 18px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
+.big .num{font-size:34px;font-weight:800;color:var(--warn);line-height:1.2}
+.big .lab{font-size:15px;color:var(--muted)}
+
+/* ── 入口のカード ── */
+.door{margin:22px 0;padding:22px 22px 18px;border-radius:18px;background:var(--card);border:1px solid var(--line)}
+.door .tag{display:inline-block;padding:2px 12px;border-radius:999px;background:var(--ng);color:#2a0d09;font-weight:800;font-size:14px;margin-bottom:8px}
+.door .tag.top{background:var(--warn);color:#2b1d00}
+.door h3{margin:4px 0 10px;font-size:22px}
+.door .do{margin-top:14px;padding:14px 16px;border-radius:12px;background:var(--ok-bg);border:1px solid var(--ok)}
+.door .do b{color:var(--ok)}
+.fakelabel{font-size:13px;color:var(--ng);font-weight:800;letter-spacing:.08em;margin:12px 0 6px}
+
+/* 偽物の例（作り物）。本物と見分けやすいよう、破線の枠で囲う */
+.fake{border:2px dashed var(--ng);border-radius:14px;padding:14px;background:rgba(0,0,0,.18)}
+.captcha{max-width:430px;margin:0 auto;background:#f7f9fb;color:#1b2430;border-radius:10px;padding:16px 18px;font-size:16px;line-height:1.6}
+.captcha .row{display:flex;align-items:center;gap:12px;padding-bottom:10px;border-bottom:1px solid #d8dee6}
+.captcha .box{width:26px;height:26px;border:2px solid #7a8796;border-radius:4px;background:#fff}
+.captcha ol{margin:10px 0 0;padding-left:22px}
+.captcha kbd{display:inline-block;padding:0 6px;border:1px solid #9aa6b3;border-bottom-width:2px;border-radius:4px;background:#fff;font-family:inherit;font-size:15px}
+.serp{max-width:560px;margin:0 auto;background:#fff;color:#1b2430;border-radius:10px;padding:14px 18px;font-size:16px;line-height:1.5}
+.serp .sp{font-weight:800;font-size:14px;color:#1b2430}
+.serp .url{color:#0b6b32;font-size:14px}
+.serp .ttl{color:#1a0dab;font-size:20px;margin:2px 0}
+.serp .dsc{color:#3c4550;font-size:15px}
+.alarm{max-width:520px;margin:0 auto;background:#c41f1f;color:#fff;border-radius:10px;padding:16px 18px;text-align:center;font-size:17px;line-height:1.55;font-weight:700}
+.alarm .t{font-size:22px;font-weight:800}
+.alarm .tel{display:inline-block;margin-top:8px;padding:6px 16px;background:#fff;color:#c41f1f;border-radius:8px;font-size:22px;font-weight:800}
+
+/* ── 向こうから来た連絡 ── */
+.ask{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+.ask div{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;padding:16px 18px;border-radius:14px;background:var(--ng-bg);border:1px solid var(--ng);line-height:1.6;color:var(--ng)}
+.ask .h{display:block;font-size:20px;font-weight:800;color:var(--ng);margin-bottom:4px}
+.never{margin:18px 0 22px;padding:16px 20px;border-radius:14px;background:var(--navy);border:2px solid var(--accent);font-size:20px;font-weight:800;text-align:center;line-height:1.5}
+.notes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:start}
+.notif{background:#f7f9fb;color:#1b2430;border-radius:14px;padding:12px 14px;font-size:15px;line-height:1.6}
+.notif .app{font-size:13px;color:#5b6878;font-weight:700;margin-bottom:4px}
+.notif b{color:#1b2430}
+.notif .lk{color:#1a0dab;text-decoration:underline;word-break:break-all}
+.notif .btns{display:flex;gap:8px;margin-top:10px}
+.notif .btns span{flex:1;text-align:center;padding:4px 0;border-radius:8px;background:#e3e8ef;font-weight:700}
+.notif .btns span.y{background:#1a5fd6;color:#fff}
+.how{margin:0;padding-left:20px}
+.how li{margin:8px 0}
+
+/* ── 電話の手口の流れ ── */
+.flow{display:grid;grid-template-columns:1fr;gap:10px;margin:16px 0}
+.flow div{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:start;padding:12px 16px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
+.flow div span{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:var(--accent);color:#08131f;font-weight:800}
+.flow div.bad{border-color:var(--ng);background:var(--ng-bg)} .flow div.bad span{background:var(--ng);color:#2a0d09}
+
+/* ── やめる／代わりに ── */
+.tbl{width:100%;border-collapse:separate;border-spacing:0 8px}
+.tbl th{text-align:left;font-size:15px;color:var(--muted);padding:0 12px}
+.tbl td{padding:14px 14px;vertical-align:top;background:var(--card);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.tbl td:first-child{border-left:4px solid var(--ng);border-radius:10px 0 0 10px;width:44%}
+.tbl td:last-child{border-right:1px solid var(--line);border-radius:0 10px 10px 0}
+.tbl td b{color:#fff}
+
+/* ── やってしまったら ── */
+.steps{counter-reset:s;list-style:none;padding:0;margin:14px 0}
+.steps li{counter-increment:s;position:relative;padding:12px 16px 12px 58px;margin:8px 0;border-radius:12px;background:var(--warn-bg);border:1px solid var(--warn)}
+.steps li::before{content:counter(s);position:absolute;left:14px;top:12px;width:32px;height:32px;border-radius:50%;background:var(--warn);color:#2b1d00;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);color:var(--dim);font-size:13px;line-height:1.7}
+footer ul{padding-left:18px;margin:8px 0}
+footer .disc{margin-top:12px;padding:10px 14px;border:1px solid var(--line-2);border-radius:10px}
+
+@media (max-width:720px){
+  h1{font-size:27px} h2{font-size:22px;padding:12px 14px} h2 .n{min-width:38px;height:38px;font-size:17px}
+  .four,.split,.ask,.notes,.lv{grid-template-columns:1fr}
+  .pass{grid-template-columns:1fr} .pass .ar{transform:rotate(90deg);line-height:1}
+  .tbl,.tbl tbody,.tbl tr,.tbl td{display:block;width:100%}
+  .tbl thead{display:none}
+  .tbl td:first-child{border-radius:10px 10px 0 0;border-right:1px solid var(--line);width:100%}
+  .tbl td:last-child{border-left:4px solid var(--ok);border-radius:0 0 10px 10px;margin-bottom:10px}
+}
+@media print{
+  :root{--bg:#fff;--ink:#1c2430;--muted:#4a5568;--dim:#5b6878;--accent:#0b6e8f;--card:#f6f8fb;--line:#c9d3df;--line-2:#0b6e8f;
+        --ok:#3f6b12;--ok-bg:#eef4e2;--ng:#b4432f;--ng-bg:#fbeae6;--warn:#8a5a00;--warn-bg:#fdf3e2;--navy:#eef3f9}
+  body{background:#fff;color:var(--ink);font-size:11pt}
+  b,strong{color:#14213d}
+  .four div,.pass .st .h{color:#14213d}
+  h2{background:#eef3f9} h2 .n{color:#fff} .theme{color:#1c2430} h3{color:#14213d}
+  .door,.side,.flow div,.steps li,.big div,.ask div,.notif,.never,.lv div{break-inside:avoid}
+  .never{color:#14213d}
+  .tbl td b{color:#14213d}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">社内・ご家庭向け ── 専門知識なしで読めます</div>
+  <h1>PCを乗っ取られないために<br><span class="em">パスキーでも守れない、2つの穴</span></h1>
+  <p class="lead">5分で読めます。07の「やめること・やること」だけでも、印刷して手元に置いてください。</p>
+  <div class="meta">2026年9月27日版 ／ 発行：<span class="ph">【作成部署名を記載】</span> ／ ※ <span class="ph">【 】</span> は各社の状況に合わせて書き換えてください</div>
+</header>
+
+<section id="s0">
+  <h2><span class="n">00</span>まず、覚える4つ</h2>
+  <p class="theme">パスキーでも守れない穴は、この4つでほぼ塞がる</p>
+  <p>パスキー（指紋・顔・PINでログインする仕組み）は、偽サイトにパスワードを入れさせる詐欺にとても強い仕組みです。それでも守れない穴が2つあります（01で説明します）。その穴を塞ぐために覚えることは、次の4つだけです。</p>
+  <div class="four">
+    <div><span>1</span>「コピーして貼って実行」「この手順で押して」と言われたら、無視して閉じる</div>
+    <div><span>2</span>ソフトは公式サイトからだけ入手。検索の「スポンサー」「まとめ」「ブログ」サイトは利用しない</div>
+    <div><span>3</span>警告画面に出た電話番号にはかけない、URLのリンクも押さない</div>
+    <div><span>4</span>向こうから来た電話・SMS・メール・通知には、その場で応じない。自分から要求していないものは無視するか、自分で開き直す・かけ直す</div>
+  </div>
+</section>
+
+<section id="s1">
+  <h2><span class="n">01</span>パスキーの強さと、2つの穴</h2>
+  <p class="theme">偽サイトには強い。守れないのは「PCの中」と「自分の承認」</p>
+  <p>例えるなら、パスワードは「合言葉」です。偽の門番（偽のログイン画面）にも言えてしまいます。パスキーは、本物の扉の鍵穴にしか合わない「鍵」。スマホやPCの中から出ることはなく、指紋や顔もサイトには送られません。</p>
+  <div class="split">
+    <div class="side ok"><h4><svg class="ic" width="34" height="34" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="11" y="22" width="26" height="20" rx="4"/><path d="M16 22v-6a8 8 0 0 1 16 0v6"/><path d="M24 30v5"/></svg>強い</h4><ul>
+      <li>偽サイトの詐欺</li>
+      <li>使い回し・流出</li></ul></div>
+    <div class="side ng"><h4><svg class="ic" width="34" height="34" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="24" cy="28" rx="9" ry="12"/><circle cx="24" cy="12" r="5"/><path d="M15 24H6M15 32H7M33 24h9M33 32h8M17 18l-6-5M31 18l6-5M24 17v23"/></svg>守れない</h4><ul>
+      <li>PCの中のマルウェア</li>
+      <li>急かされての承認</li></ul></div>
+  </div>
+  <p>守れないのは、<b>家の中にすでに泥棒がいるとき</b>と、<b>騙されて、泥棒が持ってきた鍵を自分の家の合鍵として登録してしまうとき</b>です。前者は、PCに入り込んだマルウェアが、ログイン済みの「通行証」を盗む手口（03）。後者は、急かされて、攻撃者の端末を自分で承認してしまう手口（05）。どちらも、パスキーの暗号そのものは破られていません。</p>
+</section>
+
+<section id="s2">
+  <h2><span class="n">02</span>入口の強さは、いちばん弱いところで決まる</h2>
+  <p class="theme">パスキーと2段階認証は、両方そろえて意味がある</p>
+  <div class="lv">
+    <div class="w"><svg class="ic" width="40" height="40" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="15" cy="24" r="8"/><path d="M23 24h20M37 24v7M42 24v5"/></svg><span class="h">パスワードだけ</span><span class="mk">✕</span>偽サイトに弱い</div>
+    <div class="m"><svg class="ic" width="40" height="40" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="14" cy="12" r="3"/><circle cx="24" cy="12" r="3"/><circle cx="34" cy="12" r="3"/><circle cx="14" cy="24" r="3"/><circle cx="24" cy="24" r="3"/><circle cx="34" cy="24" r="3"/><circle cx="14" cy="36" r="3"/><circle cx="24" cy="36" r="3"/><circle cx="34" cy="36" r="3"/></svg><span class="h">＋2段階認証</span><span class="mk">△</span>転送で破られる</div>
+    <div class="s"><svg class="ic" width="40" height="40" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="11" y="22" width="26" height="20" rx="4"/><path d="M16 22v-6a8 8 0 0 1 16 0v6"/><path d="M24 30v5"/></svg><span class="h">パスキー</span><span class="mk">◎</span>偽サイトで回らない</div>
+  </div>
+  <p>2段階認証は、パスワードのあとに、スマホに届く6桁のコードなども入れる仕組みです（「2要素認証」「多要素認証」とも呼ばれます）。パスワードだけよりずっと強くなりますが、パスワードもコードも<b>画面に打ち込む情報</b>なので、偽サイトに入れてしまえば、攻撃者がその場で本物のサイトへ転送して入れます（リアルタイムフィッシング）。パスキーは打ち込む情報を使わず、スマホ（持ち物）と指紋・顔・PIN（本人）を1回で確かめます。</p>
+  <p>ただし、パスキーを登録しても、多くのサービスではパスワードの入口も残ります。玄関に最新の鍵を付けても、勝手口が合言葉で開くなら、泥棒は勝手口から入ります。<b>アカウントの強さは、残っている中でいちばん弱い入口で決まります。</b></p>
+  <p class="note"><b>PIN（短い番号）はパスワードより弱くないの？</b>　PINは、その端末の中の鍵を開けるためだけに使われ、サイトには送られません。パスワードが「どの扉でも通じる合言葉」なら、PINは「<b>自分のポケットの中の金庫の番号</b>」です。弱点は、端末とPINを両方まとめて取られたとき。誕生日のような番号は避け、入れるときは画面を隠す。パスキーを同期しているGoogleやiCloudのアカウントにも、2段階認証をかけておきましょう。</p>
+  <div class="door"><div class="do" style="margin-top:0"><b>こうする：</b><ol class="how" style="margin:6px 0 8px"><li>パスキーを登録する</li><li>残るパスワードの入口にも、2段階認証をかける（パスワードでのログインを止められるなら、止める）</li><li>パスワードの再設定に使うメールにも、同じ守りをかける</li></ol><b>パスキーが使えるはずのサイトで、急に「別の方法でログイン」と出たら、立ち止まる。</b></div></div>
+</section>
+
+<section id="s3">
+  <h2><span class="n">03</span>通行証（Cookie）を盗まれると</h2>
+  <p class="theme">盗まれた通行証があれば、パスワードもパスキーも要らない</p>
+  <div class="pass">
+    <div class="st"><svg class="ic" width="40" height="40" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="24" cy="15" r="8"/><path d="M8 43c0-9 7-15 16-15s16 6 16 15"/></svg><span class="h">ログイン</span></div>
+    <div class="ar">→</div>
+    <div class="st"><svg class="ic" width="40" height="40" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15h36v6a4 4 0 0 0 0 8v6H6v-6a4 4 0 0 0 0-8z"/><path d="M30 15v20" stroke-dasharray="3 4"/></svg><span class="h">通行証を持つ</span></div>
+    <div class="ar">→</div>
+    <div class="st bad"><svg class="ic" width="40" height="40" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="24" cy="28" rx="9" ry="12"/><circle cx="24" cy="12" r="5"/><path d="M15 24H6M15 32H7M33 24h9M33 32h8M17 18l-6-5M31 18l6-5M24 17v23"/></svg><span class="h">盗まれる</span></div>
+    <div class="ar">→</div>
+    <div class="st bad"><svg class="ic" width="40" height="40" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="24" cy="15" r="8"/><path d="M8 43c0-9 7-15 16-15s16 6 16 15"/></svg><span class="h">なりすまし</span></div>
+  </div>
+  <p>一度ログインすると、ブラウザは「この人はもう確認済み」という通行証（Cookie）を持ちます。次から毎回パスワードを聞かれないのは、このおかげです。イベント会場の入場リストバンドと同じで、盗まれて他人に付けられたら、入口の確認はもう済んだ扱いになってしまいます。</p>
+  <div class="big">
+    <div><div class="num">1,861件</div><div class="lab">Cookie（1台あたり平均）</div></div>
+    <div><div class="num">約937億件</div><div class="lab">闇市場に出回るCookie</div></div>
+  </div>
+  <p>マルウェアに感染したPC1台からは、平均でパスワード44件と、Cookie 1,861件が盗まれます（2025年の調査）。Cookieの多くはただのメモですが、中にはメールや仕事の道具に入ったままの通行証が紛れています。闇市場には約937億件のCookieが出回っていて（2025年）、今も使えるものは一部ですが、攻撃者はそこから選び出します。</p>
+  <p class="note">攻撃者が欲しいのは、パスワードより通行証です。<b>だから一番の防御は、マルウェアをPCに入れないこと</b>。入口は、次の04の5つです。</p>
+</section>
+
+<section id="s4">
+  <h2><span class="n">04</span>マルウェアの入口5つ</h2>
+  <p class="theme">いちばん多いのは、自分の手で「貼って実行」させる手口</p>
+
+  <div class="door">
+    <span class="tag top">いま一番多い入口</span>
+    <h3>A　偽のロボット確認 ── コマンドを貼らせる</h3>
+    <p>ウェブページに本物そっくりの確認画面が出て、「確認のため、次の操作をしてください」と指示されます。言われたとおりにキーを押すと、<b>自分の手でマルウェアを入れてしまいます</b>。2026年は、この手口がメールの詐欺を抜いて最多の入口になりました。</p>
+    <div class="fakelabel">偽物の例（実際の手口を簡略化）</div>
+    <div class="fake"><div class="captcha">
+      <div class="row"><div class="box"></div><div>私はロボットではありません</div></div>
+      <div style="margin-top:8px">確認のため、次の3ステップを行ってください</div>
+      <ol><li><kbd>Windows</kbd> ＋ <kbd>R</kbd> を押す</li><li><kbd>Ctrl</kbd> ＋ <kbd>V</kbd> を押す</li><li><kbd>Enter</kbd> を押す</li></ol>
+    </div></div>
+    <p style="margin-top:14px">この3つのキーは、「PCに命令を打ち込む窓を開く」「ページがこっそりコピーしておいた命令を貼り付ける」「実行する」という操作です。<b>見知らぬ人が書いた命令書に、中身も読まずに自分でハンコを押す</b>のと同じです。</p>
+    <div class="do"><b>こうする：</b>本物のロボット確認は、キーボード操作を求めません。<b>「貼って実行して」と言われたら、そのページを閉じる。</b>Macの「ターミナルに貼って」も同じです。</div>
+  </div>
+
+  <div class="door">
+    <span class="tag">入口</span>
+    <h3>B　検索の広告 ── 偽のダウンロードページへ</h3>
+    <p>検索結果のいちばん上に出る「スポンサー」（広告）の枠に、本物そっくりの偽サイトが並びます。</p>
+    <div class="fakelabel">偽物の例（実際の手口を簡略化）</div>
+    <div class="fake"><div class="serp">
+      <div class="sp">スポンサー</div>
+      <div class="url">https://claude-code-install.example</div>
+      <div class="ttl">Claude Code をインストール｜公式ガイド</div>
+      <div class="dsc">1行のコマンドで、すぐに使えます。Windows・Mac対応。</div>
+    </div></div>
+    <p style="margin-top:14px">2026年5月には、AIツール「Claude Code」の検索広告から偽のインストールページへ誘い、コマンドを実行させて情報を盗む手口が見つかりました。7月には偽の「Claudeデスクトップアプリ」でPCを遠隔操作する例、9月には人気ソフトの偽サイトから入れたインストーラーが<b>Windowsの更新とウイルス対策を止める</b>例が報告されています。</p>
+    <p>検索結果の「スポンサー」は、<b>お金を払えば誰でも出せる広告の枠</b>です。「公式」と書かれたチラシが、本当に公式とは限りません。</p>
+    <div class="do"><b>こうする：</b>ソフトは、ブックマークした公式サイトか、公式のアプリストアから。<b>検索結果の「スポンサー」や、まとめ・ブログに貼られたリンクからは入れない。</b></div>
+  </div>
+
+  <div class="door">
+    <span class="tag">入口</span>
+    <h3>C　偽の警告画面 ── 電話をかけさせる</h3>
+    <p>突然、大きな音とともに「ウイルスに感染しています」という画面が出て、電話をかけさせます（サポート詐欺）。電話の先で遠隔操作ソフトを入れさせ、お金を取ったり、PCの中を見たりします。</p>
+    <div class="fakelabel">偽物の例（実際の手口を簡略化）</div>
+    <div class="fake"><div class="alarm">
+      <div class="t">警告：ウイルスに感染しています</div>
+      個人情報が流出しています。PCの電源を切らないでください。<br>今すぐサポートにお電話ください。
+      <div><span class="tel">0120-XXX-XXX</span></div>
+    </div></div>
+    <p style="margin-top:14px">警察庁の集計では、2025年上半期だけで679件・被害額約8億5千万円。2025年12月から2026年5月には、この画面へ誘うメールが1,300万通以上観測されています。</p>
+    <div class="do"><b>こうする：</b><b>表示された番号にかけない。</b>遠隔操作ソフトを入れない。画面が消えなければ、ブラウザを閉じる。それでも消えなければ再起動。</div>
+  </div>
+
+  <div class="door">
+    <span class="tag">入口</span>
+    <h3>D　ブラウザの拡張機能</h3>
+    <p>勤怠や会計などの業務ツールを名乗る偽の拡張機能が、通行証を盗んでアカウントを乗っ取る例が、2026年1月に見つかっています（5種類、2,300回以上インストール）。</p>
+    <div class="do"><b>こうする：</b>拡張機能は必要なものだけ。<b>業務用は会社が指定したものだけ。</b>使っていないものは削除する。</div>
+  </div>
+
+  <div class="door">
+    <span class="tag">入口</span>
+    <h3>E　メール・SMS・SNSのリンクと添付</h3>
+    <p>昔からある入口ですが、いまも現役です。上のA〜Cへの入り口にもなります。</p>
+    <div class="do"><b>こうする：</b>身に覚えのない添付は開かない。<b>大事なサービスは、リンクからではなく、ブックマークや公式アプリから開く。</b>詳しくは次の05で。</div>
+  </div>
+</section>
+
+<section id="s5">
+  <h2><span class="n">05</span>向こうから来た連絡には、その場で応じない</h2>
+  <p class="theme">SMS・メール・通知・電話。頼んでいないものには応じない</p>
+  <p>毎日届くたくさんの通知に紛れて、攻撃者からの連絡も届きます。宅配業者・銀行・通販・役所・自社のIT部門など、本物の名前と本物そっくりの文面で来るので、見た目では見分けられません。</p>
+
+  <h3>頼んでくるのは、この3つ</h3>
+  <div class="ask">
+    <div><svg class="ic" width="40" height="40" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h36v24H22l-9 8v-8H6z"/><path d="M13 17h22M13 24h14"/></svg><span class="h">開かせる</span>リンク・QR・添付</div>
+    <div><svg class="ic" width="40" height="40" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="10" y="5" width="28" height="38" rx="3"/><path d="M16 14h16M16 22h16M16 30h9"/></svg><span class="h">入れさせる</span>パスワード・コード</div>
+    <div><svg class="ic" width="40" height="40" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="24" cy="24" r="17"/><circle cx="24" cy="24" r="8"/></svg><span class="h">押させる</span>承認ボタン</div>
+  </div>
+  <p>リンクをタップさせる、QRコードを読ませる、添付を開かせる。パスワードや届いたコード、カード番号、個人情報を入力させる（電話で言わせる）。「サインインしようとしていますか？」の<b>承認</b>ボタンを押させる。</p>
+  <div class="never">向こうから来た連絡の中では、この3つを一切しない</div>
+  <div class="fakelabel">偽物の例（実際の手口を簡略化）</div>
+  <div class="fake"><div class="notes">
+    <div class="notif"><div class="app">SMS</div>【宅配便】お荷物をお届けに上がりましたが、不在のため持ち帰りました。再配達のご依頼はこちら<br><span class="lk">https://redelivery.example</span></div>
+    <div class="notif"><div class="app">メール</div><b>【重要】アカウントを一時停止しました</b><br>24時間以内に本人確認を完了しない場合、ご利用いただけなくなります。<br><span class="lk">本人確認へ進む</span></div>
+    <div class="notif"><div class="app">アプリの通知</div><b>サインインしようとしていますか？</b><br>場所：不明 ／ 端末：Windows<div class="btns"><span class="y">承認</span><span>拒否</span></div></div>
+  </div></div>
+
+  <h3>急がせる電話で、自分で承認させる手口</h3>
+  <div class="flow">
+    <div><span>1</span><p style="margin:0">個人の携帯に電話・SMS</p></div>
+    <div><span>2</span><p style="margin:0">偽のログイン画面へ</p></div>
+    <div class="bad"><span>3</span><p style="margin:0">コードを入れて承認</p></div>
+    <div class="bad"><span>4</span><p style="margin:0">以後、いつでも入られる</p></div>
+  </div>
+  <p>マルウェアを使わない手口もあります。2026年5月から、社内のIT部門を名乗る電話で、社員に攻撃者の端末を承認させる手口が観測されています。「IT部門です。パスキーを今すぐ更新しないと、使えなくなります」と急かされ、SMSで届いた本物そっくりの画面にコードを入れた瞬間、<b>攻撃者の端末が「あなた」として登録されます</b>。以後は何もしなくても入られ、メールやファイルを何日もかけて静かに抜かれます。急がせる、偉い立場を名乗る、確かめる暇を与えない。<b>昔からある「オレオレ詐欺」と同じ台本</b>です。</p>
+
+  <h3>では、どうするか</h3>
+  <div class="door">
+    <ul class="how">
+      <li><b>確かめたいときは、その連絡からではなく、自分で開き直す。</b>ブックマーク、公式アプリ、いつも使っている電話番号から。本当の用件なら、そちらにも同じ知らせが出ています。</li>
+      <li><b>急がせる電話は、一度切って、社内の番号<span class="ph">【IT部門の番号を記載】</span>へ自分でかけ直す。</b>本物のIT部門は、急がせません。</li>
+      <li><b>届いたコードは、誰にも教えない。</b>本物の会社やIT部門が、電話やメッセージでコードを聞くことはありません。</li>
+      <li><b>心当たりのない承認は「拒否」。</b>何度も届くなら、誰かがあなたのパスワードを知っている合図です。別の安全な端末からパスワードを変え、会社なら<span class="ph">【担当窓口】</span>へ。</li>
+      <li><b>知らないサイトの「通知を許可しますか？」は、許可しない。</b>許可すると、04のCのような偽の警告が、通知で届くようになります。</li>
+    </ul>
+    <div class="do"><b>例外は1つだけ：</b>自分がいま、公式サイトや公式アプリでログインしていて、その続きとして届いたコード。<b>それ以外は、応じない。</b></div>
+  </div>
+</section>
+
+<section id="s6">
+  <h2><span class="n">06</span>知っておくだけでよい弱点</h2>
+  <p class="theme">パスキーの周りの弱点も、先にPCに入られていることが前提</p>
+  <p>2026年8月、専門家がパスキーの<b>周辺</b>の弱点をまとめて発表しました。</p>
+  <ul>
+    <li><b>Chromeで同期しているパスキー</b>：PCに入り込んだマルウェアが同期用の親鍵を抜き取れば、パスキーを復元できた（Googleは記録を止めたが、親鍵を作り直す手段はまだ無い）</li>
+    <li><b>Windows Hello</b>：PCに入り込んだマルウェアが、PINや顔認証の確認なしに鍵を使えた</li>
+    <li><b>Windowsの記録</b>：使用済みの認証を記録から拾って使い回せた（Microsoftは7月の更新で対処）</li>
+  </ul>
+  <p class="note">パスキーの暗号そのものは破られていません。<b>だから、入れないこと。そして、Windowsとブラウザの更新を止めないこと。</b></p>
+</section>
+
+<section id="s7">
+  <h2><span class="n">07</span>やめること・やること</h2>
+  <p class="theme">迷ったら、この表だけ見ればよい</p>
+  <table class="tbl">
+    <thead><tr><th>やめる</th><th>代わりに</th></tr></thead>
+    <tbody>
+      <tr><td>画面の指示で、キーを押して何かを「貼って実行」する</td><td><b>そのページを閉じる</b></td></tr>
+      <tr><td>検索結果の「スポンサー」からソフトを入れる</td><td><b>ブックマークした公式サイト・公式ストアから入れる</b></td></tr>
+      <tr><td>警告画面に出た番号へ電話する</td><td><b>ブラウザを閉じる。消えなければ再起動</b></td></tr>
+      <tr><td>便利そうな拡張機能を入れる</td><td><b>会社が指定したものだけ。使わないものは消す</b></td></tr>
+      <tr><td>SMS・メール・通知のリンクを開く、QRコードを読む</td><td><b>開かない。公式アプリ・ブックマークから自分で開く</b></td></tr>
+      <tr><td>急がせる電話・SMS・メール・通知の指示に、その場で従う</td><td><b>一度閉じる・切る。知っている番号や公式アプリから、自分で確かめる</b></td></tr>
+      <tr><td>届いたコードを、人に教える</td><td><b>誰にも教えない。本物は、コードを聞かない</b></td></tr>
+      <tr><td>身に覚えのないコード入力・承認をする</td><td><b>「拒否」を押す。IT部門へ知らせる</b></td></tr>
+      <tr><td>知らないサイトの「通知を許可」を押す</td><td><b>許可しない</b></td></tr>
+      <tr><td>パスキーを登録して安心し、パスワードの入口を放っておく</td><td><b>残るパスワードにも2段階認証。止められるなら止める</b></td></tr>
+      <tr><td>「あとで」と更新を先延ばしにする</td><td><b>Windows・ブラウザの更新は、その日のうちに</b></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="s8">
+  <h2><span class="n">08</span>会社でAIを使う場合（管理者の方へ）</h2>
+  <p class="theme">騙される前提で、権限は小さく、押すのは人</p>
+  <p>AIは、読んだ文章の中の指示と、ただのデータを区別できません。どんなに優秀でも、<b>騙されやすい新人に、いきなり金庫の鍵と会社の印鑑は預けない</b>のと同じ考え方で囲います。</p>
+  <ul class="how">
+    <li><b>AIには専用のアカウントを作り、見せるのは必要なフォルダだけ、まずは「閲覧だけ」。</b>管理者の権限は渡さない（AIが自分の記録を消せないように）</li>
+    <li><b>メール送信・公開・支払い・削除・社外への共有は、AIは下書きまで。</b>押すのは人。「実行の前に毎回確認」の設定を「全部許可」にしない</li>
+    <li><b>AIのサービスに、利用上限と予算アラートを設定する。</b>アラートは担当者のメールへ。月に1回、請求を先月と並べて見る</li>
+  </ul>
+</section>
+
+<section id="s9">
+  <h2><span class="n">09</span>もし、やってしまったら</h2>
+  <p class="theme">まず切る、すぐ知らせる、別の端末で変える</p>
+  <ol class="steps">
+    <li><b>ネットを切る。</b>Wi-Fiをオフにする、LANケーブルを抜く</li>
+    <li><b>会社のPCなら、すぐ<span class="ph">【担当窓口】</span>へ。</b>自分で直そうとしない</li>
+    <li><b>別の安全な端末から</b>、大事なアカウントのパスワードを変え、「すべての端末からログアウト」を選ぶ</li>
+    <li>お金が絡むなら、カード会社・銀行へ連絡。警察への相談は <b>#9110</b>（警察相談専用電話）</li>
+  </ol>
+  <p><b>恥ずかしいことではありません。</b>どれも、よく作られた手口です。早く言うほど、被害は小さくなります。</p>
+</section>
+
+<footer>
+  <div><b>出典</b>（2026年9月時点）</div>
+  <ul>
+    <li>IPA「情報セキュリティ10大脅威 2026」（個人編：サポート詐欺（偽警告）による金銭被害／インターネット上のサービスへの不正ログイン ほか）</li>
+    <li>警察庁「サポート詐欺対策」、トレンドマイクロ「日本の個人・組織を狙うサポート詐欺キャンペーン」（2026年）</li>
+    <li>ClickFix（偽のロボット確認）：CTM360、Vega Threat Intel（2026年第2四半期）、Microsoft Security Blog（2026-05-06）</li>
+    <li>InstallFix（Claude Codeの偽インストールページ）：Trend Micro（2026-05-05）／偽Claudeデスクトップアプリ：Malwarebytes（2026-04）、FakeAgent（2026-07）</li>
+    <li>偽インストーラーが更新とウイルス対策を止める例：The Hacker News（2026-09）</li>
+    <li>偽の業務ツール拡張機能：The Hacker News（2026-01）</li>
+    <li>通行証（Cookie）の窃取と件数：SpyCloud「2025 Identity Exposure Report」、NordStellar（2025年5月）</li>
+    <li>パスキー周辺の弱点：SpecterOps（Black Hat USA 2026-08-05）、Palo Alto Networks Unit 42、Dirk-jan Mollema ／ The Hacker News（2026-08-10）</li>
+    <li>IT部門を名乗る電話で承認させる手口：Microsoft Security（2026-09）／ The Hacker News（2026-09）</li>
+  </ul>
+  <div>「偽物の例」は、実際の手口を簡略化した作り物です。実在の画面・会社・電話番号を写したものではありません。<br>本資料は「AI内製化工房 MITA」の連載「AI内製化の羅針盤」の調査に基づいています。1ファイル・通信ゼロ・外部読み込みなし。</div>
+  <div class="disc"><b>ご利用にあたって</b>：本資料のご利用は自己責任でお願いします。内容は作成時点の公開情報に基づくもので、正確さや最新であることを保証するものではありません。本資料の利用により生じた結果について、作成者は一切の責任を負いません。社内での改変・配布は自由です（その際は出典として「AI内製化工房 MITA」の記載をお願いします）。著作権は作成者に帰属します。</div>
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>会社のセキュリティ段階表</title>
+<style>
+:root{
+  --bg:#0a0f1c; --ink:#eaf3ff; --muted:#b4c7db; --dim:#a1b5ca; --accent:#6ecbff;
+  --ok:#b5dc78; --ok-bg:rgba(181,220,120,.12); --ng:#ff9484; --warn:#ffd591; --warn-bg:rgba(255,213,145,.10);
+  --pro:#c9b6ff; --card:rgba(255,255,255,.055); --line:rgba(255,255,255,.14); --line-2:rgba(110,203,255,.35); --navy:#14213d;
+}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);background-color:var(--bg);
+  background-image:radial-gradient(1100px 640px at 12% 0%, rgba(92,194,255,.16), transparent 62%),
+    radial-gradient(900px 700px at 96% 100%, rgba(126,92,255,.14), transparent 62%),
+    linear-gradient(158deg,#1b2742 0%,#111a2f 48%,#090e1a 100%);
+  background-repeat:no-repeat;background-size:100% 100%;
+  font-family:"Yu Gothic UI","Yu Gothic","Hiragino Sans","Meiryo",system-ui,sans-serif;
+  font-size:17px;line-height:1.8;-webkit-font-smoothing:antialiased}
+.wrap{max-width:980px;margin:0 auto;padding:30px 20px 80px}
+b,strong{color:#fff}
+.ph{background:rgba(255,213,145,.18);border-bottom:1px dashed var(--warn);color:var(--warn);padding:0 3px;border-radius:3px}
+header{padding:6px 0 22px;border-bottom:1px solid var(--line-2);margin-bottom:18px}
+.eyebrow{color:var(--muted);font-size:14px;letter-spacing:.12em}
+h1{font-size:34px;line-height:1.3;margin:8px 0 8px;font-weight:800}
+h1 .em{color:var(--accent)}
+.lead{color:var(--muted);font-size:17px;margin:0}
+
+/* 今のレベル（スクロールしても上に残る） */
+.now{position:sticky;top:0;z-index:5;margin:0 0 26px;padding:12px 18px;border-radius:14px;background:var(--navy);
+  border:2px solid var(--accent);font-size:19px;font-weight:800;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.now .lab{color:var(--accent);margin-right:10px}
+.now span[class^="s"]{display:none}
+.wrap:has(#lv1 .item input:not(:checked)) .now .s0{display:inline}
+.wrap:not(:has(#lv1 .item input:not(:checked))):has(#lv2 .item input:not(:checked)) .now .s1{display:inline}
+.wrap:not(:has(#lv1 .item input:not(:checked), #lv2 .item input:not(:checked))):has(#lv3 .item input:not(:checked)) .now .s2{display:inline}
+.wrap:not(:has(#lv1 .item input:not(:checked), #lv2 .item input:not(:checked), #lv3 .item input:not(:checked))):has(#lv4 .item input:not(:checked)) .now .s3{display:inline}
+.wrap:not(:has(#lv1 .item input:not(:checked), #lv2 .item input:not(:checked), #lv3 .item input:not(:checked), #lv4 .item input:not(:checked))) .now .s4{display:inline}
+
+section{margin:0 0 46px}
+h2{display:flex;align-items:center;gap:14px;font-size:27px;line-height:1.35;margin:0;padding:14px 18px;border-left:6px solid var(--accent);border-radius:12px;background:rgba(110,203,255,.09)}
+h2 .n{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-width:46px;height:46px;border-radius:12px;background:var(--accent);color:#08131f;font-size:20px;font-weight:800}
+h2 .ic{color:var(--accent);margin-left:auto}
+.theme{margin:12px 0 18px;padding-left:6px;font-size:18px;font-weight:700;color:#dbe8f5;line-height:1.6}
+.ic{display:inline-block;vertical-align:middle;flex:0 0 auto}
+p{margin:0 0 14px}
+
+/* 印 */
+.tag{flex:0 0 auto;display:inline-block;padding:2px 12px;border-radius:999px;font-size:14px;font-weight:800;line-height:1.7;white-space:nowrap}
+.tag.hito{background:var(--warn);color:#2b1d00}
+.tag.settei{background:var(--accent);color:#08131f}
+.tag.shikumi{background:var(--ok);color:#162300}
+.tag.pro{background:var(--pro);color:#1d1238}
+
+/* 使い方・段階を上げる図 */
+.how{margin:0 0 16px;padding-left:22px}
+.how li{margin:6px 0}
+.climb{display:grid;grid-template-columns:1fr 44px 1fr 44px 1fr;gap:8px;align-items:center;margin:16px 0 8px}
+.climb .st{display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 10px;border-radius:14px;background:var(--card);border:1px solid var(--line);text-align:center;font-size:16px;line-height:1.5}
+.climb .st .h{font-size:19px;font-weight:800;color:#fff}
+.climb .ar{text-align:center;color:var(--accent);font-size:28px;font-weight:800}
+
+/* 項目 */
+.items{list-style:none;margin:0;padding:0}
+.lvsec{counter-reset:c}
+.item{margin:10px 0;padding:14px 16px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
+.item:has(input:checked){border-color:var(--ok);background:var(--ok-bg)}
+.item label{display:flex;align-items:flex-start;gap:12px;cursor:pointer;flex-wrap:wrap}
+.item input{flex:0 0 auto;width:24px;height:24px;margin:4px 0 0;accent-color:#7fbf3f}
+.item input:checked{counter-increment:c}
+.item .t{flex:1 1 300px;font-weight:700;color:#fff;line-height:1.6}
+.item .why{margin:6px 0 0 36px;font-size:15px;color:var(--muted);line-height:1.6}
+.item .why::before{content:"なぜ　";color:var(--accent);font-weight:800}
+.foot{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:16px;color:var(--muted)}
+.cnt::before{content:counter(c);font-size:22px;font-weight:800;color:#fff}
+.done{display:none;align-items:center;gap:8px;padding:4px 14px;border-radius:999px;background:var(--ok);color:#162300;font-weight:800}
+.lvsec:not(:has(.item input:not(:checked))) .done{display:inline-flex}
+
+/* 囲み */
+.box{padding:16px 20px;border-radius:14px;background:var(--navy);border:1px solid var(--line-2);margin:12px 0}
+.box ul{margin:0;padding-left:20px}
+.box li{margin:6px 0}
+.prompt{padding:16px 20px;border-radius:14px;background:rgba(255,255,255,.06);border:2px dashed var(--accent);margin:12px 0;line-height:1.7}
+
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);color:var(--dim);font-size:13px;line-height:1.7}
+footer ul{padding-left:18px;margin:8px 0}
+footer .disc{margin-top:12px;padding:10px 14px;border:1px solid var(--line-2);border-radius:10px}
+
+@media (max-width:720px){
+  h1{font-size:27px} h2{font-size:22px;padding:12px 14px} h2 .n{min-width:38px;height:38px;font-size:17px}
+  .now{font-size:16px;padding:10px 14px}
+  .climb{grid-template-columns:1fr} .climb .ar{transform:rotate(90deg);line-height:1}
+  .item .t{flex:1 1 calc(100% - 40px);min-width:0}
+  .item .tag{margin-left:36px}
+  .item .why{margin-left:36px}
+}
+@media print{
+  :root{--bg:#fff;--ink:#1c2430;--muted:#4a5568;--dim:#5b6878;--accent:#0b6e8f;--card:#f6f8fb;--line:#c9d3df;--line-2:#0b6e8f;
+        --ok:#3f6b12;--ok-bg:#eef4e2;--warn:#8a5a00;--warn-bg:#fdf3e2;--pro:#5b3fa8;--navy:#eef3f9}
+  body{background:#fff;color:var(--ink);font-size:11pt}
+  b,strong,.item .t,.climb .st .h,.cnt::before{color:#14213d}
+  h2{background:#eef3f9} h2 .n{color:#fff} .theme{color:#1c2430}
+  .now{position:static;box-shadow:none;color:#14213d}
+  .tag.hito,.tag.settei,.tag.shikumi,.tag.pro,.done{color:#fff}
+  .item,.box,.climb .st{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">AI内製化の羅針盤 #30 付録 ／ 2026年9月時点</div>
+  <h1>会社のセキュリティ<span class="em">段階表</span></h1>
+  <p class="lead">人の習慣から、機械の設定へ。設定から、仕組みで確かめる形へ。上から順にチェックすると、今の位置が分かります。</p>
+</header>
+
+<div class="now"><span class="lab">今のレベル</span><span class="s0">レベル1の途中です。まず、ここから</span><span class="s1">レベル1まで達成。次はレベル2</span><span class="s2">レベル2まで達成。次はレベル3</span><span class="s3">レベル3まで達成。次はレベル4</span><span class="s4">レベル4まで達成。ここから先はプロと</span></div>
+
+<section>
+  <h2><span class="n">？</span>使い方<svg class="ic " width="34" height="34" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 25l10 10 20-22"/></svg></h2>
+  <p class="theme">上から順に。全部に印が付いたレベルが、今の会社の位置</p>
+  <ol class="how">
+    <li>レベル1から順に、できていることにチェックを付けます</li>
+    <li>全部にチェックが付いたレベルまでが、今の会社の位置です。上の帯に出ます</li>
+    <li>チェックの付かなかった項目が、次にやることです</li>
+  </ol>
+  <p>各項目の右の印は、守り方の種類です。</p>
+  <div class="climb">
+    <div class="st"><svg class="ic " width="44" height="44" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="17" cy="15" r="6"/><circle cx="33" cy="17" r="5"/><path d="M5 41c0-8 5-13 12-13s12 5 12 13M27 41c1-6 4-10 8-10 5 0 8 4 8 10"/></svg><span class="h"><span class="tag hito">人</span></span>人が守る手順</div>
+    <div class="ar">→</div>
+    <div class="st"><svg class="ic " width="44" height="44" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="11" y="22" width="26" height="20" rx="4"/><path d="M16 22v-6a8 8 0 0 1 16 0v6"/><path d="M24 30v5"/></svg><span class="h"><span class="tag settei">設定</span></span>機械の設定で止める</div>
+    <div class="ar">→</div>
+    <div class="st"><svg class="ic " width="44" height="44" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M39 19a16 16 0 0 0-29-5M10 6v8h8M9 29a16 16 0 0 0 29 5M38 42v-8h-8"/></svg><span class="h"><span class="tag shikumi">仕組み</span></span>守られているかを確かめ続ける</div>
+  </div>
+  <p><b>段階を上げるとは、人の頑張りに頼っている所を、機械の設定に移し、その設定を仕組みで確かめる形に変えていくことです。</b>どれだけ良いルールも、書いただけでは守られません。</p>
+</section>
+
+<section class="lvsec" id="lv1">
+  <h2><span class="n">1</span>今日から全員で<svg class="ic " width="34" height="34" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="17" cy="15" r="6"/><circle cx="33" cy="17" r="5"/><path d="M5 41c0-8 5-13 12-13s12 5 12 13M27 41c1-6 4-10 8-10 5 0 8 4 8 10"/></svg></h2>
+  <p class="theme">0円。一人ひとりの習慣で塞ぐ</p>
+  <ul class="items">
+    <li class="item"><label><input type="checkbox"><span class="t">席を立つ時は、必ず画面をロックする（Windows：Windowsキー＋L／Mac：control＋command＋Q）</span><span class="tag hito">人</span></label><p class="why">離席の数秒がいちばん危ない。キーボードのふりをするUSBは、ロックしていない画面なら数秒で操作を乗っ取れる</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">知らないUSBは挿さない。拾ったUSBや、もらった充電ケーブルも使わない</span><span class="tag hito">人</span></label><p class="why">USBは、記憶装置のふりも、キーボードのふりもできる</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">公衆Wi-Fiで仕事をしない。外ではスマホのテザリングを使う</span><span class="tag hito">人</span></label><p class="why">通信をのぞかれたり、同じ名前の偽のWi-Fiにつながったりする恐れがある</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">メール・SMS・通知で向こうから来た「開いて・入れて・押して」には、その場で応じない</span><span class="tag hito">人</span></label><p class="why">攻撃の入口の多くはここ。#27記事の手引きの「向こうから来た連絡」</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">更新の通知を後回しにしない</span><span class="tag hito">人</span></label><p class="why">古い弱点は、2026年のAIの事件でも入口になった</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">パソコンを車に置いたままにしない。外で画面を人に見せない</span><span class="tag hito">人</span></label><p class="why">盗難とのぞき見を防ぐ</p></li>
+  </ul>
+  <div class="foot"><span><span class="cnt"></span> / <span class="of">6</span> できています</span><span class="done">レベル1、達成</span></div>
+</section>
+
+<section class="lvsec" id="lv2">
+  <h2><span class="n">2</span>パソコン1台ずつの設定<svg class="ic " width="34" height="34" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="11" y="22" width="26" height="20" rx="4"/><path d="M16 22v-6a8 8 0 0 1 16 0v6"/><path d="M24 30v5"/></svg></h2>
+  <p class="theme">機械の設定で、うっかりを止める</p>
+  <ul class="items">
+    <li class="item"><label><input type="checkbox"><span class="t">画面の自動ロック（例：5分）と、戻る時のPIN・パスワード</span><span class="tag settei">設定</span></label><p class="why">ロックのし忘れを、機械が拾う</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">ドライブの暗号化（Windows Pro：BitLocker／Home：デバイスの暗号化／Mac：FileVault）。回復キーは本人以外の所にも保管する</span><span class="tag settei">設定</span></label><p class="why">盗まれても、ディスクを抜かれても中身を読まれない。回復キーを失うと、自分も読めなくなる</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">ウイルス対策とファイアウォールが有効になっている</span><span class="tag settei">設定</span></label><p class="why">IPA「情報セキュリティ5か条」の基本</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">大事なアカウントは、パスキーか多要素認証にする</span><span class="tag settei">設定</span></label><p class="why">パスワードだけの入口が、いちばん弱い入口になる（#27記事）</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">クラウドのファイル共有を「リンクを知っている全員」にしていないか見直す</span><span class="tag settei">設定</span></label><p class="why">リンクが外に出れば、誰でも開ける。5か条の「共有設定の見直し」</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">USBの自動再生を切る</span><span class="tag settei">設定</span></label><p class="why">挿しただけで何かが動くのを止める</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">公衆Wi-Fiへの自動接続を切る。使ったWi-Fiを記憶させない</span><span class="tag settei">設定</span></label><p class="why">同じ名前の偽のWi-Fiに、勝手につながるのを防ぐ</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">普段は、管理者ではない利用者で使う</span><span class="tag settei">設定</span></label><p class="why">乗っ取られた時の被害を小さくする</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">事務所のWi-Fiルーター：WPA2かWPA3、推測されにくいパスワード、サポート期限内、最新のファームウェア</span><span class="tag settei">設定</span></label><p class="why">総務省が示すWi-Fiの基本の対策</p></li>
+  </ul>
+  <div class="foot"><span><span class="cnt"></span> / <span class="of">9</span> できています</span><span class="done">レベル2、達成</span></div>
+</section>
+
+<section class="lvsec" id="lv3">
+  <h2><span class="n">3</span>会社として決めて、揃える<svg class="ic " width="34" height="34" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9h13a5 5 0 0 1 5 5v27a4 4 0 0 0-4-4H6zM42 9H29a5 5 0 0 0-5 5v27a4 4 0 0 1 4-4h14z"/></svg></h2>
+  <p class="theme">ルールと台帳で、全員を同じ水準に</p>
+  <ul class="items">
+    <li class="item"><label><input type="checkbox"><span class="t">端末の台帳を作る（誰の・どの端末・暗号化・更新・回復キーの置き場所）</span><span class="tag hito">人</span></label><p class="why">何を守るかが分からなければ、守れない</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">持ち出しのルールを決める（持ち出してよい端末、記録、紛失・盗難時の連絡先と手順）</span><span class="tag hito">人</span></label><p class="why">無くした時に、慌てずに動ける</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">私物のUSBメモリは、読み書きできない設定にする（Windowsの「リムーバブル記憶域へのアクセス」など）</span><span class="tag settei">設定</span></label><p class="why">情報の持ち出しと、感染の持ち込みの両方を止める</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">来客用のWi-Fiと、業務用のWi-Fiを分ける</span><span class="tag settei">設定</span></label><p class="why">来客の端末から、業務の端末が見えないようにする</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">鍵（パスワード・APIキー）を、共有フォルダや公開の場所、初期設定のままに置かないルールにする</span><span class="tag hito">人</span></label><p class="why">2026年のAIの事件でも、公開の場所の鍵と、初期設定のままの鍵が入口になった</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">振込先の変更・添付・リンクは、別の経路で本人に確かめる手順にする</span><span class="tag hito">人</span></label><p class="why">なりすましメールは、急がせて確かめさせないように作られている</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">メールのなりすまし対策（SPF・DKIM・DMARC）を入れる</span><span class="tag settei">設定</span></label><p class="why">自社を名乗る偽のメールを、受け取る側で見分けやすくする</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">管理者のアカウントは2人以上。普段使いとは分け、多要素認証を入れる</span><span class="tag settei">設定</span></label><p class="why">鍵を持つアカウントが、いちばん狙われ、いちばん止まると困る（#29記事）</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">AIサービスに渡すデータが、学習に使われる設定になっていないかを確かめる</span><span class="tag settei">設定</span></label><p class="why">2026年の事件では、学習用のデータから利用者の画像が漏れた（#30記事）</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">事故の時の手順を決める（ネットを切る・誰に知らせる・何を記録する）</span><span class="tag hito">人</span></label><p class="why">早く動くほど、被害は小さい</p></li>
+  </ul>
+  <div class="foot"><span><span class="cnt"></span> / <span class="of">10</span> できています</span><span class="done">レベル3、達成</span></div>
+</section>
+
+<section class="lvsec" id="lv4">
+  <h2><span class="n">4</span>仕組みで確かめ続ける<svg class="ic " width="34" height="34" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M39 19a16 16 0 0 0-29-5M10 6v8h8M9 29a16 16 0 0 0 29 5M38 42v-8h-8"/></svg></h2>
+  <p class="theme">設定は、いつの間にか外れる。だから機械で見張る</p>
+  <ul class="items">
+    <li class="item"><label><input type="checkbox"><span class="t">端末管理の仕組み（MDM）で、暗号化・更新・自動ロック・USBの設定を一括で揃え、守られているかを一覧で見る</span><span class="tag shikumi">仕組み</span></label><p class="why">1台ずつの設定は、いつの間にか外れる</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">公開の場所（共有リンク・公開リポジトリ）に鍵が置かれていないかを、定期的に機械で点検する</span><span class="tag shikumi">仕組み</span></label><p class="why">人の目では見落とす</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">管理者の数・多要素認証・使われていないアカウントを、定期的に点検する</span><span class="tag shikumi">仕組み</span></label><p class="why">退職者や使っていないアカウントが、裏口になる</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">自社でAIエージェントを動かすなら、権限は最小、記録はAIの手の届かない所、外へ出す操作は人のボタンにする</span><span class="tag settei">設定</span></label><p class="why">2026年の事件が見つかったのは、AIが触れない所に記録が残っていたから（#30記事）</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">点検の結果を、社内の一枚の画面に載せる</span><span class="tag shikumi">仕組み</span></label><p class="why">セキュリティの状態も、社内の状況の一つ（#22記事の城）</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">不審メールの訓練を、年に一度は行う</span><span class="tag hito">人</span></label><p class="why">人の癖は、訓練でしか変わらない</p></li>
+  </ul>
+  <div class="foot"><span><span class="cnt"></span> / <span class="of">6</span> できています</span><span class="done">レベル4、達成</span></div>
+</section>
+
+<section class="lvsec" id="lv5">
+  <h2><span class="n">5</span>ここから先は、プロと<svg class="ic " width="34" height="34" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M24 5 39 11v11c0 11-7 18-15 21C16 40 9 33 9 22V11z"/><path d="M17 24l5 5 9-10"/></svg></h2>
+  <p class="theme">自社で抱えず、専門家に任せる</p>
+  <ul class="items">
+    <li class="item"><label><input type="checkbox"><span class="t">侵入テストや脆弱性診断を、外部の専門会社に頼む</span><span class="tag pro">プロ</span></label><p class="why">攻める側の目で見ないと、見つからない穴がある</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">24時間のログの監視を、専門の会社に任せる</span><span class="tag pro">プロ</span></label><p class="why">夜中と休日にも、攻撃は来る</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">USB機器を1台ずつ識別して許可する、専用の製品を入れる</span><span class="tag pro">プロ</span></label><p class="why">キーボードのふりをするUSBへの、本命の対策</p></li>
+    <li class="item"><label><input type="checkbox"><span class="t">事故対応の契約や、サイバー保険を検討する</span><span class="tag pro">プロ</span></label><p class="why">起きた後の手当てを、先に決めておく</p></li>
+  </ul>
+  <div class="foot"><span><span class="cnt"></span> / <span class="of">4</span> できています</span><span class="done">ここまで手当て済み</span></div>
+</section>
+
+<section>
+  <h2><span class="n">★</span>IPAの宣言との対応<svg class="ic " width="34" height="34" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M24 5 39 11v11c0 11-7 18-15 21C16 40 9 33 9 22V11z"/><path d="M17 24l5 5 9-10"/></svg></h2>
+  <p class="theme">取引先に示せる形へ</p>
+  <div class="box"><ul>
+    <li>レベル1と2を全部できれば、IPA「SECURITY ACTION」の<b>一つ星</b>（情報セキュリティ5か条）の中身は、おおむね満たせます</li>
+    <li>レベル3まで進んだら、<b>二つ星</b>（情報セキュリティ基本方針を定め、25項目の自社診断を行う）を目指せます</li>
+    <li>宣言は、IPAのサイトから自社で行います。宣言の中身は、IPAの資料で必ず確かめてください</li>
+  </ul></div>
+</section>
+
+<section>
+  <h2><span class="n">AI</span>AIへの頼み方<svg class="ic " width="34" height="34" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="10" y="14" width="28" height="22" rx="6"/><circle cx="18" cy="25" r="3"/><circle cx="30" cy="25" r="3"/><path d="M24 14V7M20 42h8M24 36v6"/><circle cx="24" cy="6" r="2"/></svg></h2>
+  <p class="theme">手順はAIに聞く。ボタンは人が押す。鍵はAIに貼らない</p>
+  <p>設定の手順は、パソコンの種類や更新で変わります。この表に細かい手順を書かない代わりに、AIに聞く時の型を置きます。</p>
+  <div class="prompt"><span class="ph">【OSとエディション（例：Windows 11 Pro）】</span>の会社のパソコンで、<span class="ph">【やりたいこと（例：画面の自動ロックを5分にする）】</span>の手順を、画面に出てくる名前どおりに教えてください。管理者の権限が要るかどうかと、元に戻す方法も書いてください。</div>
+  <div class="box"><ul>
+    <li><b>パスワード・回復キー・APIキーは、AIに貼らない。</b>手順を聞くのに、鍵は要りません</li>
+    <li><b>AIエージェントに管理者の権限を渡して、「全部やって」と任せない。</b>2026年の事件は、権限を持ったAIが範囲の外へ出たものでした（#30記事）</li>
+    <li><b>AIの答えは、公式のヘルプで一度確かめる。</b>AIは、古い手順をもっともらしく答えることがあります</li>
+  </ul></div>
+</section>
+
+<section>
+  <h2><span class="n">！</span>この表が見ていないもの<svg class="ic " width="34" height="34" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M24 5 44 41H4z"/><path d="M24 18v11M24 34v2"/></svg></h2>
+  <p class="theme">自己申告の表であって、診断ではない</p>
+  <div class="box"><ul>
+    <li>この表は、会社の設定を自動で調べるものではありません。チェックは自己申告で、ページを閉じると保存されません（印刷して使う場合は、手で印を付けてください）</li>
+    <li>全部できても、「安全」の約束にはなりません。穴を減らし、気づくまでの時間を縮めるためのものです</li>
+    <li>レベル4の「機械で確かめる仕組み」そのものは、この表には入っていません</li>
+    <li>業種ごとの決まり（医療・金融など）や、取引先から求められる基準は、別に確かめてください</li>
+  </ul></div>
+</section>
+
+<footer>
+  <div><b>出典</b>（2026年9月時点）</div>
+  <ul>
+    <li>IPA「情報セキュリティ5か条」「SECURITY ACTION セキュリティ対策自己宣言」「中小企業の情報セキュリティ対策ガイドライン」</li>
+    <li>総務省「無線LAN（Wi-Fi）のセキュリティに関するガイドライン」（自宅Wi-Fi利用者向け・公衆Wi-Fi利用者向け簡易マニュアル、令和7年2月版）</li>
+    <li>ドライブの暗号化とUSBの制御：PC各社のサポート情報・解説記事（BitLocker、デバイスの暗号化、リムーバブル記憶域へのアクセスのポリシー）</li>
+    <li>キーボードのふりをするUSB（BadUSB）：セキュリティ各社の解説</li>
+    <li>2026年のAIエージェントの事件：OpenAI「Hugging Face のインシデントと今後の道筋」（2026-08-26）ほか（#30記事）</li>
+  </ul>
+  <div>本資料は「AI内製化工房 MITA」の連載「AI内製化の羅針盤」#30の付録です。1ファイル・通信ゼロ・外部読み込みなし・スクリプトなし。</div>
+  <div class="disc"><b>ご利用にあたって</b>：本資料のご利用は自己責任でお願いします。内容は作成時点の公開情報に基づくもので、正確さや最新であることを保証するものではありません。本資料の利用により生じた結果について、作成者は一切の責任を負いません。社内での改変・配布は自由です（その際は出典として「AI内製化工房 MITA」の記載をお願いします）。著作権は作成者に帰属します。</div>
+</footer>
+</div>
+</body>
+</html>

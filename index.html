@@ -592,7 +592,7 @@ ANIM.push(t => pulses.forEach((s, i) => { const u = (t * 0.028 + i / 3) % 1, p =
 const LH = ISL[1].c, hl = [2, 3].map(k => { const I = ISL[k], m = new THREE.Mesh(new THREE.RingGeometry(I.r * 1.25 * S, I.r * 1.55 * S, 64), new THREE.MeshBasicMaterial({ color: I.ring, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
   m.rotation.x = -Math.PI / 2; m.position.set(I.c[0] * S, 0.05, I.c[1] * S); m.raycast = () => {}; scene.add(m); HIDE.push(m); return { m, phi: Math.atan2(-(I.c[1] - LH[1]), I.c[0] - LH[0]) }; });
 const wrapA = a => Math.atan2(Math.sin(a), Math.cos(a));
-ANIM.push(t => { beam.rotation.y = t * 0.55; hl.forEach(({ m, phi }) => { const d = Math.min(Math.abs(wrapA(beam.rotation.y - phi)), Math.abs(wrapA(beam.rotation.y + Math.PI - phi))); m.material.opacity = (1 - clamp(d / 0.35)) * 0.85 * BEAM; }); });
+ANIM.push(t => { beam.rotation.y = t * 0.25;   /* 1周約25秒（本人 2026-10-10「灯台の回る速度が早すぎ」）*/ hl.forEach(({ m, phi }) => { const d = Math.min(Math.abs(wrapA(beam.rotation.y - phi)), Math.abs(wrapA(beam.rotation.y + Math.PI - phi))); m.material.opacity = (1 - clamp(d / 0.35)) * 0.85 * BEAM; }); });
 
 // ===== 島の札（CSS2D）=====
 function label(text, sub, cls, pos) { const d = document.createElement('div'); d.className = 'lbl ' + cls; d.textContent = text;

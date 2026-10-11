@@ -459,6 +459,13 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
 .ended{margin:14px 0 0}
 .ended[hidden]{display:none}
 .sunt td:first-child,.sunt th:first-child{white-space:nowrap}
+/* 地図の地の絵（紙の上の洗い）。明るい画面では敷き、暗い画面では敷かない */
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gimg{display:none}}
+:root[data-theme="dark"] .gimg{display:none}
+/* 地の絵の上でも読めるように、地図の文字には紙色の縁取りを回す（塗りつぶしの札の中の字を除く） */
+.mapbox svg text:not([fill="var(--oncolor)"]):not([fill="var(--bg)"]){
+  paint-order:stroke fill;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round}
+
 .tbl th .tier{margin:0}
 /* パソコンで左に貼り付く地図は、画面より背が高いと下が切れる。画面に収まる高さで止める */
 @media (min-width:900px){
@@ -573,6 +580,7 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
   <div class="mapbox overview">
   <figure>
 <svg viewBox="0 0 340 426" role="img" aria-label="上が北の位置図。南の端に前橋駅と両毛線。その北東、広瀬川の西岸に、芸術祭と詩のまちのエリア。西の県庁のまわりが、県庁・公園のエリア。さらに西に利根川。">
+<image class="gimg" href="img/map-zentai.webp" x="0" y="0" width="340" height="426" preserveAspectRatio="xMidYMid slice" aria-hidden="true"/>
 <g fill="var(--water)" opacity=".55">
     <path d="M16.8 252.0 L17.0 214.6 L13.0 183.0 L7.3 158.1 L-0.7 138.2 L-2.7 126.0 L-1.7 124.8 L-2.5 122.0 L-13.7 108.0 L-34.9 95.1ZM-35.1 57.4 L-10.2 84.2 L-1.8 91.6 L12.1 107.2 L23.2 116.5 L26.8 121.4 L30.0 122.2 L30.7 124.4 L32.7 124.8 L37.9 130.9 L36.9 133.0 L34.3 134.2 L33.8 136.4 L35.0 138.5 L38.0 139.2 L39.0 143.3 L37.6 144.6 L37.5 147.5 L39.2 149.1 L41.5 149.6 L45.0 159.4 L42.6 161.9 L42.6 163.0 L43.6 165.0 L45.9 165.8 L47.2 167.6 L49.0 174.8 L46.3 180.9 L48.8 183.5 L50.4 187.3 L52.7 188.2 L53.9 190.6 L55.7 190.5 L71.1 169.2 L59.4 112.0 L61.5 94.3 L65.4 86.5 L68.0 83.9 L68.4 84.5 L63.2 95.1 L61.1 112.1 L73.4 173.5 L56.4 196.5 L53.7 210.0 L50.8 210.1 L51.5 211.1 L53.5 211.4 L51.2 223.2 L48.2 223.4 L50.8 224.9 L46.3 241.7 L46.1 251.2 L16.8 252.0Z"/>
     <path d="M61.2 169.8 L61.2 169.8Z"/>
@@ -762,6 +770,7 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
   <div class="area">
   <figure class="mapbox">
 <svg viewBox="0 0 340 548" role="img" aria-label="広瀬川の西岸に、アーツ前橋と白井屋ホテルが並ぶ。川の対岸の北寄りに前橋文学館と萩原朔太郎記念館が向かい合い、その北西に弁天通り商店街。南の端に前橋駅、東寄りに中央前橋駅。">
+<image class="gimg" href="img/map-machinaka.webp" x="0" y="0" width="340" height="548" preserveAspectRatio="xMidYMid slice" aria-hidden="true"/>
 <g fill="var(--water)" opacity=".55">
     </g>
     <g fill="var(--water)" opacity=".7">
@@ -901,6 +910,7 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
   <div class="area">
   <figure class="mapbox">
 <svg viewBox="0 0 340 563" role="img" aria-label="西の端に利根川。その東に群馬県庁があり、県庁の北に前橋東照宮、るなぱあく、休館中の臨江閣が固まっている。さらに北に原嶋屋総本家。">
+<image class="gimg" href="img/map-machinaka.webp" x="0" y="0" width="340" height="563" preserveAspectRatio="xMidYMid slice" transform="rotate(180 170.0 281.5)" aria-hidden="true"/>
 <g fill="var(--water)" opacity=".55">
     <path d="M-38.6 227.8 L-34.6 232.4 L-25.2 234.6 L-25.0 238.4 L-23.1 241.1 L-21.1 242.6 L-17.6 242.3 L-2.3 260.2 L-3.0 264.3 L-5.2 266.3 L-12.7 269.9 L-14.5 273.8 L-14.3 276.4 L-13.1 280.3 L-10.6 282.5 L-6.0 284.4 L-1.7 284.4 L1.0 296.5 L-3.1 300.5 L-3.9 305.5 L-3.5 309.0 L1.7 313.6 L8.5 315.1 L18.6 343.9 L17.7 346.4 L11.6 351.2 L11.6 354.5 L14.7 360.3 L21.4 362.5 L25.0 367.9 L30.3 388.9 L27.7 395.6 L22.7 402.2 L22.4 407.0 L23.5 409.5 L29.9 414.6 L34.4 425.6 L36.0 427.4 L41.4 428.2 L43.1 434.4 L47.1 435.7 L50.0 435.0 L59.3 420.8 L93.6 376.3 L95.1 372.5 L65.2 229.4 L60.9 204.7 L60.7 193.8 L65.1 160.6 L67.2 152.9 L78.6 129.8 L86.1 122.3 L87.4 124.0 L83.5 134.2 L72.0 155.2 L68.3 173.3 L65.6 193.8 L65.8 205.1 L101.4 376.8 L101.9 385.1 L68.7 428.9 L52.2 452.7 L48.8 472.4 L44.1 492.2 L39.1 491.2 L36.7 491.4 L35.7 492.5 L35.8 494.2 L37.6 495.6 L43.7 496.4 L36.9 531.0 L30.8 529.7 L29.1 530.0 L27.9 531.7 L28.3 533.5 L29.9 534.7 L35.6 536.1 L22.6 585.2 L22.6 598.5Z"/>
     <path d="M66.2 374.2 L66.2 374.2Z"/>

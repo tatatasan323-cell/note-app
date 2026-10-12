@@ -459,6 +459,13 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
 .ended{margin:14px 0 0}
 .ended[hidden]{display:none}
 .sunt td:first-child,.sunt th:first-child{white-space:nowrap}
+/* 挿絵（表紙・裏表紙）の注記。絵の左下に重ねる。明るい絵にも暗い絵にも読めるよう、紙色の小さな札にする */
+.pic{position:relative}
+.imgnote{position:absolute;left:8px;bottom:8px;z-index:3;max-width:calc(100% - 16px);
+  font-family:var(--sans);font-size:10px;line-height:1.5;letter-spacing:0;color:#5a5243;
+  background:rgba(255,253,249,.88);padding:2px 8px;border-radius:4px;pointer-events:none}
+@media (min-width:900px){.imgnote{font-size:11.5px;left:14px;bottom:12px}}
+
 /* 地図の地の絵（紙の上の洗い）。明るい画面では敷き、暗い画面では敷かない */
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gimg{display:none}}
 :root[data-theme="dark"] .gimg{display:none}
@@ -507,8 +514,9 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
     <span class="ev">ぶらり旅</span>
     <span class="ev2">〜 前橋 アートと詩のまち編 〜</span>
   </figcaption>
-  <img src="img/cover.webp" width="1200" height="670" fetchpriority="high"
+  <div class="pic"><img src="img/cover.webp" width="1200" height="670" fetchpriority="high"
        alt="前橋の街を空から見た絵図。左に利根川、手前に川と橋、高い塔の建物、赤い大きな球やカラフルなアーチ、銀杏と紅葉の並木、奥に山並み。手前を電車が走る。イメージの絵で、実際の景色そのままではありません。">
+  <span class="imgnote">※ 生成AIのイメージ絵です。実際の建物の形や配置とは異なります</span></div>
 </figure>
 
 <header>
@@ -1227,8 +1235,9 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
 </section>
 
 <figure class="cover back">
-  <img src="img/back.webp" width="1200" height="670" loading="lazy"
+  <div class="pic"><img src="img/back.webp" width="1200" height="670" loading="lazy"
        alt="夜の前橋を空から見た絵図。広瀬川の水面に明かりが映り、窓が灯る家並み。高い塔の建物、赤い大きな球、赤白のアーチ、手前を電車が走る。遠くに山並みと、月。イメージの絵です。">
+  <span class="imgnote">※ 生成AIのイメージ絵です。実際の建物の形や配置とは異なります</span></div>
   <figcaption>
     <span class="ev2">2026.09.19 — 12.20</span>
     <span class="ev">前橋国際芸術祭 2026</span>
@@ -1240,7 +1249,7 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
   営業時間・休み・料金は、<b>2026年10月10日の時点</b>で、施設や運営者の公式ページ、前橋観光コンベンション協会の紹介ページを一件ずつ開いて確認したものです。確認の度合いは、各カードの印のとおりです。<b>12/20までの版</b>で、そのあとの内容は保証しません。<br>
   日の出・日の入りは前橋市中心部の緯度経度からの計算値、気温は気象庁・前橋観測点の平年値（1991〜2020年）、徒歩の距離と時間は各地点の座標から出した概算です。<br>
   地図は、OpenStreetMap の道路・河川・線路のデータをもとに起こした略図で、縮尺は正確ではありません。地点の位置は、公開されている地図データと住所検索で突き合わせています。細かい位置は、各カードの「地図」から実地図でご確認ください。<br>
-  表紙と裏表紙の絵は、生成AIで作った<b>鳥瞰図風のイメージ</b>です。実際の建物の形や配置とは異なります。
+  表紙と裏表紙の絵は、生成AIで作った<b>鳥瞰図風のイメージ</b>です。実際の建物の形や配置とは異なります（絵の左下にも注記を入れてあります）。地図の下に敷いた水彩の背景も生成AIの絵で、位置は地図のデータが決めています。
   <div class="qrbox">
     <svg viewBox="-2 -2 37 37" role="img" aria-label="この案内を開くQRコード">
       <path d="M0 0h7v1h-7zM9 0h2v1h-2zM13 0h3v1h-3zM18 0h2v1h-2zM21 0h3v1h-3zM26 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM8 1h1v1h-1zM11 1h2v1h-2zM14 1h2v1h-2zM17 1h4v1h-4zM22 1h2v1h-2zM26 1h1v1h-1zM32 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM11 2h4v1h-4zM26 2h1v1h-1zM28 2h3v1h-3zM32 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM10 3h2v1h-2zM13 3h3v1h-3zM18 3h1v1h-1zM22 3h2v1h-2zM26 3h1v1h-1zM28 3h3v1h-3zM32 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM8 4h2v1h-2zM11 4h4v1h-4zM16 4h1v1h-1zM18 4h2v1h-2zM23 4h2v1h-2zM26 4h1v1h-1zM28 4h3v1h-3zM32 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM11 5h1v1h-1zM13 5h1v1h-1zM15 5h1v1h-1zM19 5h3v1h-3zM23 5h1v1h-1zM26 5h1v1h-1zM32 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM24 6h1v1h-1zM26 6h7v1h-7zM13 7h1v1h-1zM15 7h1v1h-1zM17 7h3v1h-3zM21 7h3v1h-3zM0 8h1v1h-1zM2 8h1v1h-1zM4 8h1v1h-1zM6 8h1v1h-1zM11 8h1v1h-1zM13 8h1v1h-1zM17 8h1v1h-1zM20 8h2v1h-2zM28 8h1v1h-1zM31 8h1v1h-1zM0 9h2v1h-2zM4 9h1v1h-1zM8 9h1v1h-1zM10 9h2v1h-2zM13 9h2v1h-2zM16 9h2v1h-2zM21 9h2v1h-2zM24 9h4v1h-4zM31 9h2v1h-2zM4 10h3v1h-3zM8 10h3v1h-3zM14 10h1v1h-1zM17 10h2v1h-2zM25 10h3v1h-3zM30 10h3v1h-3zM0 11h1v1h-1zM2 11h1v1h-1zM7 11h2v1h-2zM12 11h4v1h-4zM17 11h1v1h-1zM21 11h1v1h-1zM23 11h1v1h-1zM25 11h1v1h-1zM28 11h1v1h-1zM31 11h2v1h-2zM0 12h3v1h-3zM4 12h3v1h-3zM8 12h1v1h-1zM10 12h1v1h-1zM12 12h1v1h-1zM14 12h4v1h-4zM20 12h2v1h-2zM25 12h3v1h-3zM29 12h1v1h-1zM31 12h1v1h-1zM1 13h1v1h-1zM4 13h2v1h-2zM7 13h1v1h-1zM12 13h4v1h-4zM17 13h1v1h-1zM20 13h2v1h-2zM24 13h3v1h-3zM29 13h2v1h-2zM32 13h1v1h-1zM2 14h5v1h-5zM9 14h4v1h-4zM14 14h1v1h-1zM21 14h2v1h-2zM24 14h2v1h-2zM27 14h1v1h-1zM29 14h4v1h-4zM0 15h3v1h-3zM4 15h2v1h-2zM8 15h4v1h-4zM16 15h8v1h-8zM26 15h1v1h-1zM28 15h1v1h-1zM31 15h1v1h-1zM4 16h1v1h-1zM6 16h2v1h-2zM10 16h8v1h-8zM19 16h1v1h-1zM21 16h1v1h-1zM24 16h3v1h-3zM2 17h1v1h-1zM5 17h1v1h-1zM10 17h1v1h-1zM12 17h1v1h-1zM14 17h1v1h-1zM16 17h2v1h-2zM21 17h1v1h-1zM24 17h1v1h-1zM26 17h2v1h-2zM31 17h2v1h-2zM0 18h1v1h-1zM3 18h5v1h-5zM9 18h3v1h-3zM14 18h1v1h-1zM18 18h1v1h-1zM20 18h1v1h-1zM22 18h1v1h-1zM24 18h3v1h-3zM30 18h1v1h-1zM32 18h1v1h-1zM1 19h2v1h-2zM4 19h1v1h-1zM9 19h1v1h-1zM13 19h1v1h-1zM16 19h3v1h-3zM21 19h4v1h-4zM27 19h2v1h-2zM31 19h2v1h-2zM1 20h1v1h-1zM3 20h2v1h-2zM6 20h1v1h-1zM9 20h2v1h-2zM12 20h1v1h-1zM14 20h1v1h-1zM16 20h2v1h-2zM20 20h2v1h-2zM26 20h1v1h-1zM29 20h1v1h-1zM32 20h1v1h-1zM1 21h2v1h-2zM7 21h7v1h-7zM18 21h1v1h-1zM20 21h2v1h-2zM24 21h3v1h-3zM30 21h3v1h-3zM0 22h1v1h-1zM3 22h2v1h-2zM6 22h2v1h-2zM11 22h1v1h-1zM13 22h2v1h-2zM22 22h1v1h-1zM25 22h2v1h-2zM29 22h1v1h-1zM31 22h2v1h-2zM1 23h1v1h-1zM4 23h2v1h-2zM7 23h1v1h-1zM11 23h5v1h-5zM17 23h1v1h-1zM20 23h4v1h-4zM25 23h1v1h-1zM28 23h2v1h-2zM32 23h1v1h-1zM0 24h1v1h-1zM6 24h2v1h-2zM9 24h1v1h-1zM11 24h1v1h-1zM14 24h4v1h-4zM19 24h1v1h-1zM21 24h1v1h-1zM24 24h5v1h-5zM8 25h2v1h-2zM13 25h1v1h-1zM16 25h2v1h-2zM21 25h1v1h-1zM24 25h1v1h-1zM28 25h2v1h-2zM31 25h2v1h-2zM0 26h7v1h-7zM13 26h2v1h-2zM16 26h3v1h-3zM21 26h4v1h-4zM26 26h1v1h-1zM28 26h1v1h-1zM30 26h3v1h-3zM0 27h1v1h-1zM6 27h1v1h-1zM10 27h3v1h-3zM14 27h1v1h-1zM16 27h3v1h-3zM21 27h1v1h-1zM24 27h1v1h-1zM28 27h1v1h-1zM0 28h1v1h-1zM2 28h3v1h-3zM6 28h1v1h-1zM8 28h1v1h-1zM10 28h1v1h-1zM14 28h4v1h-4zM20 28h2v1h-2zM24 28h6v1h-6zM31 28h2v1h-2zM0 29h1v1h-1zM2 29h3v1h-3zM6 29h1v1h-1zM9 29h3v1h-3zM13 29h2v1h-2zM16 29h1v1h-1zM28 29h1v1h-1zM30 29h1v1h-1zM32 29h1v1h-1zM0 30h1v1h-1zM2 30h3v1h-3zM6 30h1v1h-1zM8 30h1v1h-1zM13 30h2v1h-2zM16 30h1v1h-1zM21 30h1v1h-1zM24 30h1v1h-1zM28 30h2v1h-2zM32 30h1v1h-1zM0 31h1v1h-1zM6 31h1v1h-1zM12 31h1v1h-1zM15 31h1v1h-1zM17 31h1v1h-1zM19 31h1v1h-1zM21 31h1v1h-1zM23 31h2v1h-2zM26 31h1v1h-1zM28 31h1v1h-1zM31 31h1v1h-1zM0 32h7v1h-7zM8 32h3v1h-3zM12 32h1v1h-1zM14 32h6v1h-6zM21 32h6v1h-6zM28 32h1v1h-1zM31 32h2v1h-2z" fill="var(--ink)"/>

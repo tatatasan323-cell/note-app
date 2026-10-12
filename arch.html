@@ -16,13 +16,13 @@
   background:rgba(7,14,26,.94);border:1px solid #3a5575;border-radius:10px;padding:10px 13px;box-shadow:0 6px 22px rgba(0,0,0,.6);pointer-events:none;backdrop-filter:blur(2px)}
 #tip b{display:block;margin-bottom:3px;font-size:1.1rem}
 #tip .ex{display:block;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.18);color:#8fd0ff;font-size:.86rem;line-height:1.45}
-#title{position:fixed;left:16px;top:12px;z-index:5;text-shadow:0 2px 8px rgba(0,0,0,.7);max-width:64%}
-#title h1{font-size:1.15rem;margin:0 0 4px} #title .desc{margin:0;color:var(--sub);font-size:.84rem;line-height:1.5}
-#title .ops{margin:4px 0 0;color:var(--sub);font-size:.8rem}
+#title{position:fixed;left:14px;top:12px;z-index:5;max-width:52%;padding:8px 14px 10px;border-radius:14px;background:rgba(8,16,32,.42);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);text-shadow:0 2px 8px rgba(0,0,0,.6)}
+#title h1{font-size:1.5rem;margin:0 0 5px} #title .desc{margin:0;color:var(--ink);opacity:.85;font-size:.98rem;line-height:1.55}
+#title .ops{margin:5px 0 0;color:var(--sub);font-size:.9rem}
 footer{position:fixed;left:16px;bottom:10px;z-index:5;color:var(--sub);font-size:.74rem;text-shadow:0 1px 4px rgba(0,0,0,.85)}
 #loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#8fb4d6;z-index:9}
 @media(max-width:600px){
-  #title{max-width:84%} #title h1{font-size:1.05rem} #title .desc{display:none} #title .ops{font-size:.72rem}
+  #title{max-width:84%;left:10px;top:8px} #title h1{font-size:1.1rem} #title .desc{display:none} #title .ops{font-size:.72rem}
   .lbl{font-size:11px} #tip{font-size:.95rem;max-width:78vw}
   footer{font-size:.64rem}
 }
@@ -50,6 +50,10 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 const app=document.getElementById('app');
 const scene=new THREE.Scene();
@@ -101,6 +105,14 @@ const LAYERS=[
  {n:'⑥ インターフェース層（窓口）', c:0xf0792e, d:'人がどこで触れるか。中身が良くても、ここが使いにくいと使われない。<span class="ex">実例（#14）: “HTML1枚の道具”は、この層とアプリ層を1枚に畳んだ姿。ブラウザ＝檻の中だから安全と言い切れて、そのかわり貯められない。</span>'},
 ];
 const W=7, D=5, H=1.15, GAP=0.75, N=LAYERS.length;
+// 2026-10-11 少しだけリッチに：層の回路の格子・光のにじみ・下から上へ昇るデータの粒・台座の光る縁と目盛り（文言と並びは前の版のまま）
+const circuitTex=(()=>{ const c=document.createElement('canvas'); c.width=c.height=256; const g=c.getContext('2d'); g.fillStyle='#000'; g.fillRect(0,0,256,256);
+  g.strokeStyle='rgba(255,255,255,0.9)'; g.lineWidth=1.4; g.beginPath();
+  for(let i=0;i<=8;i++){ const v=i*32; g.moveTo(v,0); g.lineTo(v,256); g.moveTo(0,v); g.lineTo(256,v); } g.globalAlpha=0.35; g.stroke(); g.globalAlpha=1;
+  let sd=7; const rnd=()=>{ sd=(sd*16807)%2147483647; return sd/2147483647; };
+  g.lineWidth=2.2; for(let k=0;k<14;k++){ let x=Math.floor(rnd()*8)*32, y=Math.floor(rnd()*8)*32; g.beginPath(); g.moveTo(x,y);
+    for(let s=0;s<4;s++){ if(rnd()<0.5) x+=(rnd()<0.5?-1:1)*32; else y+=(rnd()<0.5?-1:1)*32; g.lineTo(x,y); } g.stroke(); g.beginPath(); g.arc(x,y,4,0,6.3); g.fillStyle='#fff'; g.fill(); }
+  const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(1.4,1); return t; })();
 const hoverable=[];
 
 // 台座（反射する床）
@@ -109,13 +121,13 @@ base.position.y=-H/2-0.5; scene.add(base);
 
 LAYERS.forEach((L,i)=>{
   const y=i*(H+GAP);
-  const mat=new THREE.MeshStandardMaterial({color:L.c,metalness:.35,roughness:.18,transparent:true,opacity:.62,emissive:L.c,emissiveIntensity:.28});
+  const mat=new THREE.MeshStandardMaterial({color:L.c,metalness:.35,roughness:.18,transparent:true,opacity:.62,emissive:L.c,emissiveIntensity:.55,emissiveMap:circuitTex});
   const slab=new THREE.Mesh(new THREE.BoxGeometry(W,H,D),mat); slab.position.y=y; scene.add(slab);
-  const edge=new THREE.LineSegments(new THREE.EdgesGeometry(slab.geometry), new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.3}));
+  const edge=new THREE.LineSegments(new THREE.EdgesGeometry(slab.geometry), new THREE.LineBasicMaterial({color:new THREE.Color(L.c).lerp(new THREE.Color(0xffffff),0.55).multiplyScalar(1.6),transparent:true,opacity:.75}));
   edge.position.y=y; scene.add(edge);
   const gs=glowSprite('rgba('+[(L.c>>16)&255,(L.c>>8)&255,L.c&255].join(',')+',1)'); gs.position.set(0,y,0); gs.scale.set(W*1.5,H*3,1); scene.add(gs);
   label(L.n,'',W/2+0.55,y,0);
-  slab.userData={name:L.n,desc:L.d}; hoverable.push({mesh:slab,mat,baseEI:.28});
+  slab.userData={name:L.n,desc:L.d}; hoverable.push({mesh:slab,mat,baseEI:.55});
 });
 
 // 4横断面＝全層を貫く柱
@@ -134,14 +146,29 @@ CROSS.forEach((C,i)=>{
   const plate=new THREE.Mesh(new THREE.BoxGeometry(0.14,plateH,D*0.86),mat); // 薄(x)・縦に層を貫き上下へ突出(y)・奥行き方向に貫く(z)
   plate.position.set(px,plateY,0); scene.add(plate);
   const cap=new THREE.Mesh(new THREE.SphereGeometry(0.24,16,16),new THREE.MeshStandardMaterial({color:C.c,emissive:C.c,emissiveIntensity:1.0})); cap.position.set(px,plateY+plateH/2-0.3,0); scene.add(cap);
-  label(C.n,'cross',px,plateY+plateH/2+0.5,0);
+  label(C.n,'cross',px,plateY+plateH/2+(innerWidth<600&&i%2?1.15:0.5),0);   // スマホの幅だけ互い違いの2段（同じ高さだと4つの名札が重なって字が隠れた。PCで上げると題の枠の裏に隠れた 2026-10-13）
   plate.userData={name:C.n,desc:C.d}; hoverable.push({mesh:plate,mat,baseEI:.5});
 });
 
+{ const by=-H/2-0.25;
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(6.4,0.06,8,96),new THREE.MeshBasicMaterial({color:new THREE.Color(0x5fd0ff).multiplyScalar(2.2)})); rim.rotation.x=Math.PI/2; rim.position.y=by; scene.add(rim);
+  for(const r of [2.2,3.6,5.0]){ const m=new THREE.Mesh(new THREE.RingGeometry(r-0.02,r+0.02,96),new THREE.MeshBasicMaterial({color:0x5fb8ff,transparent:true,opacity:.35,side:THREE.DoubleSide})); m.rotation.x=-Math.PI/2; m.position.y=by+0.01; scene.add(m); }
+  for(let k=0;k<24;k++){ const a=k/24*Math.PI*2, m=new THREE.Mesh(new THREE.BoxGeometry(0.03,0.01,0.5),new THREE.MeshBasicMaterial({color:0x5fb8ff,transparent:true,opacity:.45})); m.position.set(Math.cos(a)*5.75,by+0.01,Math.sin(a)*5.75); m.rotation.y=-a; scene.add(m); } }
+const FLOW=90, flowG=new THREE.BufferGeometry(), flowP=new Float32Array(FLOW*3), flowC=new Float32Array(FLOW*3), flowS=[];
+for(let i=0;i<FLOW;i++){ flowS.push({x:(Math.random()-0.5)*W*0.86, z:(Math.random()-0.5)*D*0.8, ph:Math.random(), sp:0.06+Math.random()*0.06}); }
+flowG.setAttribute('position',new THREE.BufferAttribute(flowP,3)); flowG.setAttribute('color',new THREE.BufferAttribute(flowC,3));
+const flowDot=glowTex([[0,'rgba(255,255,255,1)'],[0.3,'rgba(255,255,255,0.6)'],[1,'rgba(255,255,255,0)']]);
+const flow=new THREE.Points(flowG,new THREE.PointsMaterial({size:0.38,map:flowDot,vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending})); flow.frustumCulled=false; scene.add(flow);
+const LC=LAYERS.map(L=>new THREE.Color(L.c)), _fc=new THREE.Color();
+function stepFlow(t){ const y0=-H/2-0.2, y1=(N-1)*(H+GAP)+H/2+1.2;   // データは土台から窓口へ。通る層の色に染まる
+  flowS.forEach((f,i)=>{ const u=(f.ph+t*f.sp)%1, y=y0+(y1-y0)*u; flowP[i*3]=f.x; flowP[i*3+1]=y; flowP[i*3+2]=f.z;
+    const li=Math.max(0,Math.min(N-1,Math.round(y/(H+GAP)))); _fc.copy(LC[li]).lerp(new THREE.Color(1,1,1),0.35).multiplyScalar(1.4*Math.sin(Math.PI*u)); _fc.toArray(flowC,i*3); });
+  flowG.attributes.position.needsUpdate=flowG.attributes.color.needsUpdate=true; }
+
 const CTRY=(N-1)*(H+GAP)/2;
-controls.target.set(0,CTRY,0);   // 層スタックの中心＝回転軸
-camera.position.set(11,CTRY+8,15);
-if(innerWidth<600){ camera.position.set(13,CTRY+9,20); }
+controls.target.set(0,CTRY+1.4,0);   // 層スタックの中心＝回転軸（少し上を見て、上の名札が題にかぶらないように）
+camera.position.set(12,CTRY+7,17);
+if(innerWidth<600){ camera.position.set(16,CTRY+9,27); }
 
 // ===== ホバー／タップで簡易解説 =====
 const ray=new THREE.Raycaster(), mouse=new THREE.Vector2(); const tip=document.getElementById('tip');
@@ -155,16 +182,18 @@ function showTip(e){ mouse.x=(e.clientX/innerWidth)*2-1; mouse.y=-(e.clientY/inn
   else { tip.style.display='none'; setHover(null); } }
 renderer.domElement.addEventListener('pointermove',e=>{ if(e.pointerType!=='touch') showTip(e); });
 renderer.domElement.addEventListener('pointerdown',showTip);
-renderer.domElement.addEventListener('pointerleave',()=>{ tip.style.display='none'; setHover(null); controls.autoRotate=true; });
+renderer.domElement.addEventListener('pointerleave',e=>{ if(e.pointerType==='touch') return; tip.style.display='none'; setHover(null); controls.autoRotate=true; });   // 指を離した時にも pointerleave が来て、タップした説明がすぐ閉じた（スマホ）。指の時は、別の所のタップで閉じる
 
+const composer=new EffectComposer(renderer); composer.addPass(new RenderPass(scene,camera));
+const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),0.55,0.55,0.8); composer.addPass(bloom); composer.addPass(new OutputPass());
 addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight); labelRenderer.setSize(innerWidth,innerHeight); });
+  renderer.setSize(innerWidth,innerHeight); composer.setSize(innerWidth,innerHeight); labelRenderer.setSize(innerWidth,innerHeight); });
 
 const loadingEl=document.getElementById('loading'); if(loadingEl) loadingEl.remove();
 let t=0;
 (function loop(){ requestAnimationFrame(loop); t+=0.01;
-  particles.rotation.y=t*0.04;
-  controls.update(); renderer.render(scene,camera); labelRenderer.render(scene,camera);
+  particles.rotation.y=t*0.04; stepFlow(t*3); circuitTex.offset.x=t*0.03;
+  controls.update(); composer.render(); labelRenderer.render(scene,camera);
 })();
 </script>
 </body>

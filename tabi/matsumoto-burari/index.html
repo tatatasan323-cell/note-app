@@ -442,6 +442,13 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
   .twocol > *{margin:0}
   footer{max-width:920px;margin-left:auto;margin-right:auto}
 }
+
+/* 挿絵（表紙・裏表紙）の注記。絵の左下に重ねる。明るい絵にも暗い絵にも読めるよう、紙色の小さな札にする */
+.pic{position:relative}
+.imgnote{position:absolute;left:8px;bottom:8px;z-index:3;max-width:calc(100% - 16px);
+  font-family:var(--sans);font-size:10px;line-height:1.5;letter-spacing:0;color:#5a5243;
+  background:rgba(255,253,249,.88);padding:2px 8px;border-radius:4px;pointer-events:none}
+@media (min-width:900px){.imgnote{font-size:11.5px;left:14px;bottom:12px}}
 </style>
 </head>
 <body>
@@ -477,8 +484,9 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
     <span class="ev">ぶらり旅</span>
     <span class="ev2">〜 松本温泉<span class="mk">♨︎</span>編 〜</span>
   </figcaption>
-  <img src="img/cover.webp" width="1200" height="670" fetchpriority="high"
+  <div class="pic"><img src="img/cover.webp" width="1200" height="670" fetchpriority="high"
        alt="松本城と城下町を空から見た絵図。堀と赤い橋、白壁となまこ壁の町並み、紅葉、奥に雪をかぶった北アルプス。">
+  <span class="imgnote">※ 生成AIのイメージ絵です。実際の建物の形や配置とは異なります</span></div>
 </figure>
 
 <header>
@@ -1634,8 +1642,9 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
 </section>
 
 <figure class="cover back">
-  <img src="img/back.webp" width="1200" height="675" loading="lazy"
+  <div class="pic"><img src="img/back.webp" width="1200" height="675" loading="lazy"
        alt="夜の美ヶ原温泉。石畳の道沿いに宿の窓が暖かく灯り、湯気が立つ。背後は紅葉の山。">
+  <span class="imgnote">※ 生成AIのイメージ絵です。実際の建物の形や配置とは異なります</span></div>
   <figcaption>
     <span class="ev2">2026.11.07 SAT — 11.08 SUN</span>
     <span class="ev">美ヶ原温泉 追分屋旅館</span>
@@ -1647,7 +1656,8 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
   営業時間・休館日・料金・駐車場・乗り場は、<b>2026年9月の時点</b>で、お店と施設の公式サイト、それに松本市の情報を一件ずつ見て確認したものです。<br>
   日の出・日の入りは松本市中心部の緯度経度からの計算値、気温は気象庁・松本観測点の平年値（1991〜2020年）、標高は国土地理院の標高データ、徒歩の距離と時間は各地点の座標から出した概算です。<br>
   バスの運賃は2026年3月に改定があったので、幅を持たせて書いています。<b>当日、念のため確認してください。</b><br>
-  地図は実際の緯度経度をもとに起こした略図です。通りの並びと位置関係は正しいですが、<b>縮尺は正確ではありません</b>。隣り合う店の前後関係など細かいところは、各カードの「地図」「ストリートビュー」から実地図でご確認ください。
+  地図は実際の緯度経度をもとに起こした略図です。通りの並びと位置関係は正しいですが、<b>縮尺は正確ではありません</b>。隣り合う店の前後関係など細かいところは、各カードの「地図」「ストリートビュー」から実地図でご確認ください。<br>
+  表紙・裏表紙の絵と、地図の下に敷いた絵は、生成AIで作った<b>イメージ</b>です。実際の建物の形や配置とは異なります（表紙・裏表紙の絵の左下にも注記を入れてあります）。
   <div class="qrbox">
     <svg viewBox="-2 -2 41 41" role="img" aria-label="この案内を開くQRコード">
       <path d="M0 0h7v1h-7zM8 0h1v1h-1zM10 0h1v1h-1zM13 0h2v1h-2zM17 0h1v1h-1zM19 0h3v1h-3zM24 0h5v1h-5zM30 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM18 1h2v1h-2zM22 1h1v1h-1zM25 1h2v1h-2zM30 1h1v1h-1zM36 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM10 2h1v1h-1zM12 2h1v1h-1zM15 2h1v1h-1zM17 2h2v1h-2zM21 2h2v1h-2zM24 2h1v1h-1zM26 2h2v1h-2zM30 2h1v1h-1zM32 2h3v1h-3zM36 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM8 3h1v1h-1zM10 3h6v1h-6zM18 3h1v1h-1zM22 3h1v1h-1zM25 3h4v1h-4zM30 3h1v1h-1zM32 3h3v1h-3zM36 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h1v1h-1zM13 4h1v1h-1zM15 4h1v1h-1zM17 4h2v1h-2zM23 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM32 4h3v1h-3zM36 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM10 5h1v1h-1zM16 5h2v1h-2zM19 5h2v1h-2zM24 5h1v1h-1zM28 5h1v1h-1zM30 5h1v1h-1zM36 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM24 6h1v1h-1zM26 6h1v1h-1zM28 6h1v1h-1zM30 6h7v1h-7zM8 7h1v1h-1zM10 7h4v1h-4zM15 7h2v1h-2zM19 7h6v1h-6zM26 7h1v1h-1zM28 7h1v1h-1zM0 8h1v1h-1zM4 8h1v1h-1zM6 8h6v1h-6zM13 8h1v1h-1zM15 8h2v1h-2zM20 8h1v1h-1zM23 8h2v1h-2zM26 8h1v1h-1zM28 8h6v1h-6zM36 8h1v1h-1zM0 9h1v1h-1zM2 9h3v1h-3zM8 9h1v1h-1zM17 9h3v1h-3zM21 9h1v1h-1zM23 9h2v1h-2zM26 9h3v1h-3zM32 9h4v1h-4zM0 10h1v1h-1zM5 10h2v1h-2zM11 10h2v1h-2zM15 10h1v1h-1zM18 10h2v1h-2zM23 10h5v1h-5zM31 10h1v1h-1zM2 11h3v1h-3zM7 11h1v1h-1zM10 11h2v1h-2zM15 11h9v1h-9zM29 11h1v1h-1zM31 11h2v1h-2zM34 11h2v1h-2zM0 12h1v1h-1zM3 12h1v1h-1zM5 12h2v1h-2zM10 12h1v1h-1zM13 12h2v1h-2zM17 12h2v1h-2zM20 12h5v1h-5zM26 12h5v1h-5zM33 12h4v1h-4zM0 13h1v1h-1zM4 13h2v1h-2zM8 13h2v1h-2zM12 13h2v1h-2zM15 13h2v1h-2zM18 13h1v1h-1zM20 13h2v1h-2zM23 13h1v1h-1zM27 13h2v1h-2zM32 13h2v1h-2zM0 14h1v1h-1zM2 14h1v1h-1zM5 14h3v1h-3zM13 14h3v1h-3zM17 14h1v1h-1zM23 14h2v1h-2zM26 14h2v1h-2zM29 14h1v1h-1zM31 14h5v1h-5zM1 15h1v1h-1zM5 15h1v1h-1zM11 15h1v1h-1zM13 15h1v1h-1zM15 15h1v1h-1zM17 15h3v1h-3zM22 15h3v1h-3zM26 15h3v1h-3zM31 15h2v1h-2zM34 15h2v1h-2zM0 16h4v1h-4zM6 16h1v1h-1zM8 16h2v1h-2zM11 16h1v1h-1zM13 16h3v1h-3zM18 16h2v1h-2zM22 16h1v1h-1zM24 16h1v1h-1zM29 16h3v1h-3zM33 16h2v1h-2zM36 16h1v1h-1zM0 17h1v1h-1zM7 17h1v1h-1zM11 17h2v1h-2zM16 17h2v1h-2zM19 17h2v1h-2zM23 17h1v1h-1zM25 17h5v1h-5zM32 17h2v1h-2zM35 17h1v1h-1zM2 18h1v1h-1zM5 18h4v1h-4zM13 18h1v1h-1zM16 18h1v1h-1zM18 18h1v1h-1zM20 18h1v1h-1zM23 18h1v1h-1zM25 18h1v1h-1zM27 18h1v1h-1zM29 18h1v1h-1zM31 18h4v1h-4zM2 19h2v1h-2zM5 19h1v1h-1zM7 19h3v1h-3zM11 19h1v1h-1zM13 19h2v1h-2zM17 19h2v1h-2zM21 19h1v1h-1zM26 19h2v1h-2zM31 19h2v1h-2zM34 19h2v1h-2zM1 20h1v1h-1zM3 20h4v1h-4zM8 20h1v1h-1zM10 20h1v1h-1zM13 20h1v1h-1zM15 20h1v1h-1zM17 20h1v1h-1zM19 20h4v1h-4zM24 20h1v1h-1zM26 20h2v1h-2zM29 20h3v1h-3zM34 20h1v1h-1zM0 21h6v1h-6zM7 21h4v1h-4zM12 21h1v1h-1zM14 21h2v1h-2zM17 21h2v1h-2zM23 21h1v1h-1zM25 21h1v1h-1zM27 21h3v1h-3zM31 21h2v1h-2zM35 21h1v1h-1zM0 22h1v1h-1zM4 22h3v1h-3zM10 22h1v1h-1zM13 22h1v1h-1zM15 22h1v1h-1zM18 22h1v1h-1zM20 22h6v1h-6zM27 22h2v1h-2zM31 22h4v1h-4zM0 23h1v1h-1zM2 23h1v1h-1zM10 23h3v1h-3zM14 23h2v1h-2zM20 23h2v1h-2zM27 23h1v1h-1zM29 23h1v1h-1zM31 23h2v1h-2zM34 23h2v1h-2zM0 24h5v1h-5zM6 24h3v1h-3zM10 24h3v1h-3zM14 24h1v1h-1zM16 24h1v1h-1zM19 24h2v1h-2zM29 24h3v1h-3zM33 24h2v1h-2zM36 24h1v1h-1zM0 25h1v1h-1zM4 25h1v1h-1zM11 25h1v1h-1zM13 25h2v1h-2zM17 25h3v1h-3zM21 25h3v1h-3zM25 25h1v1h-1zM27 25h3v1h-3zM31 25h2v1h-2zM3 26h1v1h-1zM5 26h3v1h-3zM9 26h3v1h-3zM14 26h2v1h-2zM18 26h2v1h-2zM21 26h5v1h-5zM27 26h1v1h-1zM31 26h1v1h-1zM34 26h1v1h-1zM3 27h2v1h-2zM9 27h1v1h-1zM12 27h2v1h-2zM15 27h3v1h-3zM19 27h3v1h-3zM23 27h1v1h-1zM27 27h1v1h-1zM29 27h1v1h-1zM32 27h1v1h-1zM34 27h1v1h-1zM36 27h1v1h-1zM0 28h3v1h-3zM4 28h4v1h-4zM9 28h2v1h-2zM12 28h2v1h-2zM17 28h1v1h-1zM21 28h2v1h-2zM24 28h1v1h-1zM26 28h1v1h-1zM28 28h5v1h-5zM34 28h1v1h-1zM36 28h1v1h-1zM8 29h1v1h-1zM10 29h1v1h-1zM12 29h1v1h-1zM15 29h2v1h-2zM18 29h1v1h-1zM21 29h3v1h-3zM25 29h1v1h-1zM27 29h2v1h-2zM32 29h1v1h-1zM35 29h1v1h-1zM0 30h7v1h-7zM8 30h1v1h-1zM11 30h1v1h-1zM13 30h5v1h-5zM23 30h2v1h-2zM26 30h1v1h-1zM28 30h1v1h-1zM30 30h1v1h-1zM32 30h1v1h-1zM0 31h1v1h-1zM6 31h1v1h-1zM10 31h1v1h-1zM12 31h4v1h-4zM17 31h2v1h-2zM22 31h3v1h-3zM26 31h1v1h-1zM28 31h1v1h-1zM32 31h3v1h-3zM0 32h1v1h-1zM2 32h3v1h-3zM6 32h1v1h-1zM8 32h2v1h-2zM12 32h1v1h-1zM14 32h1v1h-1zM18 32h1v1h-1zM22 32h3v1h-3zM28 32h7v1h-7zM36 32h1v1h-1zM0 33h1v1h-1zM2 33h3v1h-3zM6 33h1v1h-1zM9 33h5v1h-5zM16 33h2v1h-2zM19 33h2v1h-2zM23 33h1v1h-1zM25 33h1v1h-1zM27 33h1v1h-1zM29 33h3v1h-3zM36 33h1v1h-1zM0 34h1v1h-1zM2 34h3v1h-3zM6 34h1v1h-1zM10 34h3v1h-3zM16 34h1v1h-1zM18 34h1v1h-1zM20 34h2v1h-2zM23 34h1v1h-1zM25 34h1v1h-1zM27 34h4v1h-4zM33 34h1v1h-1zM0 35h1v1h-1zM6 35h1v1h-1zM10 35h3v1h-3zM17 35h2v1h-2zM21 35h2v1h-2zM26 35h1v1h-1zM29 35h1v1h-1zM32 35h1v1h-1zM34 35h2v1h-2zM0 36h7v1h-7zM8 36h1v1h-1zM10 36h1v1h-1zM12 36h1v1h-1zM15 36h3v1h-3zM19 36h4v1h-4zM24 36h1v1h-1zM26 36h2v1h-2zM29 36h1v1h-1zM31 36h1v1h-1zM34 36h3v1h-3z" fill="var(--ink)"/>

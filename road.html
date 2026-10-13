@@ -15,7 +15,7 @@
 #leaders{position:fixed;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
 #leaders path{fill:none;stroke-width:1.2;opacity:.42;transition:opacity .2s,stroke-width .2s}
 #leaders circle{opacity:.6;transition:opacity .2s}
-#leaders .on{opacity:1;stroke-width:2.4} #leaders .dim{opacity:.12}
+#leaders .on{opacity:1;stroke-width:2.4} #leaders .dim{opacity:0}
 #cards{position:fixed;inset:0;z-index:4;pointer-events:none}
 .card{position:absolute;left:0;top:0;pointer-events:auto;cursor:pointer;max-width:var(--cardw);padding:5px 11px 6px;border-radius:10px;
   background:var(--panel);border:1px solid var(--line);box-shadow:inset 3px 0 0 var(--c),0 6px 18px rgba(0,0,0,.35);
@@ -26,7 +26,7 @@
 .card .info{display:none;width:300px;font-size:13.5px;line-height:1.6;color:var(--ink);margin-top:6px}
 .card.on{z-index:6;max-width:none;background:rgba(8,16,32,.9);box-shadow:inset 3px 0 0 var(--c),0 0 0 1px var(--c),0 0 24px var(--c)}
 .card.R.on{box-shadow:inset -3px 0 0 var(--c),0 0 0 1px var(--c),0 0 24px var(--c)}
-.card.on .info{display:block} .card.dim{opacity:.38}
+.card.on .info{display:block} .card.dim{opacity:0;pointer-events:none}   /* 乗せた時は、ほかの札は消す（本人 2026-10-14） */
 .card.ok{--c:var(--ok)} .card.red{--c:var(--red)} .card.amber{--c:var(--amber)} .card.cyan{--c:var(--cyan)}
 #title{position:fixed;left:14px;top:12px;max-width:56%;z-index:5;padding:8px 14px 10px;border-radius:14px;background:rgba(8,16,32,.38);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);text-shadow:0 2px 10px rgba(0,0,0,.6)}
 #title h1{font-size:1.9rem;margin:0 0 5px;letter-spacing:.02em} #title p{margin:0;color:var(--ink);opacity:.86;font-size:1.12rem;line-height:1.55}
@@ -59,6 +59,14 @@ button{font-family:inherit;color:var(--ink);cursor:pointer}
 }
 /* スマホ：札は出さず、押せる地点に光る印だけを置く。印（か地点）をタップすると、その場所へ寄って、下から説明が出る（札が画面を覆ってタップしづらかった 本人 2026-10-13） */
 .pin,#sheet{display:none}
+body.focus .card,body.focus #leaders{display:none !important}   /* 寄った時は、ほかの説明は出さない（本人 2026-10-14） */
+@media (min-width:601px){
+  #sheet.show{display:block;position:fixed;left:14px;bottom:104px;z-index:7;width:min(440px,40vw);max-height:60vh;overflow:auto;padding:16px 18px 18px;border-radius:14px;background:rgba(8,16,32,.92);
+    border:1px solid var(--line);box-shadow:inset 3px 0 0 var(--c),0 0 0 1px var(--c),0 0 24px var(--c);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  #sheet b{display:block;font-size:1.3rem;color:var(--c);margin-right:96px;line-height:1.4} #sheet small{display:block;color:var(--sub);font-size:.95rem;margin-top:4px}
+  #sheet p{margin:10px 0 0;font-size:1.05rem;line-height:1.75;color:var(--ink)}
+  #sheet button{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.12);border:1px solid var(--line);border-radius:8px;padding:7px 12px;font-size:.95rem}
+}
 .pin.ok,#sheet.ok{--c:var(--ok)} .pin.red,#sheet.red{--c:var(--red)} .pin.amber,#sheet.amber{--c:var(--amber)} .pin.cyan,#sheet.cyan{--c:var(--cyan)}
 @keyframes pinPulse{0%{transform:scale(.55);opacity:.95}100%{transform:scale(1.55);opacity:0}}
 @media (max-width:600px){
@@ -82,7 +90,7 @@ button{font-family:inherit;color:var(--ink);cursor:pointer}
 <div id="title">
   <h1>成功への道のり ─ AI内製化ロードマップ</h1>
   <p class="desc">手前の港町（今の自社）から、奥の天空の城（成功）へ。毒沼・落とし穴・闇の魔の森・マグマをよけ、緑の関門①〜⑤を越える。最後は、マグマが流れる霧の谷に “全体の構造” という橋を架け（関門⑥）、崖を登って城へ。</p>
-  <p class="ops">指で回転／2本指で拡大／光る印をタップすると、寄って説明（PCはドラッグ・ホイール・札にホバー）。</p>
+  <p class="ops">指で回転／2本指で拡大／光る印をタップすると、寄って説明（PCはドラッグ・ホイール。札や地点をクリックで寄って説明）。</p>
 </div>
 
 <div id="legend" class="panel">
@@ -90,7 +98,7 @@ button{font-family:inherit;color:var(--ink);cursor:pointer}
   <div><span class="dot" style="background:#ff7a7a"></span><b>赤の罠</b>：よくある失敗</div>
   <div><span class="dot" style="background:#ffd166"></span><b>天空の城</b>：成功</div>
   <hr>
-  <div style="color:var(--sub)">札か地点にカーソルを乗せる（スマホはタップ）と、説明が開いて、その場所が光る</div>
+  <div style="color:var(--sub)">札か地点にカーソルを乗せると、その場所が光る。クリック（スマホはタップ）で、寄って説明</div>
 </div>
 
 <svg id="leaders"></svg>
@@ -1010,7 +1018,7 @@ function renderReflection() {
 }
 
 // ===== 札：左右の空いた所に並べ、薄い引き出し線で地点を指す（地図の上に札を置くと、文字で地図が見えなかった。本人 2026-10-12）=====
-// 札か地点にカーソルを乗せる（スマホはタップ）と、その札だけが開いて説明が出て、線と地点（光の輪と柱）が光る。ほかの札は薄くなる
+// 札か地点にカーソルを乗せると、その札だけが開いて、線と地点（光の輪と柱）が光る。ほかの札は消える。クリック（スマホはタップ）で、その場所へ寄って説明（寄っている間は、ほかの説明は出さない）
 const CCOL = { ok: '#5fe8b4', red: '#ff8a8a', amber: '#ffd166', cyan: '#7cd0ff' };
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const ITEMS = [
@@ -1034,9 +1042,9 @@ ITEMS.forEach(it => {
   it.pin.addEventListener('click', e => { e.stopPropagation(); openSp(it.key); });
   it.path = document.createElementNS(NSV, 'path'); it.path.setAttribute('stroke', CCOL[it.cls]);
   it.dot = document.createElementNS(NSV, 'circle'); it.dot.setAttribute('r', '3'); it.dot.setAttribute('fill', CCOL[it.cls]); svg.append(it.path, it.dot);
-  d.addEventListener('pointerenter', e => { if (e.pointerType !== 'touch') setHot(it.key); });
-  d.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') setHot(null); });
-  d.addEventListener('click', () => setHot(hot === it.key ? null : it.key));
+  d.addEventListener('pointerenter', e => { if (e.pointerType !== 'touch' && !FOCUS()) setHot(it.key); });
+  d.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch' && !FOCUS()) setHot(null); });
+  d.addEventListener('click', () => openSp(it.key));   // クリックで、その場所へ寄って説明（本人 2026-10-14）
 });
 function measureCards() { ITEMS.forEach(it => { const was = it.el.className; it.el.classList.remove('on', 'dim'); it.el.style.display = ''; it.w = it.el.offsetWidth; it.h = it.el.offsetHeight; it.el.className = was; }); }
 const _pj = new THREE.Vector3();
@@ -1076,7 +1084,7 @@ const hiRing = new THREE.Mesh(new THREE.RingGeometry(1.5, 2.1, 64), new THREE.Me
 hiRing.rotation.x = -Math.PI / 2; const hiGlow = sprite(scene, GLOW, 0, 0, 0, 6, { op: 0 });
 for (const m of [hiBeam, hiRing]) { m.raycast = () => {}; m.renderOrder = 5; scene.add(m); HIDE.push(m); }
 let hiA = 0;
-ANIM.push((t, dt) => { hiA = clamp(hiA + (hot ? 1 : -1) * dt * 4); const it = hot && ITEM[hot]; hiU.uTime.value = t;
+ANIM.push((t, dt) => { const goal = hot ? (document.body.classList.contains('focus') ? 0.2 : 1) : 0; hiA += clamp(goal - hiA, -dt * 4, dt * 4); const it = hot && ITEM[hot]; hiU.uTime.value = t;   // 寄っている間は、光の柱と輪を薄く（遠くからの目印の強さのままだと、寄った絵で柱が画面の半分を覆い、場所がかすんだ 2026-10-14）
   if (it) { const c = new THREE.Color(CCOL[it.cls]); hiU.uCol.value.copy(c); hiRing.material.color.copy(c).multiplyScalar(1.6); hiGlow.material.color.copy(c);
     const big = it.key === 'castle' ? 2.2 : it.key === 'magma' || it.key === '6' ? 1.6 : 1;
     hiBeam.position.set(it.g.x, it.g.y + 8, it.g.z); hiBeam.scale.setScalar(big); hiRing.position.set(it.g.x, it.g.y + 0.15, it.g.z);
@@ -1146,17 +1154,19 @@ function stepFly(dt) { controls.maxPolarAngle = fl ? Math.PI : POLAR; if (!fl) r
   camera.position.lerpVectors(fl.p0, fl.p1, e); controls.target.lerpVectors(fl.t0, fl.t1, e); if (fl.u >= 1) fl = null; }
 controls.addEventListener('start', () => { fl = null; controls.maxPolarAngle = POLAR; });
 document.querySelectorAll('.btns button').forEach(b => b.onclick = () => { const go = b.dataset.go;
-  if (SP()) { if (ITEM[go]) { openSp(go); return; } closeSp(false); }
+  if (ITEM[go]) { openSp(go); return; } closeSp(false);
   const v = (go === 'all' && innerWidth < 600) ? VIEWS.allM : VIEWS[go]; if (v) fly(v[0], v[1]); });
 // スマホ：印・地点・ボタンをタップすると、その場所へ寄って、下から説明。「閉じる」で元の眺めへ戻る
-const SP = () => innerWidth < 600, sheet = document.getElementById('sheet'), SP_D = { castle: 48, magma: 30, burn: 26, start: 26, peng: 18, '6': 26 };
+const SP = () => innerWidth < 600, FOCUS = () => document.body.classList.contains('focus'), sheet = document.getElementById('sheet'), SP_D = { castle: 48, magma: 30, burn: 26, start: 26, peng: 18, '6': 26 },
+  PC_D = { castle: 20, magma: 24, burn: 16, start: 16, peng: 10.5, '6': 14, swamp: 15, pit: 12, dark: 15 };   // PC は近くまで寄る（関門は門が画面の半分ほど。本人 2026-10-14「PC版ももっと近くまで」）。controls.minDistance（10）より手前には寄らない
 let spBack = null;
 function openSp(k) { const it = ITEM[k]; if (!it) return; if (!spBack) spBack = [controls.target.clone(), camera.position.clone()];
   setHot(k); const tg = it.g.clone().lerp(it.at, 0.45), dir = camera.position.clone().sub(controls.target).normalize(); dir.y = Math.max(dir.y, 0.5); dir.normalize();
-  fly(tg, tg.clone().addScaledVector(dir, SP_D[k] ?? 22), 1.2);
+  fly(tg, tg.clone().addScaledVector(dir, SP() ? (SP_D[k] ?? 22) : (PC_D[k] ?? 11)), 1.4); document.body.classList.add('focus');
   sheet.className = 'show ' + it.cls; sheet.querySelector('b').textContent = it.t; sheet.querySelector('small').textContent = it.s; sheet.querySelector('p').textContent = it.info; sheet.scrollTop = 0; }
-function closeSp(back = true) { sheet.className = ''; setHot(null); if (back && spBack) fly(spBack[0], spBack[1], 1.2); spBack = null; }
+function closeSp(back = true) { sheet.className = ''; document.body.classList.remove('focus'); setHot(null); if (back && spBack) fly(spBack[0], spBack[1], 1.2); spBack = null; }
 document.getElementById('sheetClose').addEventListener('click', () => closeSp());
+addEventListener('keydown', e => { if (e.key === 'Escape' && FOCUS()) closeSp(); });
 { const v = innerWidth < 600 ? VIEWS.allM : VIEWS.all; camera.position.copy(v[1]); controls.target.copy(v[0]);
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {   // 開いた時：空を見上げたところから、ゆっくり大陸へ視線が降りる
     const fw = v[0].clone().sub(v[1]); fw.y = 0; fw.normalize(); controls.target.copy(v[1]).addScaledVector(fw, 90).add(new THREE.Vector3(0, 70, 0)); fly(v[0], v[1], 3.4); } }
@@ -1168,10 +1178,11 @@ function pickKey(e) { mp.x = (e.clientX / innerWidth) * 2 - 1; mp.y = -(e.client
   if (hit.length) { let o = hit[0].object; while (o && !(o.userData && o.userData.key)) o = o.parent; if (o && ITEM[o.userData.key]) return o.userData.key; }
   return null; }
 let downAt = null;
-renderer.domElement.addEventListener('pointermove', e => { if (e.pointerType !== 'touch' && !e.buttons) setHot(pickKey(e)); });
+renderer.domElement.addEventListener('pointermove', e => { if (e.pointerType !== 'touch' && !e.buttons && !FOCUS()) setHot(pickKey(e)); });
 renderer.domElement.addEventListener('pointerdown', e => { downAt = [e.clientX, e.clientY]; });
-renderer.domElement.addEventListener('pointerup', e => { if (e.pointerType === 'touch' && downAt && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) < 8) { const k = pickKey(e); if (SP()) { if (k) openSp(k); } else setHot(k === hot ? null : k); } });
-renderer.domElement.addEventListener('pointerleave', () => { if (!matchMedia('(pointer:coarse)').matches) setHot(null); });
+renderer.domElement.addEventListener('pointerup', e => { if (e.pointerType === 'touch' && downAt && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) < 8) { const k = pickKey(e); if (SP()) { if (k) openSp(k); } else setHot(k === hot ? null : k); }
+  else if (e.pointerType !== 'touch' && downAt && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) < 5) { const k = pickKey(e); if (k) openSp(k); } });   // PC：地点をクリックで寄って説明（ドラッグで回した時は開かない）
+renderer.domElement.addEventListener('pointerleave', () => { if (!matchMedia('(pointer:coarse)').matches && !FOCUS()) setHot(null); });
 
 function resize() { const w = innerWidth, h = innerHeight; camera.aspect = w / h; camera.updateProjectionMatrix();
   renderer.setSize(w, h); composer.setSize(w, h); measureCards();

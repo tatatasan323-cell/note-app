@@ -57,6 +57,22 @@ button{font-family:inherit;color:var(--ink);cursor:pointer}
   #compass{width:72px;top:6px;right:8px;bottom:auto}
   #compass svg{width:72px;height:72px} #compass .cap{font-size:.9rem}
 }
+/* スマホ：札は出さず、押せる地点に光る印だけを置く。印（か地点）をタップすると、その場所へ寄って、下から説明が出る（札が画面を覆ってタップしづらかった 本人 2026-10-13） */
+.pin,#sheet{display:none}
+.pin.ok,#sheet.ok{--c:var(--ok)} .pin.red,#sheet.red{--c:var(--red)} .pin.amber,#sheet.amber{--c:var(--amber)} .pin.cyan,#sheet.cyan{--c:var(--cyan)}
+@keyframes pinPulse{0%{transform:scale(.55);opacity:.95}100%{transform:scale(1.55);opacity:0}}
+@media (max-width:600px){
+  .card,#leaders{display:none !important}
+  .pin{display:block;position:absolute;left:0;top:0;width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;pointer-events:auto;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:opacity .2s}
+  .pin::before{content:'';position:absolute;inset:11px;border-radius:50%;background:var(--c);box-shadow:0 0 12px var(--c),0 0 0 2px rgba(255,255,255,.9)}
+  .pin::after{content:'';position:absolute;inset:5px;border-radius:50%;border:2px solid var(--c);animation:pinPulse 2.4s ease-out infinite}
+  .pin.on::before{inset:8px} .pin.dim{opacity:.4}
+  #sheet{position:fixed;left:8px;right:8px;bottom:104px;z-index:7;max-height:44vh;overflow:auto;padding:12px 14px 14px;border-radius:14px;background:rgba(8,16,32,.93);
+    border:1px solid var(--line);box-shadow:inset 3px 0 0 var(--c),0 8px 24px rgba(0,0,0,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  #sheet.show{display:block} #sheet b{display:block;font-size:1.05rem;color:var(--c);margin-right:84px;line-height:1.4} #sheet small{display:block;color:var(--sub);font-size:.82rem;margin-top:3px}
+  #sheet p{margin:8px 0 0;font-size:.93rem;line-height:1.7;color:var(--ink)}
+  #sheet button{position:absolute;top:9px;right:9px;background:rgba(255,255,255,.12);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:.85rem}
+}
 </style>
 </head>
 <body>
@@ -66,7 +82,7 @@ button{font-family:inherit;color:var(--ink);cursor:pointer}
 <div id="title">
   <h1>成功への道のり ─ AI内製化ロードマップ</h1>
   <p class="desc">手前の港町（今の自社）から、奥の天空の城（成功）へ。毒沼・落とし穴・闇の魔の森・マグマをよけ、緑の関門①〜⑤を越える。最後は、マグマが流れる霧の谷に “全体の構造” という橋を架け（関門⑥）、崖を登って城へ。</p>
-  <p class="ops">指で回転／2本指で拡大／札や地点をタップで説明（PCはドラッグ・ホイール・ホバー）。</p>
+  <p class="ops">指で回転／2本指で拡大／光る印をタップすると、寄って説明（PCはドラッグ・ホイール・札にホバー）。</p>
 </div>
 
 <div id="legend" class="panel">
@@ -79,6 +95,7 @@ button{font-family:inherit;color:var(--ink);cursor:pointer}
 
 <svg id="leaders"></svg>
 <div id="cards"></div>
+<div id="sheet" role="dialog" aria-live="polite"><button id="sheetClose" type="button">✕ 閉じる</button><b></b><small></small><p></p></div>
 <div id="cred">制作：AI内製化工房 MITA ｜ 公式チャンネル：https://note.com/ai_naiseika</div>
 
 <div id="time" class="panel">
@@ -1008,11 +1025,13 @@ const ITEM = Object.fromEntries(ITEMS.map(it => [it.key, it]));
 const cardsEl = document.getElementById('cards'), svg = document.getElementById('leaders'), NSV = 'http://www.w3.org/2000/svg';
 let hot = null;
 function setHot(k) { hot = k; ITEMS.forEach(it => { const on = it.key === k, dim = !!k && !on;
-  it.el.classList.toggle('on', on); it.el.classList.toggle('dim', dim); it.path.classList.toggle('on', on); it.path.classList.toggle('dim', dim); it.dot.classList.toggle('on', on); it.dot.classList.toggle('dim', dim); }); }
+  it.el.classList.toggle('on', on); it.el.classList.toggle('dim', dim); it.path.classList.toggle('on', on); it.path.classList.toggle('dim', dim); it.dot.classList.toggle('on', on); it.dot.classList.toggle('dim', dim); it.pin.classList.toggle('on', on); it.pin.classList.toggle('dim', dim); }); }
 ITEMS.forEach(it => {
   const d = document.createElement('div'); d.className = 'card ' + it.cls;
   for (const [tag, txt, cl] of [['b', it.t], ['small', it.s], ['div', it.info, 'info']]) { const e = document.createElement(tag); e.textContent = txt; if (cl) e.className = cl; d.appendChild(e); }
   cardsEl.appendChild(d); it.el = d;
+  it.pin = document.createElement('div'); it.pin.className = 'pin ' + it.cls; it.pin.setAttribute('role', 'button'); it.pin.setAttribute('aria-label', it.t); cardsEl.appendChild(it.pin);   // スマホの光る印
+  it.pin.addEventListener('click', e => { e.stopPropagation(); openSp(it.key); });
   it.path = document.createElementNS(NSV, 'path'); it.path.setAttribute('stroke', CCOL[it.cls]);
   it.dot = document.createElementNS(NSV, 'circle'); it.dot.setAttribute('r', '3'); it.dot.setAttribute('fill', CCOL[it.cls]); svg.append(it.path, it.dot);
   d.addEventListener('pointerenter', e => { if (e.pointerType !== 'touch') setHot(it.key); });
@@ -1028,7 +1047,7 @@ function layoutCards() {
   const L = [], R = [];
   for (const it of ITEMS) { _pj.copy(it.at).project(camera); it.sx = (_pj.x + 1) / 2 * W; it.sy = (1 - _pj.y) / 2 * Hh;
     const on = _pj.z < 1 && Math.abs(_pj.x) < 1.02 && Math.abs(_pj.y) < 1.02;
-    it.el.style.display = it.path.style.display = it.dot.style.display = on ? '' : 'none'; if (on) (it.sx < W / 2 ? L : R).push(it); }
+    it.el.style.display = it.path.style.display = it.dot.style.display = on ? '' : 'none'; it.pin.style.visibility = on ? 'visible' : 'hidden'; it.pin.style.transform = `translate(${it.sx.toFixed(1)}px, ${it.sy.toFixed(1)}px)`; if (on) (it.sx < W / 2 ? L : R).push(it); }
   const cap = (top, bot) => Math.max(1, Math.floor((bot - top + 6) / ((ITEMS[0].h || 46) + 6)));   // 列に入る枚数。あふれたら、中央寄りの地点の札を反対の列へ
   const cL = cap(topL, botL), cR = cap(topR, botR);
   R.sort((a, b) => a.sx - b.sx); L.sort((a, b) => b.sx - a.sx);
@@ -1126,7 +1145,18 @@ function fly(target, pos, dur = 1.5) { fl = { p0: camera.position.clone(), p1: p
 function stepFly(dt) { controls.maxPolarAngle = fl ? Math.PI : POLAR; if (!fl) return; fl.u = Math.min(1, fl.u + dt / fl.dur); const e = easeIO(fl.u);
   camera.position.lerpVectors(fl.p0, fl.p1, e); controls.target.lerpVectors(fl.t0, fl.t1, e); if (fl.u >= 1) fl = null; }
 controls.addEventListener('start', () => { fl = null; controls.maxPolarAngle = POLAR; });
-document.querySelectorAll('.btns button').forEach(b => b.onclick = () => { const v = (b.dataset.go === 'all' && innerWidth < 600) ? VIEWS.allM : VIEWS[b.dataset.go]; if (v) fly(v[0], v[1]); });
+document.querySelectorAll('.btns button').forEach(b => b.onclick = () => { const go = b.dataset.go;
+  if (SP()) { if (ITEM[go]) { openSp(go); return; } closeSp(false); }
+  const v = (go === 'all' && innerWidth < 600) ? VIEWS.allM : VIEWS[go]; if (v) fly(v[0], v[1]); });
+// スマホ：印・地点・ボタンをタップすると、その場所へ寄って、下から説明。「閉じる」で元の眺めへ戻る
+const SP = () => innerWidth < 600, sheet = document.getElementById('sheet'), SP_D = { castle: 48, magma: 30, burn: 26, start: 26, peng: 18, '6': 26 };
+let spBack = null;
+function openSp(k) { const it = ITEM[k]; if (!it) return; if (!spBack) spBack = [controls.target.clone(), camera.position.clone()];
+  setHot(k); const tg = it.g.clone().lerp(it.at, 0.45), dir = camera.position.clone().sub(controls.target).normalize(); dir.y = Math.max(dir.y, 0.5); dir.normalize();
+  fly(tg, tg.clone().addScaledVector(dir, SP_D[k] ?? 22), 1.2);
+  sheet.className = 'show ' + it.cls; sheet.querySelector('b').textContent = it.t; sheet.querySelector('small').textContent = it.s; sheet.querySelector('p').textContent = it.info; sheet.scrollTop = 0; }
+function closeSp(back = true) { sheet.className = ''; setHot(null); if (back && spBack) fly(spBack[0], spBack[1], 1.2); spBack = null; }
+document.getElementById('sheetClose').addEventListener('click', () => closeSp());
 { const v = innerWidth < 600 ? VIEWS.allM : VIEWS.all; camera.position.copy(v[1]); controls.target.copy(v[0]);
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {   // 開いた時：空を見上げたところから、ゆっくり大陸へ視線が降りる
     const fw = v[0].clone().sub(v[1]); fw.y = 0; fw.normalize(); controls.target.copy(v[1]).addScaledVector(fw, 90).add(new THREE.Vector3(0, 70, 0)); fly(v[0], v[1], 3.4); } }
@@ -1140,7 +1170,7 @@ function pickKey(e) { mp.x = (e.clientX / innerWidth) * 2 - 1; mp.y = -(e.client
 let downAt = null;
 renderer.domElement.addEventListener('pointermove', e => { if (e.pointerType !== 'touch' && !e.buttons) setHot(pickKey(e)); });
 renderer.domElement.addEventListener('pointerdown', e => { downAt = [e.clientX, e.clientY]; });
-renderer.domElement.addEventListener('pointerup', e => { if (e.pointerType === 'touch' && downAt && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) < 8) { const k = pickKey(e); setHot(k === hot ? null : k); } });
+renderer.domElement.addEventListener('pointerup', e => { if (e.pointerType === 'touch' && downAt && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) < 8) { const k = pickKey(e); if (SP()) { if (k) openSp(k); } else setHot(k === hot ? null : k); } });
 renderer.domElement.addEventListener('pointerleave', () => { if (!matchMedia('(pointer:coarse)').matches) setHot(null); });
 
 function resize() { const w = innerWidth, h = innerHeight; camera.aspect = w / h; camera.updateProjectionMatrix();

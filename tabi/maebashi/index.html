@@ -1739,7 +1739,7 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
           '<div class="wxd"><div class="d">' + label(t[i], i) + '</div>' +
           '<div class="w">' + svg(w[1]) + '<b>' + esc(w[0]) + '</b></div>' +
           '<div class="t">' + hi + '<i>℃</i> / ' + lo + '<i>℃</i></div>' +
-          '<div class="r">降水 ' + (pr == null ? "—" : pr + "%") + (ss ? '　日の入り ' + esc(ss) : '') + '</div></div>'
+          '<div class="r">降水 ' + (isFinite(pr) && pr !== null && pr !== "" ? Math.round(+pr) + "%" : "—") + (ss ? '　日の入り ' + esc(ss) : '') + '</div></div>'
         );
       }
       var now = new Date();

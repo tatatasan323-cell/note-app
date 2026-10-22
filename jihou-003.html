@@ -1,0 +1,932 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- この紙面は外部から何も読み込まない。宣言だけでなく、読み込み自体を禁止しておく -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; form-action 'none'; base-uri 'none'">
+<meta name="description" content="PHPに、ログイン不要で外から命令を実行されうる欠陥（php2shell）。修正版は出たが自動では入らない。Node.jsも10件を修正。業者に送れる確認の文面つき。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ＡＩ内製化時報 第003号 ─ ログイン不要で、外から命令を実行されうる">
+<meta property="og:description" content="PHPの深刻な欠陥と、Node.jsの10件。修正版は自動では入りません。まず確かめる3つと、業者に送れる文面。">
+<meta property="og:image" content="https://tatatasan323-cell.github.io/note-app/jihou-003.png">
+<meta property="og:url" content="https://tatatasan323-cell.github.io/note-app/jihou-003.html">
+<meta name="twitter:card" content="summary_large_image">
+<style>html{-webkit-text-size-adjust:100%}body{margin:0}</style>
+</head>
+<body>
+<title>ＡＩ内製化時報 第003号 ─ ログイン不要で、外から命令を実行されうる</title>
+
+<style>
+
+:root{
+  --paper:#F1F2EE; --paper-2:#E6E7E0; --paper-3:#DCDDD4;
+  --ink:#17191A; --ink-2:#484C4C; --ink-3:#7B7F7B;
+  --shu:#BE3427; --ai:#27496D; --rule:#C4C5BC;
+  --gothic:"Yu Gothic UI","Yu Gothic",YuGothic,"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",Meiryo,sans-serif;
+  --mincho:"Yu Mincho",YuMincho,"Hiragino Mincho ProN","Noto Serif JP","MS PMincho",serif;
+  --mono:ui-monospace,"SFMono-Regular",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#131412; --paper-2:#1C1E1A; --paper-3:#24261F;
+    --ink:#E9E9E1; --ink-2:#B2B4AB; --ink-3:#82857C;
+    --shu:#E2594A; --ai:#8DB2D8; --rule:#35372F;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#131412; --paper-2:#1C1E1A; --paper-3:#24261F;
+  --ink:#E9E9E1; --ink-2:#B2B4AB; --ink-3:#82857C;
+  --shu:#E2594A; --ai:#8DB2D8; --rule:#35372F;
+}
+:root[data-theme="light"]{
+  --paper:#F1F2EE; --paper-2:#E6E7E0; --paper-3:#DCDDD4;
+  --ink:#17191A; --ink-2:#484C4C; --ink-3:#7B7F7B;
+  --shu:#BE3427; --ai:#27496D; --rule:#C4C5BC;
+}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);}
+.paper{
+  max-width:1120px; margin:0 auto; padding:28px 22px 90px;
+  font-family:var(--mincho); font-size:18.5px; line-height:1.95;
+  letter-spacing:.01em;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--ai)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--shu); outline-offset:3px}
+
+/* ── 題字 ───────────────────────── */
+.masthead{display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap}
+.logo{font-family:var(--mincho); font-weight:700; font-size:clamp(38px,7vw,68px); line-height:1;
+  letter-spacing:.14em; margin:0}
+.logo .dot{color:var(--shu)}
+.logo-sub{font-family:var(--gothic); font-size:13.1px; letter-spacing:.32em; color:var(--ink-3);
+  margin-top:12px}
+.issue{font-family:var(--gothic); font-size:13.1px; line-height:2; color:var(--ink-2); text-align:right;
+  font-variant-numeric:tabular-nums}
+.issue b{color:var(--ink); font-weight:700}
+.rule-double{border-top:4px solid var(--ink); border-bottom:1px solid var(--ink); height:5px; margin:14px 0 0}
+.strip{display:flex; gap:0; flex-wrap:wrap; font-family:var(--gothic); font-size:13.1px;
+  letter-spacing:.18em; color:var(--ink-2); border-bottom:1px solid var(--rule); padding:9px 0 10px}
+.strip span{padding-right:22px; margin-right:22px; border-right:1px solid var(--rule)}
+.strip span:last-child{border-right:0}
+
+/* ── 一面 ───────────────────────── */
+.hero{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:40px; padding:34px 0 8px; align-items:start}
+/* 両方に row/column を明示する。片方だけだと auto-placement が本文を2行目に落とし、
+   見出しの左に空の1行目ができる（＝紙面冒頭の巨大な余白の原因） */
+.hero-body{grid-column:1; grid-row:1}
+.hero-head{grid-column:2; grid-row:1}
+.vhead{
+  writing-mode:vertical-rl; font-family:var(--gothic); font-weight:900;
+  font-size:clamp(40px,6.6vw,74px); line-height:1.14; letter-spacing:.05em;
+  /* 縦組みでは height が行の長さ。ビューポート依存にすると1字あふれて語中で折れる */
+  height:max-content; margin:0;
+}
+.vhead em{font-style:normal; color:var(--shu)}
+.vsub{writing-mode:vertical-rl; font-family:var(--gothic); font-weight:700;
+  font-size:clamp(16px,1.9vw,21px); letter-spacing:.16em; color:var(--ink-2);
+  border-right:1px solid var(--rule); padding-right:20px; margin:0 20px 0 0; height:max-content}
+.hero-head{display:flex; flex-direction:row-reverse; gap:0}
+.eyebrow{display:inline-block; font-family:var(--gothic); font-weight:800; font-size:13.7px;
+  letter-spacing:.3em; color:var(--paper); background:var(--shu); padding:5px 14px 5px 18px; margin-bottom:18px}
+.lede{font-size:19.9px; line-height:2.1; margin:0 0 22px}
+.lede b{background:linear-gradient(transparent 62%, color-mix(in srgb,var(--shu) 26%, transparent) 62%)}
+.hero-body p{margin:0 0 18px}
+.byline{font-family:var(--gothic); font-size:13.1px; letter-spacing:.16em; color:var(--ink-3);
+  border-top:1px solid var(--rule); padding-top:12px; margin-top:6px}
+
+.stamp{
+  display:inline-block; font-family:var(--gothic); font-weight:900; font-size:16px; letter-spacing:.24em;
+  color:var(--shu); border:3px double var(--shu); border-radius:4px; padding:10px 14px 10px 18px;
+  transform:rotate(-7deg); margin:6px 0 22px;
+}
+
+/* ── 見出し体系 ───────────────── */
+.sec{margin:64px 0 0}
+.sec-no{font-family:var(--mono); font-size:13.7px; letter-spacing:.2em; color:var(--shu)}
+h2{font-family:var(--gothic); font-weight:900; font-size:clamp(26px,3.8vw,38px); line-height:1.4;
+  letter-spacing:.04em; margin:6px 0 4px}
+.sec-lead{font-family:var(--gothic); font-size:14.8px; letter-spacing:.1em; color:var(--ink-3); margin:0 0 22px}
+.hr-thick{border:0; border-top:3px solid var(--ink); margin:0 0 24px}
+h3{font-family:var(--gothic); font-weight:800; font-size:21.7px; letter-spacing:.03em;
+  margin:34px 0 10px; padding-left:13px; border-left:5px solid var(--shu)}
+h4{font-family:var(--gothic); font-weight:800; font-size:17.1px; letter-spacing:.05em; margin:24px 0 8px; color:var(--ink-2)}
+p{margin:0 0 16px}
+
+.cols2{columns:2; column-gap:44px; column-rule:1px solid var(--rule)}
+.cols2 p{margin:0 0 16px; break-inside:avoid}
+.cols2 h4{margin-top:0}
+
+/* ── 図解 ───────────────────────── */
+figure{margin:30px 0; padding:22px 20px 16px; background:var(--paper-2); border-top:2px solid var(--ink)}
+figure svg{display:block; width:100%; height:auto}
+/* SVG は presentation attribute だと var() が解決されないため、必ずクラスで着色する */
+figure svg text{font-family:var(--gothic)}
+figure svg .mono{font-family:var(--mono)}
+figure svg .f-ink{fill:var(--ink)}
+figure svg .f-ink2{fill:var(--ink-2)}
+figure svg .f-ink3{fill:var(--ink-3)}
+figure svg .f-paper{fill:var(--paper)}
+figure svg .f-shu{fill:var(--shu)}
+figure svg .f-ai{fill:var(--ai)}
+figure svg .f-none{fill:none}
+figure svg .s-ink{stroke:var(--ink)}
+figure svg .s-ink3{stroke:var(--ink-3)}
+figure svg .s-rule{stroke:var(--rule)}
+figure svg .s-shu{stroke:var(--shu)}
+figure svg .s-ai{stroke:var(--ai)}
+figcaption{font-family:var(--gothic); font-size:14.2px; line-height:1.85; color:var(--ink-2); margin-top:14px;
+  padding-top:10px; border-top:1px solid var(--rule)}
+figcaption b{color:var(--ink); font-weight:800}
+
+/* ── 表 ─────────────────────────── */
+.tablewrap{overflow-x:auto; margin:24px 0}
+table{border-collapse:collapse; width:100%; min-width:660px; font-size:16.5px}
+caption{font-family:var(--gothic); font-size:14.2px; letter-spacing:.14em; color:var(--ink-3);
+  text-align:left; padding-bottom:9px}
+th,td{border-bottom:1px solid var(--rule); padding:13px 12px; text-align:left; vertical-align:top; line-height:1.8}
+thead th{font-family:var(--gothic); font-size:14.2px; letter-spacing:.1em; background:var(--paper-2);
+  border-bottom:2px solid var(--ink); white-space:nowrap}
+tbody th{font-family:var(--mono); font-weight:400; color:var(--shu); width:2.6em; font-size:14.8px}
+td.was{color:var(--ink-3)}
+td.now{font-weight:600}
+tbody tr:hover{background:var(--paper-2)}
+
+/* ── 削除デモ ───────────────────── */
+.demo{display:grid; grid-template-columns:1fr 1fr; gap:0; border:1px solid var(--rule); margin:26px 0}
+.demo>div{padding:20px 22px}
+.demo>div+div{border-left:1px solid var(--rule)}
+.demo h4{margin-top:0}
+.demo ul{list-style:none; padding:0; margin:0; font-family:var(--gothic); font-size:15.4px; line-height:1.9}
+.demo li{padding:7px 0; border-bottom:1px dotted var(--rule)}
+.cut{position:relative; display:inline}
+.cut::after{content:""; position:absolute; left:0; top:52%; height:2px; background:var(--shu);
+  width:0; transition:width .55s cubic-bezier(.4,0,.2,1)}
+.is-vis .cut::after{width:100%}
+.demo .keep{color:var(--ink)}
+.demo .gone{color:var(--ink-3)}
+.demo-note{font-family:var(--gothic); font-size:13.7px; color:var(--ink-3); margin:10px 0 0}
+@media (prefers-reduced-motion:reduce){ .cut::after{transition:none} }
+
+/* ── 実践欄 ─────────────────────── */
+.todo{list-style:none; padding:0; margin:22px 0; counter-reset:t}
+.todo li{counter-increment:t; display:grid; grid-template-columns:auto 1fr; gap:18px;
+  padding:20px 0; border-bottom:1px solid var(--rule)}
+.todo li::before{content:counter(t,decimal-leading-zero); font-family:var(--mono); font-size:25.1px;
+  color:var(--shu); line-height:1.3}
+.todo h4{margin:0 0 6px}
+.todo p{margin:0; font-size:17.7px}
+
+/* ── 囲み ───────────────────────── */
+.box{background:var(--paper-2); border:1px solid var(--rule); border-top:6px solid var(--ai);
+  padding:22px 24px; margin:30px 0}
+.box h4{margin-top:0; color:var(--ai)}
+.box.scope{border-top-color:var(--shu)}
+.box.scope h4{color:var(--shu)}
+.box.scope p{margin-bottom:12px}
+.box.scope p:last-child{margin-bottom:0}
+.box dl{margin:0; font-size:16.5px}
+.box dt{font-family:var(--gothic); font-weight:800; margin-top:14px}
+.box dt:first-child{margin-top:0}
+.box dd{margin:3px 0 0}
+.box code,p code,li code,td code{font-family:var(--mono); font-size:.88em; background:var(--paper-3);
+  padding:2px 6px; border-radius:2px}
+
+pre{font-family:var(--mono); font-size:14.8px; line-height:1.75; background:var(--paper-3);
+  padding:16px 18px; overflow-x:auto; border-left:4px solid var(--ai); margin:16px 0}
+
+.column{border:1px solid var(--ink); padding:24px 26px; margin:36px 0; background:var(--paper)}
+.column .tag{font-family:var(--gothic); font-weight:900; font-size:13.7px; letter-spacing:.26em;
+  color:var(--shu); display:block; margin-bottom:12px}
+.column p{margin-bottom:14px}
+.column p:last-child{margin-bottom:0}
+
+.sources{font-family:var(--gothic); font-size:14.8px; line-height:2.1; padding:0; list-style:none; margin:16px 0 0}
+.sources li{padding-left:1.5em; text-indent:-1.5em}
+.colophon{margin-top:56px; border-top:4px solid var(--ink); border-bottom:1px solid var(--ink);
+  padding:14px 0; font-family:var(--gothic); font-size:13.1px; letter-spacing:.12em; color:var(--ink-3);
+  display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap}
+
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr; gap:8px}
+  .hero-head{grid-column:1; grid-row:1; flex-direction:column}
+  .hero-body{grid-column:1; grid-row:2}
+  .vhead{writing-mode:horizontal-tb; height:auto; font-size:clamp(32px,8.4vw,46px); line-height:1.3}
+  .vsub{writing-mode:horizontal-tb; height:auto; border-right:0; border-left:4px solid var(--shu);
+    padding:0 0 0 14px; margin:0 0 18px}
+  .cols2{columns:1}
+  .demo{grid-template-columns:1fr}
+  .demo>div+div{border-left:0; border-top:1px solid var(--rule)}
+}
+
+
+
+/* ── 追従する目次（題字下の索引欄を格上げ） ── */
+.strip{position:sticky; top:0; z-index:60; background:var(--paper);
+  overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
+  border-top:1px solid var(--rule); flex-wrap:nowrap; gap:0}
+.strip::-webkit-scrollbar{display:none}
+.strip a{color:var(--ink-2); text-decoration:none; white-space:nowrap;
+  padding:9px 0 8px; margin-right:22px; border-bottom:2px solid transparent}
+.strip a:last-child{margin-right:0}
+.strip a:hover{color:var(--ink)}
+.strip a.on{color:var(--shu); border-bottom-color:var(--shu); font-weight:700}
+html{scroll-behavior:smooth}
+section[id]{scroll-margin-top:52px}
+@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+
+
+/* ── 第003号で足したもの ── */
+.gl-note{border-left:5px solid var(--ai); background:var(--paper-2); padding:14px 20px 12px; margin:22px 0; font-size:16.5px}
+.gl-note.scope{border-left-color:var(--shu)}
+.gl-tag{display:block; font-family:var(--gothic); font-weight:800; font-size:14.2px; letter-spacing:.14em; color:var(--ai); margin-bottom:4px}
+.gl-note.scope .gl-tag{color:var(--shu)}
+.gl-note dl{margin:0}
+.gl-note dt{font-family:var(--gothic); font-weight:800; margin-top:10px}
+.gl-note dd{margin:2px 0 0}
+.gl-note p{margin:6px 0 0; font-size:16.5px; line-height:1.9}
+.three{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); border:1px solid var(--rule); margin:26px 0}
+.three>div{padding:20px 22px}
+.three>div+div{border-left:1px solid var(--rule)}
+.three h4{margin-top:0}
+.three p{font-size:16.5px; margin:0 0 10px}
+.three .on-tools{font-family:var(--gothic); font-size:14.2px; color:var(--ink-3); margin-top:12px}
+@media (max-width:860px){ .three{grid-template-columns:1fr} .three>div+div{border-left:0; border-top:1px solid var(--rule)} }
+.gl{columns:2; column-gap:44px; margin:0}
+.gl>div{break-inside:avoid; margin:0 0 4px}
+@media (max-width:860px){ .gl{columns:1} }
+table.wide tbody th{width:auto; white-space:normal; font-family:var(--gothic); font-size:14.8px; color:var(--ink)}
+table.wide tbody th[scope=row]{min-width:6em}
+table.wide td.now{font-weight:600}
+.copybtn{font-family:var(--gothic); font-size:14.8px; letter-spacing:.08em; cursor:pointer; color:var(--paper);
+  background:var(--ink); border:0; padding:10px 20px; margin-top:12px}
+.copybtn:hover{background:var(--shu)}
+@media (max-width:640px){
+  figure{overflow-x:auto}
+  figure svg{min-width:720px}
+  figcaption{min-width:0}
+}
+
+</style>
+
+<div class="paper">
+
+  <header class="masthead">
+    <div>
+      <h1 class="logo">ＡＩ内製化時報<span class="dot">.</span></h1>
+      <div class="logo-sub">AI 内製化工房 MITA ／ 技術動向レポート</div>
+    </div>
+    <div class="issue">
+      <b>2026年（令和8年）10月23日 金曜日</b><br>
+第 003 号 ／ 全 1 面 ／ 不定期刊<br>
+      収録：PHP・Node.js のセキュリティ修正（10月21日前後）
+    </div>
+  </header>
+  <div class="rule-double"></div>
+  <nav class="strip" id="toc" aria-label="紙面の目次">
+    <a href="#s-hero">特報</a>
+    <a href="#s-concl">結論</a>
+    <a href="#s-words">ことば</a>
+    <a href="#s-php">PHP</a>
+    <a href="#s-node">Node.js</a>
+    <a href="#s-shop">工房点検</a>
+    <a href="#s-src">出典</a>
+  </nav>
+
+  <!-- ══ 一面 ══ -->
+  <section class="hero" id="s-hero">
+    <div class="hero-head">
+      <h2 class="vhead">ログイン不要<br>外から命令を<br><em>実行されうる</em></h2>
+      <p class="vsub">PHPに深刻な欠陥。修正版は出たが、自動では入らない</p>
+    </div>
+
+    <div class="hero-body">
+      <span class="eyebrow">特報</span>
+      <p class="lede">
+        PHPに、ログイン不要で、<b>外から届くリクエストだけでサーバーに命令を実行されうる</b>欠陥が見つかった。
+        通称「php2shell」。2件（CVE-2026-109618／109619）で、深刻度は10点満点中9.2とされる。
+      </p>
+      <p>
+        修正版は10月21日前後に出たが、<b>自動では入らない。</b>
+        8.1以前は、公式の修正版バイナリが出ていない。
+        公開の前の10月17日から攻撃の試みがあったと、セキュリティ各社が報告している。
+        一方、公的機関の悪用リスト（CISA KEV）には、10月23日の確認時点でまだ載っていない。
+      </p>
+      <p>
+        同じ10月21日に、Node.jsも10件の脆弱性を修正した。うち深刻度が高いものが4件。
+        AIに作らせた社内ツールは、Node.jsで動くことが多い。
+        自社が当たるかどうかは、<b>誰が・どこで・何版で動かしているか</b>を知るところから決まる。
+        PHPやNode.jsが何かは、下の「ことば」の欄で説明している。
+      </p>
+      <div class="stamp">要 確 認</div>
+      <p class="byline">編集・要約：Claude（Sonnet 5.5）／ 発行：AI内製化工房 MITA</p>
+    </div>
+  </section>
+
+
+  <div class="gl-note">
+      <b class="gl-tag">ことばの補足</b>
+      <dl>
+        <dt>欠陥（脆弱性）</dt><dd>プログラムの弱点で、攻撃に使われる抜け道のこと。</dd>
+        <dt>サーバー</dt><dd>Webサイトや業務システムを動かし続けているコンピューター。自社にある場合も、レンタルサーバーなど外の会社が運用している場合もある。</dd>
+        <dt>ログイン不要</dt><dd>IDやパスワードを知らなくても、外から攻撃できること。</dd>
+        <dt>リクエスト</dt><dd>サーバーへの問い合わせ（要求）のこと。ページを開く、フォームを送る、といった操作がそれにあたる。</dd>
+        <dt>命令を実行される</dt><dd>外部の人が、サーバーに好きな命令を出せてしまう状態。もっとも重い部類の弱点のひとつ。</dd>
+        <dt>修正版</dt><dd>弱点をふさいだ新しい版。自動では入らず、運営する人が更新する。</dd>
+        <dt>深刻度</dt><dd>弱点の重さを、10点満点で表したもの。9点台は、もっとも重い区分にあたる。</dd>
+        <dt>CVE（シーブイイー）</dt><dd>弱点につけられる、世界共通の通し番号。同じ弱点の話をしているかを、確かめるのに使う。</dd>
+        <dt>CISAのKEV</dt><dd>米国の政府機関CISAが作る、「実際に悪用されている」と認めた弱点のリスト。</dd>
+      </dl>
+    </div>
+
+    <div class="gl-note scope">
+      <b class="gl-tag">確かめていないこと｜攻撃の規模</b>
+      <p>攻撃の規模は、報道によって差がある。</p>
+      <p>セキュリティ会社が10月17日以降の試みを報告している一方、公的機関の悪用リスト（KEV）には、10月23日の確認時点で、まだ載っていない。</p>
+      <p>「すでに広く被害が出ている」と確認できたわけではない。</p>
+    </div>
+
+  <figure>
+    <svg viewBox="0 0 900 250" role="img" aria-label="8月11日に初報告、10月17日に公開前の攻撃の試み、10月20日に協調開示の前に存在が公になり、10月21日前後に修正版が出るまでの時系列">
+      <line class="s-rule" x1="20" y1="96" x2="880" y2="96" stroke-width="2"/>
+      <circle class="f-ink3" cx="90" cy="96" r="7"/>
+      <circle class="f-shu" cx="320" cy="96" r="11"/>
+      <circle class="f-ink3" cx="560" cy="96" r="7"/>
+      <circle class="f-ink3" cx="800" cy="96" r="7"/>
+
+      <text class="f-ink2 mono" x="90" y="66" font-size="15.6" text-anchor="middle">8/11</text>
+      <text class="f-shu mono" x="320" y="60" font-size="18" font-weight="700" text-anchor="middle">10/17</text>
+      <text class="f-ink2 mono" x="560" y="66" font-size="15.6" text-anchor="middle">10/20</text>
+      <text class="f-ink2 mono" x="800" y="66" font-size="15.6" text-anchor="middle">10/21前後</text>
+
+      <text class="f-ink" x="90" y="132" font-size="16.8" font-weight="800" text-anchor="middle">最初の報告</text>
+      <text class="f-ink3" x="90" y="154" font-size="14.4" text-anchor="middle">PHPプロジェクトが</text>
+      <text class="f-ink3" x="90" y="171" font-size="14.4" text-anchor="middle">報告を受ける</text>
+
+      <text class="f-shu" x="320" y="132" font-size="18" font-weight="800" text-anchor="middle">公開の前に、攻撃の試み</text>
+      <text class="f-ink2" x="320" y="155" font-size="15" text-anchor="middle">Amazonの脅威情報チームが報告</text>
+      <text class="f-ink2" x="320" y="173" font-size="15" text-anchor="middle">Sophosも同日以降の試みを確認</text>
+
+      <text class="f-ink" x="560" y="132" font-size="16.8" font-weight="800" text-anchor="middle">存在が表に出る</text>
+      <text class="f-ink3" x="560" y="154" font-size="14.4" text-anchor="middle">公表日をそろえる取り決め</text>
+      <text class="f-ink3" x="560" y="171" font-size="14.4" text-anchor="middle">（協調開示）の前に</text>
+
+      <text class="f-ink" x="800" y="132" font-size="16.8" font-weight="800" text-anchor="middle">修正版を公開</text>
+      <text class="f-ink3" x="800" y="154" font-size="14.4" text-anchor="middle">自動では入らない</text>
+      <text class="f-ink3" x="800" y="171" font-size="14.4" text-anchor="middle">手動で更新が要る</text>
+
+      <line class="s-shu" x1="90" y1="42" x2="320" y2="42" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <path class="f-shu" d="M90 42 L102 37 L102 47 Z"/>
+      <path class="f-shu" d="M320 42 L308 37 L308 47 Z"/>
+      <text class="f-shu" x="205" y="30" font-size="16.8" font-weight="800" text-anchor="middle">2か月余り</text>
+    </svg>
+    <figcaption>
+      <b>図1</b>／ 経緯。最初の報告から攻撃の試みまで<b>2か月余り</b>。公表日をそろえる前に存在が表に出たため、修正版が前倒しで出たとの報道もある。時刻は各社の記載による（php.net の更新履歴は22日付、配布情報と各社の勧告は21日付）。
+    </figcaption>
+  </figure>
+
+
+  <!-- ══ 結論 ══ -->
+  <section class="sec" id="s-concl">
+    <div class="sec-no">CONCLUSION</div>
+    <h2>先に、結論だけ</h2>
+    <p class="sec-lead">今日やることは、三つである</p>
+    <hr class="hr-thick">
+
+    <ol class="todo">
+      <li>
+        <div>
+          <h4>棚卸しをする</h4>
+          <p>自社で動いているPHPとNode.jsを、「誰が・どこで・何版で」の3点で書き出す。担当者がいなければ、運営業者への問い合わせがそのまま棚卸しになる。</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h4>業者に三つ聞く</h4>
+          <p>自社サイト・予約や問い合わせの仕組み・古い業務システムは、運営業者に聞くのが早い。下の文面をそのまま送れる。</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h4>AIで作った道具は、攻撃を流して確かめる</h4>
+          <p>ファイル名や表のセルに、画像を装った命令を入れて取り込ませる。命令が実行されなければ、まず合格である。</p>
+        </div>
+      </li>
+    </ol>
+
+    <div class="box">
+      <h4>業者に送る文面（そのまま使える）</h4>
+      <pre id="mailtext">お世話になっております。
+10月21日前後に公表されたPHPの脆弱性（CVE-2026-109618／CVE-2026-109619）について、次の3点を教えてください。
+
+1. 当社のサイト（システム）で動いているPHPの版は何ですか。修正を取り込んだ版ですか。
+2. PHP 8.1以前を使っていませんか。
+3. 8月1日以降の、不審なアクセスの記録を確認しましたか。</pre>
+      <button class="copybtn" id="copybtn" type="button">文面をコピーする</button>
+      <p class="demo-note" id="copynote" aria-live="polite"></p>
+    </div>
+
+    <p>
+      更新は、止めてよい日を選んでやるものである。
+      ただし今回は、公開の前から攻撃の試みがあったと報告されている。
+      <b>「次の定期メンテナンスで」ではなく、今週中に、まず問い合わせだけでもしておきたい。</b>
+    </p>
+  </section>
+
+
+  <!-- ══ ことば ══ -->
+  <section class="sec" id="s-words">
+    <div class="sec-no">WORDS</div>
+    <h2>PHP と Node.js とは</h2>
+    <p class="sec-lead">専門家でなくても、役割だけ押さえればよい</p>
+    <hr class="hr-thick">
+
+    <p>
+      Webサイトの画面が届くまでには、裏でコンピューターが働いている。
+      この裏方のコンピューターを、<b>サーバー</b>と呼ぶ。
+      お店にたとえるなら、客席がお客さんの画面で、厨房がサーバーである。
+      注文を受けて、料理を仕上げて、出す。
+      その調理の手順を書くための言葉が、PHPとNode.jsである。
+    </p>
+
+    <div class="demo">
+      <div>
+        <h4>PHP（ピー・エイチ・ピー）</h4>
+        <p>
+          Webサイトの裏側で動くプログラムを書くための、プログラミング言語。
+          1990年代から使われている。
+          ブログやホームページを作る仕組みのWordPressも、PHPで作られている。
+        </p>
+        <p>
+          自社サイト、予約や問い合わせのフォーム、何年も触っていない業務システムの中で、動いていることが多い。
+          自社が使っているかどうかは、運営業者に聞けばすぐ分かる。
+          <b>自社サイトがWordPressなら、答えは「使っている」である。</b>
+        </p>
+      </div>
+      <div>
+        <h4>Node.js（ノード・ジェイエス）</h4>
+        <p>
+          ブラウザの中で動く言葉のJavaScriptを、サーバーでも動かせるようにした仕組み。
+          Node.jsの道具は、npmという部品の置き場から、必要な部品を取り寄せて組み立てる。
+        </p>
+        <p>
+          AIに「Webの道具を作って」と頼むと、Node.jsで動く構成になることが少なくない。
+          一方、<b>HTMLファイルを開くだけで動く道具は、Node.jsを使っていない。</b>
+        </p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══ PHP ══ -->
+  <section class="sec" id="s-php">
+    <div class="sec-no">PHP</div>
+    <h2>PHP ── 修正版と、動かし方の確認</h2>
+    <p class="sec-lead">10月21日前後に公開。更新は手動</p>
+    <hr class="hr-thick">
+
+    <h3>修正版</h3>
+    <div class="tablewrap">
+      <table class="wide">
+        <caption>PHPの系統と修正版（Sophos 勧告／php.net 更新履歴）</caption>
+        <thead><tr><th>系統</th><th>修正版</th><th>備考</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">8.5</th><td class="now">8.5.12</td><td></td></tr>
+          <tr><th scope="row">8.4</th><td class="now">8.4.27</td><td></td></tr>
+          <tr><th scope="row">8.3</th><td class="now">8.3.36</td><td></td></tr>
+          <tr><th scope="row">8.2</th><td class="now">8.2.35</td><td></td></tr>
+          <tr><th scope="row">8.1以前</th><td class="was">公式の修正版バイナリなし</td><td>サポート終了。ソースコードだけの修正が公開された。サポート中の版への移行を考える時期である</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="gl-note">
+      <b class="gl-tag">ことばの補足</b>
+      <dl>
+        <dt>8.5.12のような数字</dt><dd>ソフトの世代を表す番号。8.5が系統で、最後の12が、その系統の中の更新の回数にあたる。</dd>
+        <dt>サポート終了</dt><dd>作った側が、もう修正版を出さなくなった版のこと。弱点が見つかっても、直らない。</dd>
+        <dt>バイナリとソースコード</dt><dd>そのまま使える形が「バイナリ」で、人が読める設計図が「ソースコード」。8.1以前は、設計図のかたちの修正だけが出た。</dd>
+      </dl>
+    </div>
+
+    <figure>
+      <svg viewBox="0 0 900 300" role="img" aria-label="PHPで動いているものがある場合の確認の流れ。修正版の系統なら修正版か確認、8.1以前なら移行を検討、版が分からなければ業者に三つ聞く">
+        <rect class="f-none s-ink" x="270" y="8" width="360" height="52" stroke-width="2"/>
+        <text class="f-ink" x="450" y="40" font-size="19.2" font-weight="800" text-anchor="middle">PHPで動いているものがある</text>
+
+        <line class="s-ink3" x1="450" y1="60" x2="450" y2="84" stroke-width="1.5"/>
+        <line class="s-ink3" x1="155" y1="84" x2="745" y2="84" stroke-width="1.5"/>
+        <line class="s-ink3" x1="155" y1="84" x2="155" y2="112" stroke-width="1.5"/>
+        <line class="s-ink3" x1="450" y1="84" x2="450" y2="112" stroke-width="1.5"/>
+        <line class="s-ink3" x1="745" y1="84" x2="745" y2="112" stroke-width="1.5"/>
+
+        <rect class="f-none s-ink" x="20" y="112" width="270" height="170" stroke-width="1.5"/>
+        <text class="f-ink2" x="36" y="140" font-size="15" font-weight="800" letter-spacing="1">版が 8.5／8.4／8.3／8.2</text>
+        <text class="f-ink" x="36" y="172" font-size="18" font-weight="800">修正版か確認する</text>
+        <text class="f-ink2" x="36" y="198" font-size="15.6">8.5.12／8.4.27／8.3.36／8.2.35</text>
+        <text class="f-ink2" x="36" y="217" font-size="15.6">以降なら対応済み</text>
+        <text class="f-ink3" x="36" y="252" font-size="14.4">OS配布版は番号が変わらないことがある</text>
+        <text class="f-ink3" x="36" y="270" font-size="14.4">→ パッケージの版で確認</text>
+
+        <rect class="f-none s-shu" x="315" y="112" width="270" height="170" stroke-width="2.5"/>
+        <text class="f-shu" x="331" y="140" font-size="15" font-weight="800" letter-spacing="1">版が 8.1以前</text>
+        <text class="f-ink" x="331" y="172" font-size="18" font-weight="800">公式の修正版はない</text>
+        <text class="f-ink2" x="331" y="198" font-size="15.6">サポート中の版へ移行を検討</text>
+        <text class="f-ink2" x="331" y="217" font-size="15.6">それまでは外から届かない形に</text>
+        <text class="f-ink3" x="331" y="252" font-size="14.4">公開を止める／ネットワーク層の</text>
+        <text class="f-ink3" x="331" y="270" font-size="14.4">認証の裏に置く（PHPプロジェクト案）</text>
+
+        <rect class="f-none s-ink" x="610" y="112" width="270" height="170" stroke-width="1.5"/>
+        <text class="f-ink2" x="626" y="140" font-size="15" font-weight="800" letter-spacing="1">版が分からない</text>
+        <text class="f-ink" x="626" y="172" font-size="18" font-weight="800">業者に三つ聞く</text>
+        <text class="f-ink2" x="626" y="198" font-size="15.6">版と修正の取り込み／8.1以前か</text>
+        <text class="f-ink2" x="626" y="217" font-size="15.6">／8月以降のアクセス記録</text>
+        <text class="f-ink3" x="626" y="252" font-size="14.4">文面は「結論」の欄にある</text>
+      </svg>
+      <figcaption>
+        <b>図2</b>／ 確認の流れ。自分で版が分からなくても、<b>業者に三つ聞けば済む</b>。応急処置は更新の代わりにならない。
+      </figcaption>
+    </figure>
+
+    <h3>対象になる動かし方</h3>
+    <p>
+      Apache の <code>mod_php</code> がもっとも危険とされ、PHP-FPM・php-cgi・FrankenPHP・LiteSpeed も対象である。
+      <code>mod_php</code> では、アプリが動き出す前の、認証のない要求だけで引き金が引かれうる。
+      アプリの中のWAF（攻撃を遮る仕組み）では防げない可能性がある、とPHPプロジェクトは説明している。
+    </p>
+
+    <div class="gl-note">
+      <b class="gl-tag">ことばの補足</b>
+      <dl>
+        <dt>Apache と mod_php</dt><dd>Apache（アパッチ）はWebサーバー用のソフトの名前。mod_phpは、その中でPHPを動かす方式で、今回もっとも危険とされた。</dd>
+      </dl>
+    </div>
+
+    <div class="box">
+      <h4>番号だけでは、修正済みかどうか分からない</h4>
+      <p>
+        OSによっては、PHPの番号を上げないまま、修正だけを取り込む配り方をする。
+        AlmaLinux は、<code>php -v</code>（PHPの版を表示する命令）の番号では修正済みか分からないとして、パッケージの版の確認を案内している（例：<code>rpm -q php-common</code>）。
+        他のOSでも同じかどうかは、確認していない。
+      </p>
+    </div>
+
+    <div class="gl-note">
+      <b class="gl-tag">ことばの補足</b>
+      <dl>
+        <dt>OS（オーエス）</dt><dd>コンピューターの土台になる基本ソフト。WindowsやMacの仲間。</dd>
+        <dt>AlmaLinux（アルマリナックス）</dt><dd>サーバー向けに広く使われる、OSのひとつ。</dd>
+        <dt>パッケージ</dt><dd>OSの部品を配る時の、まとまりの単位。部品ごとに、版の番号がつく。</dd>
+      </dl>
+    </div>
+
+    <h3>応急処置は、更新の代わりにならない</h3>
+    <p>
+      PHPプロジェクトは、更新できない場合の応急処置も示している。
+      メモリ上限の扱い、アップロードの進捗機能の停止、アップロードを受けないなら受け付けの禁止、などである。
+      ただし、攻撃の入口を一部ふさぐだけで、更新の代わりにはならない。
+      設定を変えたら、PHPを再起動し、実際のWebリクエストで有効になったかを確かめる。
+    </p>
+
+    <h3>8月1日以降の記録で見るもの</h3>
+    <p>
+      Sophos は、2026年8月1日以降のログの確認を勧めている。次のような兆しがあれば、調べる価値がある。
+    </p>
+
+    <div class="gl-note">
+      <b class="gl-tag">ことばの補足</b>
+      <dl>
+        <dt>ログ（アクセス記録）</dt><dd>誰が・いつ・何を要求したかを、サーバーが残している記録。</dd>
+      </dl>
+    </div>
+    <ul class="sources" style="list-style:none">
+      <li>▪ アップロードを受け付けない場所への、multipart形式のPOST</li>
+      <li>▪ <code>PHP_SESSION_UPLOAD_PROGRESS</code> を含むリクエスト</li>
+      <li>▪ メモリ枯渇やセグメンテーション違反による、PHPの処理プロセスの停止</li>
+      <li>▪ PHPやWebサーバーから起動された、不審な子プロセス</li>
+      <li>▪ Webルート内の、新しい・変更されたPHPファイル</li>
+      <li>▪ 想定外の宛先への外向きの通信／管理者ログインの成功記録</li>
+    </ul>
+  </section>
+
+
+  <!-- ══ Node.js ══ -->
+  <section class="sec" id="s-node">
+    <div class="sec-no">NODE.JS</div>
+    <h2>Node.js ── 10件の修正</h2>
+    <p class="sec-lead">10月21日。深刻度が高いのは4件</p>
+    <hr class="hr-thick">
+
+    <p>
+      修正版は <b>22.23.4・24.22.1・26.12.1</b> である。
+      ほかに深刻度が中の3件と低の3件があり、依存部品（c-ares・OpenSSL・Undici など）の更新も含まれる。
+    </p>
+
+    <div class="tablewrap">
+      <table class="wide">
+        <caption>深刻度が「高」の4件（Node.js 公式）</caption>
+        <thead><tr><th>CVE</th><th>内容</th><th>対象の系統</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">CVE-2026-111497</th><td class="now">Brotli（圧縮形式）の展開で、メモリの範囲外に書き込まれ、命令を実行されること（コード実行）につながりうる</td><td>26／24／22</td></tr>
+          <tr><th scope="row">CVE-2026-105483</th><td>全角数字で書かれたIPによって、TLS（通信の暗号化）の接続先の確認をすり抜けられる</td><td>26／24</td></tr>
+          <tr><th scope="row">CVE-2026-106069</th><td>ホスト名が緩くIPアドレスに解決される場合に、TLSの接続先の確認をすり抜けられる</td><td>26／24／22</td></tr>
+          <tr><th scope="row">CVE-2026-105482</th><td>名前の引き当て（dns.resolve）が、混ぜた特殊な文字で途中で切り詰められる</td><td>26／24／22</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="gl-note">
+      <b class="gl-tag">ことばの補足｜Brotliの欠陥とは</b>
+      <p>Brotli（ブロトリ）は、データを小さくして送るための、圧縮形式のひとつ。荷物にたとえるなら、箱に詰めて小さくした状態である。受け取った側は、使う前に、その箱をほどく。これを「展開」と呼ぶ。Webでは、通信を速くするために、よく使われている。</p>
+      <p>今回の欠陥は、この「箱をほどく」処理の中にあった。ほどく途中で、決められた置き場所をはみ出して、データを書き込んでしまう。この置き場所を「メモリ」と呼ぶ。プログラムが動いている間、データを一時的に置いておく、作業台のようなものである。専門用語では「範囲外書き込み」と呼ぶ。はみ出した先には、プログラムが動くための大事な情報があることがある。そこを狙って作った細工入りのデータを渡されると、命令を実行されるおそれがある。Node.js公式は、この欠陥の深刻度を「高」としている。</p>
+    </div>
+
+    <div class="gl-note scope">
+      <b class="gl-tag">確かめていないこと｜どんな使い方で当たるのか</b>
+      <p>どんな使い方で当たるのかは、公式のページに書かれていない。</p>
+      <p>報道には、「外へ通信する機能（fetch）や、特定のWebの枠組みで特に関係する」との指摘もあるが、確認できていない。fetchは、プログラムが、外のサイトへデータを取りに行く機能の名前である。</p>
+      <p>仕組みから考えると、外から受け取った圧縮データをNode.jsで展開する場面（外部のサイトからデータを取ってくる処理、ファイルを受け付ける処理など）が危ういと思われるが、<b>これは推測である。</b>確かなのは、修正版に更新すれば、この欠陥がふさがる、ということである。外から圧縮データを受け取るアプリは、念のため優先して更新しておきたい。</p>
+    </div>
+
+    <div class="gl-note">
+      <b class="gl-tag">ことばの補足</b>
+      <dl>
+        <dt>TLS</dt><dd>アドレスが https:// で始まる通信を暗号化する仕組み。「いま話している相手が、本物か」の確認も、受け持っている。この確認をすり抜けられると、偽の相手を、本物と信じてしまうおそれがある。</dd>
+        <dt>名前の引き当て（dns.resolve）</dt><dd>サイトの名前から、その場所（番号）を調べる処理。電話帳で、名前から電話番号を調べるようなもの。名前が途中で切られると、調べる相手が、意図と変わってしまう可能性がある。</dd>
+      </dl>
+    </div>
+
+    <p>
+      Node.js 公式は、<b>サポートが終わった版は、セキュリティリリース（弱点を直した版の公開）のたびに必ず影響を受ける</b>と書いている。
+      公式の一覧では20系と25系が終了と表示されており、今回の修正版も出ていない。
+      AIに作らせた社内ツールを動かす版が20系・25系なら、移行先を決める必要がある。
+    </p>
+
+    <h3>npmの部品汚染とは</h3>
+    <p>
+      今回の修正とは別の話だが、Node.jsの道具を使うなら、知っておきたい話である。
+    </p>
+    <p>
+      Node.jsの道具は、たくさんの部品を組み合わせて作られる。
+      npmという置き場から、必要な部品を取り寄せて、組み立てる。
+      料理にたとえると、市場で仕入れる食材である。
+      その食材に、毒を混ぜる。これが<b>部品汚染</b>である。
+    </p>
+    <p>
+      部品が乗っ取られると、本物の部品に、悪意のあるプログラムが混ざった「新しい版」が公開される。
+      何も知らずに、いつもどおり部品を更新すると、毒入りの版が、そのまま自分の道具に入ってしまう。
+      部品の中には、「入れる時に自動で走る処理」を仕込めるものがある。
+      新しいnpmは、この自動処理を既定で止める。古い環境では、動いてしまう。
+    </p>
+    <p>
+      第002号では、8月4日に起きた事例を扱った。
+      乗っ取られた部品が、盗んだ権限で次の部品を汚染しながら、約30分で数百の部品に広がった。
+      盗まれたのは、GitHubやnpmの鍵、クラウドの鍵などである。
+    </p>
+    <p>
+      AIに道具を作らせると、気づかないうちに、たくさんの部品が入ることがある。
+      自分で書いたコードでなくても、自分の道具の一部になる。
+      <b>入れている部品の一覧を、人が把握しておく。</b>対策の入口は、そこである。
+    </p>
+
+    <p>
+      この紙面は10月22日〜23日時点の情報で、更新は続いている。
+    </p>
+  </section>
+
+
+  <!-- ══ 工房点検 ══ -->
+  <section class="sec" id="s-shop">
+    <div class="sec-no">WORKSHOP</div>
+    <h2>工房を、全部開けて見た</h2>
+    <p class="sec-lead">PHPもNodeも、サーバーでは動かしていない。だが別の穴が、4つあった</p>
+    <hr class="hr-thick">
+
+    <p>
+      工房の成果物に、サーバーとして動かすPHP・Node.jsはない。
+      検査のために使っている道具が内蔵するNodeは修正前の版（v24.14.1）だったが、手元の検査にだけ使っており、優先度は低いと見ていた。今回のタイミングで更新し、いまは修正版の v24.22.1 である。
+    </p>
+    <p>
+      そのうえで全成果物を点検したところ、<b>取り込んだファイルの文字が、そのまま画面になってしまう穴（XSS）が4つ</b>見つかった。
+      いずれも、AIに書かせた道具である。
+    </p>
+
+    <h3>XSSとは ── 取り込んだ文字が、命令になる穴</h3>
+    <p>
+      XSS（クロスサイト・スクリプティング）は、Webの画面にまつわる、古くからある弱点である。
+    </p>
+    <p>
+      画面には、いろいろな文字が表示される。ファイルの名前、表のセルの中身、フォームに入れた文章。
+      その文字の中に「命令」が混ざっていて、画面を作るプログラムがそれを「ただの文字」と見分けられないと、ブラウザは本物の命令として実行してしまう。
+      これがXSSである。
+    </p>
+    <p>
+      たとえるなら、朗読係である。
+      「この紙を読み上げてください」と頼んだら、紙に書いてあった「金庫を開けなさい」まで実行してしまった。
+      読み上げるだけにしておけば、何も起きない。
+      この「読み上げるだけにする」処理を、<b>無害化（エスケープ）</b>と呼ぶ。
+    </p>
+
+    <figure>
+      <svg viewBox="0 0 900 262" role="img" aria-label="命令が混ざった表のセルを、無害化なしで画面に出すと命令として実行され、無害化ありで出すとただの文字として表示される">
+        <rect class="f-none s-ink" x="20" y="24" width="230" height="84" stroke-width="1.5"/>
+        <text class="f-ink" x="36" y="56" font-size="18" font-weight="800">表のセル</text>
+        <text class="f-ink2" x="36" y="82" font-size="15.6">命令が混ざっている</text>
+        <line class="s-ink3" x1="250" y1="66" x2="318" y2="66" stroke-width="1.5"/>
+        <path class="f-ink3" d="M326 66 L316 61 L316 71 Z"/>
+        <rect class="f-none s-ink" x="326" y="24" width="248" height="84" stroke-width="1.5"/>
+        <text class="f-ink" x="342" y="56" font-size="18" font-weight="800">画面を作る処理</text>
+        <text class="f-shu" x="342" y="82" font-size="15.6" font-weight="800">無害化なし</text>
+        <line class="s-shu" x1="574" y1="66" x2="642" y2="66" stroke-width="1.5"/>
+        <path class="f-shu" d="M650 66 L640 61 L640 71 Z"/>
+        <rect class="f-none s-shu" x="650" y="24" width="230" height="84" stroke-width="2.5"/>
+        <text class="f-shu" x="666" y="56" font-size="18" font-weight="800">命令として実行される</text>
+        <text class="f-ink2" x="666" y="82" font-size="15.6">データが盗まれうる</text>
+
+        <rect class="f-none s-ink" x="20" y="150" width="230" height="84" stroke-width="1.5"/>
+        <text class="f-ink" x="36" y="182" font-size="18" font-weight="800">表のセル</text>
+        <text class="f-ink2" x="36" y="208" font-size="15.6">命令が混ざっている</text>
+        <line class="s-ink3" x1="250" y1="192" x2="318" y2="192" stroke-width="1.5"/>
+        <path class="f-ink3" d="M326 192 L316 187 L316 197 Z"/>
+        <rect class="f-none s-ink" x="326" y="150" width="248" height="84" stroke-width="1.5"/>
+        <text class="f-ink" x="342" y="182" font-size="18" font-weight="800">画面を作る処理</text>
+        <text class="f-ai" x="342" y="208" font-size="15.6" font-weight="800">無害化あり</text>
+        <line class="s-ai" x1="574" y1="192" x2="642" y2="192" stroke-width="1.5"/>
+        <path class="f-ai" d="M650 192 L640 187 L640 197 Z"/>
+        <rect class="f-none s-ai" x="650" y="150" width="230" height="84" stroke-width="2.5"/>
+        <text class="f-ai" x="666" y="182" font-size="18" font-weight="800">ただの文字として表示</text>
+        <text class="f-ink2" x="666" y="208" font-size="15.6">何も起きない</text>
+      </svg>
+      <figcaption>
+        <b>図3</b>／ XSSの仕組み。同じ「命令が混ざったセル」でも、画面に出す前に<b>無害化</b>していれば、ただの文字として表示されるだけである。
+      </figcaption>
+    </figure>
+
+    <p>
+      命令が実行されると、その画面に出ているデータを読み取られる、画面を書き換えられて偽の入力欄を出される、といったことが起こりうる。
+      ログインして使うサイトでは、本人になりすました操作をされることもある。
+      ファイルを取り込む道具や、入力した文字を画面に出す道具は、特に起こりやすい場所である。
+      人が書いた道具でも、AIが書いた道具でも、起こりうる。
+    </p>
+
+    <div class="tablewrap">
+      <table class="wide">
+        <caption>攻撃用の文字列を仕込んだファイルで試した結果</caption>
+        <thead><tr><th>道具</th><th>仕込んだ場所</th><th>直す前</th><th>直した後</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">#09記事 自動DB変換ツール</th><td>ファイル名・列名・セル・シート名</td><td class="was">実行 2・不正なタグ 4</td><td class="now">実行 0・タグ 0</td></tr>
+          <tr><th scope="row">#06記事 食品ロス可視化ツール</th><td>週・商品名・カテゴリ・理由</td><td class="was">実行 3・不正なタグ 3</td><td class="now">実行 0・タグ 0</td></tr>
+          <tr><th scope="row">#12記事 売上集計ツール</th><td>店舗・地域・部門・商品・販売区分・ファイル名</td><td class="was">実行 5・不正なタグ 5</td><td class="now">実行 0・タグ 0</td></tr>
+          <tr><th scope="row">tenki-zero 体験版</th><td>ファイル名・取引先・品目・氏名・店舗名</td><td class="was">実行 11・不正なタグ 3</td><td class="now">実行 0・タグ 0</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      検査は、画像を装った命令を、ファイル名・列名・セル・シート名に仕込んで取り込ませ、<b>実際に実行されるかを見る</b>やり方である。
+      「実行」は、命令が走った回数である。「不正なタグ」は、命令を含んだ、細工入りの部品が、画面に紛れ込んだ数である。
+    </p>
+
+    <h3>守りは、三つ重ねた</h3>
+    <div class="three">
+      <div>
+        <h4>無害化（エスケープ）</h4>
+        <p>本筋の守り。画面に出す文字を、すべて「ただの文字」に変えてから出す。</p>
+        <p>朗読係に「紙の内容は読み上げるだけ。実行はしない」と徹底させるのに近い。</p>
+        <p class="on-tools">四つの道具すべてに入れた</p>
+      </div>
+      <div>
+        <h4>CSP（シー・エス・ピー）</h4>
+        <p>保険。「この画面は、ここまでしか許可しない」という決まりを、ブラウザに守らせる設定。</p>
+        <p>部品を読み込める場所や、外への通信を、決めた範囲に絞る。会社の入館ルールに近い。</p>
+        <p>万一、命令が混ざって実行されても、外へデータを持ち出す道を絞れる。</p>
+        <p class="on-tools">#06記事の道具・tenki-zero 体験版に入れた</p>
+      </div>
+      <div>
+        <h4>SRI（エス・アール・アイ）</h4>
+        <p>外から取り寄せる部品の「封印シール」。</p>
+        <p>本物の部品の中身から計算した値（指紋のようなもの）を、あらかじめ登録しておく。届いた部品の値が違えば、ブラウザは使わない。</p>
+        <p>配信元が乗っ取られて、中身がすり替えられても、動かない。</p>
+        <p class="on-tools">外から読み込む部品があるのは #06記事の道具だけ。読み込み元も2か所に絞った</p>
+      </div>
+    </div>
+
+    <div class="tablewrap">
+      <table class="wide">
+        <caption>どの道具に、どの守りを入れたか</caption>
+        <thead><tr><th>道具</th><th>無害化</th><th>CSP</th><th>SRI</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">#09記事 自動DB変換ツール</th><td class="now">○</td><td class="was">―</td><td class="was">―</td></tr>
+          <tr><th scope="row">#06記事 食品ロス可視化ツール</th><td class="now">○</td><td class="now">○</td><td class="now">○</td></tr>
+          <tr><th scope="row">#12記事 売上集計ツール</th><td class="now">○</td><td class="was">―</td><td class="was">―</td></tr>
+          <tr><th scope="row">tenki-zero 体験版</th><td class="now">○</td><td class="now">○</td><td class="was">―</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="demo-note">「―」は入れていない。外から読み込む部品がない道具（#09・tenki-zero）には、SRI は要らない。</p>
+    <p>
+      #06記事・#09記事・#12記事で配布した道具の旧版にも、同じ穴があった。
+      各記事の添付ファイルは、修正版に入れ替えてある。
+      お手元の旧版をお使いの方は、入れ替えをお願いしたい。
+    </p>
+    <p>
+      同じ点検で、手元で動かす城のサーバにも、名前の偽装・別サイトからの書き込み・防御ヘッダの3つの口を塞ぐ手当てをした。
+      ハロウィンのカードの公開版にも、CSPを入れている。
+    </p>
+
+    <p>
+      今後は、このような穴を、最初の成果物の時点でなくしていく。
+      AIはこちらの意図した成果物を作るが、その条件に入れる安全項目やセキュリティ項目は、こちらの地力を上げなければ盛り込めない。
+      今回は、その典型的な例と言える。
+      非エンジニアだからこそ欠かせない手として、今回の課題は大変ためになった。
+    </p>
+
+    <div class="column">
+      <span class="tag">一言にすると</span>
+      <p style="font-size:22px; font-weight:700; line-height:1.8; margin:0">
+        動くことと、穴がないことは、別である。
+      </p>
+    </div>
+  </section>
+
+
+  <!-- ══ 出典 ══ -->
+  <section class="sec" id="s-src">
+    <div class="sec-no">SOURCES</div>
+    <h2>主な出典</h2>
+    <hr class="hr-thick">
+    <ul class="sources">
+      <li>▪ PHP 更新履歴（8.5.12／8.4.27 は2026年10月22日付）— <a href="https://www.php.net/ChangeLog-8.php" rel="noreferrer">php.net</a></li>
+      <li>▪ Sophos「Advisory: PHP2Shell Vulnerabilities」（PHPプロジェクトの勧告に基づく。版・実行形態・応急処置・経緯・ログの確認項目）— <a href="https://www.sophos.com/en-us/security-advisories/sophos-sa-20261021-php2shell" rel="noreferrer">sophos.com</a></li>
+      <li>▪ AlmaLinux「php2shell: Patched PHP packages released」（2026年10月21日。修正済みパッケージと確認方法）— <a href="https://almalinux.org/blog/2026-10-21-php2shell-cve-2026-109618-cve-2026-109619/" rel="noreferrer">almalinux.org</a></li>
+      <li>▪ Node.js「Wednesday, October 21, 2026 Security Releases」— <a href="https://nodejs.org/en/blog/vulnerability/october-2026-security-releases" rel="noreferrer">nodejs.org</a></li>
+      <li>▪ 工房の点検結果は、自前の検査（攻撃用の文字列を実際に流して確認）による。</li>
+    </ul>
+  </section>
+
+  <div class="colophon">
+    <span>ＡＩ内製化時報　第003号</span>
+    <span>2026年10月23日 発行</span>
+    <span>AI内製化工房 MITA ／ note.com/ai_naiseika</span>
+  </div>
+</div>
+
+<script>
+// 文面のコピー。クリップボードが使えない環境では、文面を選択状態にして手動コピーを促す
+(function () {
+  var btn = document.getElementById('copybtn');
+  var note = document.getElementById('copynote');
+  var pre = document.getElementById('mailtext');
+  if (!btn || !pre) return;
+  btn.addEventListener('click', function () {
+    var text = pre.textContent;
+    function manual() {
+      var r = document.createRange();
+      r.selectNodeContents(pre);
+      var s = window.getSelection();
+      s.removeAllRanges();
+      s.addRange(r);
+      note.textContent = '選択しました。Ctrl＋C（スマホは長押し）でコピーしてください。';
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        note.textContent = 'コピーしました。メールやチャットに貼り付けてください。';
+      }, manual);
+    } else {
+      manual();
+    }
+  });
+})();
+
+// 目次の現在地。IntersectionObserver が無い環境では、目次は普通のリンクとして働く
+(function () {
+  var links = [].slice.call(document.querySelectorAll('#toc a'));
+  var secs = links.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+  if (!('IntersectionObserver' in window) || secs.some(function (s) { return !s; })) return;
+
+  function light(i) {
+    links.forEach(function (a, k) { a.classList.toggle('on', k === i); });
+    var a = links[i];
+    // 目次自体が横スクロールする時、現在地が画面外に出ないよう寄せる
+    var nav = document.getElementById('toc');
+    if (nav.scrollWidth > nav.clientWidth) {
+      var left = a.offsetLeft - nav.clientWidth / 2 + a.offsetWidth / 2;
+      nav.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+    }
+  }
+
+  var io = new IntersectionObserver(function () {
+    // 画面の上から1/3の線を越えている中で、いちばん下の節を現在地とする
+    var line = window.innerHeight / 3, cur = 0;
+    secs.forEach(function (s, i) { if (s.getBoundingClientRect().top <= line) cur = i; });
+    light(cur);
+  }, { threshold: [0, 0.01, 0.5, 1], rootMargin: '-33% 0px -50% 0px' });
+  secs.forEach(function (s) { io.observe(s); });
+  light(0);
+})();
+</script>
+
+</body>
+</html>

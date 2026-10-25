@@ -45,13 +45,14 @@ button{font-family:inherit;color:var(--ink);cursor:pointer}
 #compass svg{display:block;width:88px;height:88px;filter:drop-shadow(0 3px 10px rgba(0,0,0,.5))}
 #compass .cap{margin-top:2px;font-size:1.15rem;font-weight:700;color:var(--amber);text-shadow:0 2px 6px rgba(0,0,0,.85)}
 #cred{position:fixed;left:16px;bottom:12px;z-index:5;color:var(--ink);opacity:.75;font-size:.74rem;text-shadow:0 1px 4px rgba(0,0,0,.85)}
+#cred a{color:inherit;text-underline-offset:2px}
 #loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#8fb4d6;font-size:.95rem;z-index:9;background:#0a1626}
 @media (max-width:600px){
   #title{left:10px;top:8px;max-width:70%} #title h1{font-size:1.3rem} #title .desc{display:none} #title .ops{font-size:.78rem;margin-top:2px;opacity:.9}
   #legend{display:none}
   :root{ --cardw:178px }   /* 題が1字だけ次の行に落ちないように */
   .card{padding:3px 7px 4px;border-radius:8px} .card b{font-size:11.5px;white-space:normal}   /* 狭い画面は題を折り返す（右端で切れた） */ .card small{display:none} .card .info{width:min(250px,64vw);font-size:12px}
-  #cred{display:none}
+  #cred{left:0;right:0;bottom:108px;text-align:center;font-size:.7rem;pointer-events:none} #cred a{pointer-events:auto} #cred span{display:none}
   .btns{left:6px;right:6px;max-width:none;bottom:8px;justify-content:center;gap:3px;flex-wrap:nowrap} .btns button{padding:8px 6px;font-size:.92rem;flex:0 0 auto}   /* 9つを1段に（2段だと時刻のボタンにかぶった） */
   #time{left:50%;transform:translateX(-50%);bottom:58px;width:max-content} #time span{display:none} #time button{padding:6px 9px;font-size:.95rem}
   #compass{width:72px;top:6px;right:8px;bottom:auto}
@@ -104,7 +105,7 @@ body.focus .card,body.focus #leaders{display:none !important}   /* 寄った時�
 <svg id="leaders"></svg>
 <div id="cards"></div>
 <div id="sheet" role="dialog" aria-live="polite"><button id="sheetClose" type="button">✕ 閉じる</button><b></b><small></small><p></p></div>
-<div id="cred">制作：AI内製化工房 MITA ｜ 公式チャンネル：https://note.com/ai_naiseika</div>
+<div id="cred"><a href="https://ai-naiseika.github.io/" rel="noopener noreferrer">制作：AI内製化工房 MITA ›</a><span> ｜ 公式チャンネル：https://note.com/ai_naiseika</span></div>
 
 <div id="time" class="panel">
   <span>時刻</span>

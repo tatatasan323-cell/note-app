@@ -33,6 +33,9 @@ canvas{display:block;width:100%;height:100%;}
   backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:.25s;opacity:0;}
 #back.on{opacity:1;}
 #back:hover{background:rgba(110,203,255,.2);color:#fff;border-color:rgba(110,203,255,.5);}
+.credit{position:absolute;top:26px;right:30px;font-size:12px;transition:opacity .4s;text-shadow:0 1px 4px rgba(0,0,0,.85);}
+.credit a{pointer-events:auto;color:#8ea6c2;text-underline-offset:2px;}
+#isle.on~.credit{opacity:0;} #isle.on~.credit a{pointer-events:none;}   /* 島に降りている間は、見出しと同じく引っ込める */
 
 /* 島に降りた時のヘッダ */
 #isle{position:absolute;top:22px;left:50%;transform:translate(-50%,-24px);opacity:0;
@@ -107,6 +110,7 @@ canvas{display:block;width:100%;height:100%;}
   #head h1{font-size:17px;}
   #hint{left:14px;bottom:12px;font-size:10.5px;padding:8px 11px;}
   #back{right:14px;bottom:12px;padding:8px 14px;font-size:11px;}
+  .credit{top:14px;right:14px;font-size:11px;}
   /* 節を開いている間は、上のヘッダを引っ込めて3Dを見せる */
   #isle.dim{opacity:0;transform:translate(-50%,-16px);}
   #isle{top:10px;padding:10px 16px;max-width:88vw;}
@@ -157,6 +161,7 @@ canvas{display:block;width:100%;height:100%;}
   </div>
 
   <div id="back">全体を見る</div>
+  <p class="credit"><a href="https://ai-naiseika.github.io/" rel="noopener noreferrer">制作：AI内製化工房 MITA ›</a></p>
 
   <aside id="panel">
     <div id="close">×</div>

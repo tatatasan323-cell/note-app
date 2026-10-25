@@ -126,6 +126,9 @@ body{
   border:1px solid rgba(168,196,207,.30);border-radius:999px;padding:7px 18px;cursor:pointer;
   -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
 #snd0 button:hover{background:rgba(255,255,255,.15);}
+.credit{position:fixed;top:14px;right:16px;z-index:8;font-family:system-ui,sans-serif;font-size:12px;letter-spacing:.08em;transition:opacity .3s;}
+.credit a{color:#9a9184;text-underline-offset:3px;}
+.bar.show~.credit{opacity:0;pointer-events:none;}   /* 読んでいる間は出さない（表紙の時だけ） */
 
 /* ── WebGLのゼリー装丁。表紙のときも読んでいる間も、本の後ろに常駐してぷるぷるする ── */
 #wet{position:fixed;inset:0;z-index:5;opacity:0;transition:opacity .85s ease;pointer-events:none;}
@@ -184,6 +187,7 @@ body.booting .cover{visibility:hidden;}
 
 <div id=wet><div class=hint2>― 表紙にふれて、ひらく ―</div></div>
 <div id=snd0><button type=button>♪ 水の音をつける</button></div>
+<p class="credit"><a href="https://ai-naiseika.github.io/" rel="noopener noreferrer">制作：AI内製化工房 MITA ›</a></p>
 
 <script>
 const T = [

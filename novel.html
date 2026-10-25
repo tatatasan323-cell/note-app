@@ -118,6 +118,9 @@ body{
   border-radius:8px;padding:6px 12px;cursor:pointer;letter-spacing:.06em;}
 .bar button:hover{background:rgba(255,255,255,.17);}
 .bar .pos{min-width:118px;text-align:center;letter-spacing:.08em;}
+.credit{position:fixed;top:14px;right:16px;z-index:8;font-family:system-ui,sans-serif;font-size:12px;letter-spacing:.08em;}
+.credit a{color:#9a9184;text-underline-offset:3px;}
+.bar.show~.credit{display:none;}   /* 読んでいる間は出さない（表紙の時だけ） */
 .measure{position:absolute;visibility:hidden;left:-99999px;top:0;}
 @media (max-width:560px){
   .bar{gap:5px;padding:7px 6px calc(7px + env(safe-area-inset-bottom));font-size:11px;}
@@ -159,6 +162,7 @@ body{
 </div>
 
 <div class="measure"><div class="flow" id="master" style="right:auto;left:0"></div></div>
+<p class="credit"><a href="https://ai-naiseika.github.io/" rel="noopener noreferrer">制作：AI内製化工房 MITA ›</a></p>
 
 <script>
 const T = [

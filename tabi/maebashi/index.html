@@ -480,6 +480,31 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
   .area > figure svg{max-height:calc(100vh - 250px);width:auto;max-width:100%;margin-inline:auto}
 }
 
+/*写真:始*/
+/* ---- 街並みの写真（2026/10/18 撮影） ---- */
+.phnote{font-size:12px;color:var(--sub);line-height:1.75;margin:10px 0 0}
+.shots{margin:13px 0 0}
+.shots .shhd{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--sub);margin:0 0 6px;letter-spacing:.03em}
+.shots .row{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;margin:0 -16px;padding:0 16px 8px;-webkit-overflow-scrolling:touch}
+.shots .row::after{content:"";flex:none;width:6px}
+.shots .row figure{flex:none;scroll-snap-align:start;width:calc(190px * var(--r));max-width:84vw}
+.shots figure{margin:0}
+.shots button.ph{display:block;width:100%;padding:0;border:0;border-radius:10px;overflow:hidden;background:var(--chip);cursor:zoom-in;line-height:0}
+.shots button.ph img{display:block;width:100%;height:auto}
+.shots figcaption{text-align:left;font-size:12px;color:var(--sub);line-height:1.65;margin:6px 1px 0}
+.shots details.more{box-shadow:none;background:var(--chip);border-color:transparent;margin:6px 0 0}
+.shots details.more summary{min-height:44px;font-size:13px;font-weight:600}
+.shots details.more summary::after{animation:none}   /* ページの「押せる印」の光は、数が多いほど主スレッドを使う。ここには足さない */
+.shots details.more .inner{padding:0 12px 12px}
+.shots .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 10px}
+.shots .grid button.ph img{aspect-ratio:1/1;object-fit:cover}
+@media (min-width:560px){.shots .grid{grid-template-columns:repeat(3,1fr)}}
+#lb{position:fixed;inset:0;z-index:3000;background:rgba(10,10,12,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:44px 12px 16px}
+#lb[hidden]{display:none}
+#lb img{max-width:96vw;max-height:76vh;width:auto;height:auto;border-radius:6px;background:#222}
+#lb p{color:#eee;font-size:13.5px;line-height:1.7;margin:12px 8px 0;max-width:34em;text-align:center}
+#lb .x{position:absolute;top:6px;right:6px;width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:26px;line-height:1;cursor:pointer}
+/*写真:終*/
 </style>
 </head>
 <body>
@@ -537,7 +562,8 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
 前橋の中心市街地を、半日ほどで歩くための案内です。<b>芸術祭（12/20まで）</b>と、萩原朔太郎ゆかりの<b>「詩のまち」</b>を軸に、広瀬川のまわりをまとめました。<b>12/20までの、期限つきの版です。</b><br>
 営業時間・料金・休みは、10月10日に公式ページを一件ずつ開いて確かめました。ただし<b>確かめ方に差があるので、カードごとに印を付けています</b>（下の説明）。
 </p>
-
+<!--写真:始--><p class="phnote">各カードの写真は、2026年10月18日（日）に歩いて撮ったものです。お店のおすすめではなく、街の雰囲気を伝えるための写真です（顔と車のナンバーはぼかしています）。</p>
+<!--写真:終-->
 <p class="howto">
   <span class="k">押せます</span>
   <span><b>地図の番号</b>を押すと、その場所の説明に飛びます。<b>右に › が付いた行</b>も同じです。
@@ -881,7 +907,8 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
   <div class="card" id="p2">
     <h4><span class="num">2</span>白井屋ホテル <span class="ruby">しろいやホテル</span> <span class="tier t1">● 公式で確認</span></h4>
     <p class="body">アーツ前橋から歩いて2分ほどのホテルです。ラウンジ（the LOUNGE）では、<b>芸術祭の期間のランチが「赤城牛カレーライス」か「白井屋バーガー」の2品</b>になっていて、事前の予約がすすめられています。<br>ミロコマチコ《空気に根をおろす》の<b>アートイルミネーション</b>が、9/19〜2027/1/12で出ています。</p>
-    <dl class="dl">
+    <!--写真:始--><div class="shots"><p class="shhd"><span>歩いて撮った写真</span><span>2026/10/18</span></p><div class="row" role="group" aria-label="歩いて撮った写真"><figure style="--r:0.750"><button type="button" class="ph" data-l="img/machi/l/p067.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p067.webp" width="315" height="420" loading="lazy" decoding="async" alt="緑におおわれた白井屋ホテルの棟と、手前の階段"></button><figcaption>階段の上まで、緑が続くホテルの建物</figcaption></figure></div></div>
+    <!--写真:終--><dl class="dl">
       <div><dt>ランチ</dt><dd>11:30〜14:30（LO 14:00）。芸術祭の期間は上の2品。<b>水曜は、10/14と12/2を除いてランチなし</b>（ティー 14:30〜17:00のみ）</dd></div>
       <div><dt>営業</dt><dd>年中無休（ホテル公式のラウンジのページ）</dd></div>
       <div><dt>行き方</dt><dd>駅から徒歩約15分・タクシー約5分（ホテル公式）</dd></div>
@@ -893,7 +920,8 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
   <div class="card" id="p3">
     <h4><span class="num">3</span>中央通り商店街 <span class="ruby">ちゅうおうどおりしょうてんがい</span> <span class="tier t2">○ 掲載のみ確認</span></h4>
     <p class="body">前橋の中心商店街の通りのひとつです。全長約330mの<b>全蓋式のアーケード</b>に、飲食店、衣料品店、本屋、文具店などが並びます。100年以上続く老舗と新しい店が混ざっていて、歩くだけでも楽しい、レトロな通り。<b>雨の日でも、傘なしで歩けます</b>。映画やドラマなどの数多くの作品に、ロケ地として登場します（観光協会の紹介）。<br><b class="warn" id="suzuran-ended" hidden>※ スズラン前橋店は、2026年11月30日で営業を終了しました。</b></p>
-    <dl class="dl">
+    <!--写真:始--><div class="shots"><p class="shhd"><span>歩いて撮った写真</span><span>2026/10/18</span></p><div class="row" role="group" aria-label="歩いて撮った写真"><figure style="--r:0.864"><button type="button" class="ph" data-l="img/machi/l/p007.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p007.webp" width="363" height="420" loading="lazy" decoding="async" alt="中央通りの入口あたり。正面にスズランの看板、右に赤いひさしの店"></button><figcaption>通りの入口。正面にスズランの看板が見えます</figcaption></figure><figure style="--r:0.750"><button type="button" class="ph" data-l="img/machi/l/p003.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p003.webp" width="315" height="420" loading="lazy" decoding="async" alt="ガラスの屋根のアーケード。奥へ長く続く通りを、橙色の服の人が歩いていく"></button><figcaption>ガラスの天井から、光が通りに落ちます</figcaption></figure><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p013.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p013.webp" width="560" height="420" loading="lazy" decoding="async" alt="着物を扱う店の店先。招き猫の像と、ポスターで埋まった丸いショーウィンドウ"></button><figcaption>店先に招き猫。通りかかると、つい足が止まります</figcaption></figure><figure style="--r:0.750"><button type="button" class="ph" data-l="img/machi/l/p017.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p017.webp" width="315" height="420" loading="lazy" decoding="async" alt="そば処の店先。提灯と、並んだ3台の自転車"></button><figcaption>そば屋の店先に、自転車が3台。ふだんの昼どきです</figcaption></figure><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p029.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p029.webp" width="560" height="420" loading="lazy" decoding="async" alt="紫の暖簾に「香」の字がある店"></button><figcaption>暖簾の「香」の一字が、よく目立ちます</figcaption></figure></div><details class="more"><summary>ほかの写真も見る（10枚）</summary><div class="inner"><div class="grid"><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p011.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p011.webp" width="560" height="420" loading="lazy" decoding="async" alt="アーケードの中を歩く人たちと、両側に並ぶ店"></button><figcaption>古い店も新しい店も、同じ通りに並びます</figcaption></figure><figure style="--r:0.614"><button type="button" class="ph" data-l="img/machi/l/p027.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p027.webp" width="258" height="420" loading="lazy" decoding="async" alt="店先に置かれた、食品サンプルのガラスケース"></button><figcaption>食品サンプルのケース。見ているだけで楽しい</figcaption></figure><figure style="--r:1.281"><button type="button" class="ph" data-l="img/machi/l/p031.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p031.webp" width="538" height="420" loading="lazy" decoding="async" alt="角にある店。軒に提灯が並んでいる"></button><figcaption>角の店に、提灯がずらり</figcaption></figure><figure style="--r:1.450"><button type="button" class="ph" data-l="img/machi/l/p087.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p087.webp" width="609" height="420" loading="lazy" decoding="async" alt="交差点の角に建つ、かにの看板のある大きな建物"></button><figcaption>大通りの角に、かにの看板の大きな建物</figcaption></figure><figure style="--r:0.750"><button type="button" class="ph" data-l="img/machi/l/p096.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p096.webp" width="315" height="420" loading="lazy" decoding="async" alt="ビルの前に置かれた、大きな手の形の彫刻"></button><figcaption>通りの角に、大きな手の彫刻</figcaption></figure><figure style="--r:0.750"><button type="button" class="ph" data-l="img/machi/l/p103.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p103.webp" width="315" height="420" loading="lazy" decoding="async" alt="金色の丸い屋根のアーケード。奥へまっすぐ続き、人が歩いている"></button><figcaption>近くには、別の古いアーケードも。金色の丸い屋根が奥まで続きます</figcaption></figure><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p115.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p115.webp" width="560" height="420" loading="lazy" decoding="async" alt="シャッターいっぱいに描かれた、カラフルな絵"></button><figcaption>シャッターいっぱいの絵。通りがギャラリーのようです</figcaption></figure><figure style="--r:0.750"><button type="button" class="ph" data-l="img/machi/l/p163.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p163.webp" width="315" height="420" loading="lazy" decoding="async" alt="れんが造りの建物の入口。階段が花の絵で塗られている"></button><figcaption>階段が花畑のように塗られたミニギャラリー</figcaption></figure><figure style="--r:0.750"><button type="button" class="ph" data-l="img/machi/l/p164.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p164.webp" width="315" height="420" loading="lazy" decoding="async" alt="ガラス戸の脇に置かれた、招き猫の姿をした像"></button><figcaption>招き猫の姿の像が、入口に座っています</figcaption></figure><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p167.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p167.webp" width="560" height="420" loading="lazy" decoding="async" alt="木の壁と植木のある、カフェの軒先"></button><figcaption>木の壁と植木の、気持ちのいい軒先</figcaption></figure></div></div></details></div>
+    <!--写真:終--><dl class="dl">
       <div><dt>営業</dt><dd>お店ごとにまちまち（通りとしての営業時間・休みの記載はありません）。個々の店の営業日は、行く前に確かめてください</dd></div>
       <div><dt>行き方</dt><dd>アーツ前橋から約350m ／ <b>徒歩 4分</b>／白井屋から約300m ／ <b>徒歩 4分</b></dd></div>
       <div><dt>すぐそば</dt><dd><b>スズラン前橋店</b>（千代田町2-12-3）。<b>営業の最終日は2026年11月30日</b>です（スズランの公式のお知らせ） <span class="tier t1">● 公式で確認</span></dd></div>
@@ -907,7 +935,8 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
   <div class="card" id="p4">
     <h4><span class="num">4</span>馬場川通り <span class="ruby">ばばがわどおり</span> <span class="tier t2">○ 掲載のみ確認</span></h4>
     <p class="body">馬場川が流れる通りです。川の名は、江戸時代にこのあたりに馬の調練場があり、そこを流れていた川だったことに由来する、と紹介されています。2021年に始まった「馬場川通りアーバンデザインプロジェクト」で、車道と歩道の段差がなくなり、通り全体がフラットなレンガ舗装になりました。<b>約200mのデッキとベンチ</b>があり、歩きながら一休みできます。川沿いの馬場川遊歩道公園は、街のオアシスとして親しまれています（観光協会の紹介）。</p>
-    <dl class="dl">
+    <!--写真:始--><div class="shots"><p class="shhd"><span>歩いて撮った写真</span><span>2026/10/18</span></p><div class="row" role="group" aria-label="歩いて撮った写真"><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p038.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p038.webp" width="560" height="420" loading="lazy" decoding="async" alt="レンガ敷きの通りと、右に木の小屋。青空"></button><figcaption>赤茶のレンガの道と、木の小屋</figcaption></figure><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p044.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p044.webp" width="560" height="420" loading="lazy" decoding="async" alt="並木の下の歩道に、パラソルと出店が出ている"></button><figcaption>並木の下に、小さな出店</figcaption></figure><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p049.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p049.webp" width="560" height="420" loading="lazy" decoding="async" alt="川べりに建つ、青いひさしの建物と古い家"></button><figcaption>川ぞいに、古い家と青いひさしの建物</figcaption></figure><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p057.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p057.webp" width="560" height="420" loading="lazy" decoding="async" alt="黄色い壁の角の店と、赤いひさし"></button><figcaption>黄色い壁の角の店。赤いひさしが映えます</figcaption></figure></div></div>
+    <!--写真:終--><dl class="dl">
       <div><dt>行き方</dt><dd>アーツ前橋から約120m ／ <b>徒歩 2分</b>／白井屋から約250m ／ <b>徒歩 3分</b></dd></div>
       <div><dt>まわり</dt><dd>カフェや飲食店が多いあたりです（観光協会の周辺情報。個別の店は、この案内では確かめていません）</dd></div>
       <div><dt>出典</dt><dd><span class="src"><a href="https://www.maebashi-cvb.com/spot/8952">前橋まるごとガイド</a></span></dd></div>
@@ -917,7 +946,8 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
   <div class="card" id="p5">
     <h4><span class="num">5</span>弁天通り商店街 <span class="ruby">べんてんどおり</span> <span class="tier t2">○ 掲載のみ確認</span></h4>
     <p class="body">中心商店街の北の端。通りの真ん中にある大蓮寺の門前町として栄え、<b>通りが大きく曲がっている</b>のが特徴です。大蓮寺にあった弁天池を避けて作ったため、と観光協会が紹介しています。昭和43年にアーケードが付き、毎月3日はフリーマーケット「弁天ワッセ」が開かれます。</p>
-    <dl class="dl">
+    <!--写真:始--><div class="shots"><p class="shhd"><span>歩いて撮った写真</span><span>2026/10/18</span></p><div class="row" role="group" aria-label="歩いて撮った写真"><figure style="--r:1.755"><button type="button" class="ph" data-l="img/machi/l/p124.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p124.webp" width="737" height="420" loading="lazy" decoding="async" alt="商店街の入口のアーチと、手前の横断歩道"></button><figcaption>アーチの「弁天通商店街」が目印</figcaption></figure><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p135.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p135.webp" width="560" height="420" loading="lazy" decoding="async" alt="手芸用品の店の店先"></button><figcaption>ボタンや糸の店。昔ながらの手芸店です</figcaption></figure><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p141.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p141.webp" width="560" height="420" loading="lazy" decoding="async" alt="アーケードの途中にある、お寺の門"></button><figcaption>通りの途中に、お寺の門</figcaption></figure><figure style="--r:0.750"><button type="button" class="ph" data-l="img/machi/l/p144.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p144.webp" width="315" height="420" loading="lazy" decoding="async" alt="赤い帽子と前掛けをしたお地蔵さん"></button><figcaption>赤い帽子のお地蔵さんが並びます</figcaption></figure><figure style="--r:0.750"><button type="button" class="ph" data-l="img/machi/l/p129.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p129.webp" width="315" height="420" loading="lazy" decoding="async" alt="おいも専門店の店先と看板"></button><figcaption>おいも専門店。通りがかりに寄り道したくなります</figcaption></figure></div><details class="more"><summary>ほかの写真も見る（2枚）</summary><div class="inner"><div class="grid"><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p149.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p149.webp" width="560" height="420" loading="lazy" decoding="async" alt="角に建つ洋食店と、お持ち帰りののぼり"></button><figcaption>角に建つ洋食店。看板がかわいい</figcaption></figure><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p152.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p152.webp" width="560" height="420" loading="lazy" decoding="async" alt="金物店の店先に並ぶ、鍋や緑のじょうろ"></button><figcaption>鍋やじょうろが並ぶ、金物店の店先</figcaption></figure></div></div></details></div>
+    <!--写真:終--><dl class="dl">
       <div><dt>営業</dt><dd>お店ごとにまちまち（商店街の公式サイトは見つかっていません）</dd></div>
       <div><dt>行き方</dt><dd>文学館から徒歩約3分</dd></div>
       <div><dt>出典</dt><dd><span class="src"><a href="https://www.maebashi-cvb.com/spot/8953">前橋まるごとガイド（観光協会）</a></span></dd></div>
@@ -1250,7 +1280,8 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
   営業時間・休み・料金は、<b>2026年10月10日の時点</b>で、施設や運営者の公式ページ、前橋観光コンベンション協会の紹介ページを一件ずつ開いて確認したものです。確認の度合いは、各カードの印のとおりです。<b>12/20までの版</b>で、そのあとの内容は保証しません。<br>
   日の出・日の入りは前橋市中心部の緯度経度からの計算値、気温は気象庁・前橋観測点の平年値（1991〜2020年）、徒歩の距離と時間は各地点の座標から出した概算です。<br>
   地図は、OpenStreetMap の道路・河川・線路のデータをもとに起こした略図で、縮尺は正確ではありません。地点の位置は、公開されている地図データと住所検索で突き合わせています。細かい位置は、各カードの「地図」から実地図でご確認ください。<br>
-  表紙と裏表紙の絵は、生成AIで作った<b>鳥瞰図風のイメージ</b>です。実際の建物の形や配置とは異なります（絵の左下にも注記を入れてあります）。地図の下に敷いた水彩の背景も生成AIの絵で、位置は地図のデータが決めています。
+  表紙と裏表紙の絵は、生成AIで作った<b>鳥瞰図風のイメージ</b>です。実際の建物の形や配置とは異なります（絵の左下にも注記を入れてあります）。地図の下に敷いた水彩の背景も生成AIの絵で、位置は地図のデータが決めています。<!--写真:始--><br>
+  各カードに添えた街並みの写真は、制作者が2026年10月18日（日）に歩いて撮ったものです。特定のお店のおすすめや宣伝ではなく、街の雰囲気を伝えるための写真で、写っている店の営業時間などは、写真ではなくカードの情報でご確認ください。顔や車のナンバーはぼかしています。<!--写真:終-->
   <div class="qrbox">
     <svg viewBox="-2 -2 37 37" role="img" aria-label="この案内を開くQRコード">
       <path d="M0 0h7v1h-7zM9 0h2v1h-2zM13 0h3v1h-3zM18 0h2v1h-2zM21 0h3v1h-3zM26 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM8 1h1v1h-1zM11 1h2v1h-2zM14 1h2v1h-2zM17 1h4v1h-4zM22 1h2v1h-2zM26 1h1v1h-1zM32 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM11 2h4v1h-4zM26 2h1v1h-1zM28 2h3v1h-3zM32 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM10 3h2v1h-2zM13 3h3v1h-3zM18 3h1v1h-1zM22 3h2v1h-2zM26 3h1v1h-1zM28 3h3v1h-3zM32 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM8 4h2v1h-2zM11 4h4v1h-4zM16 4h1v1h-1zM18 4h2v1h-2zM23 4h2v1h-2zM26 4h1v1h-1zM28 4h3v1h-3zM32 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM11 5h1v1h-1zM13 5h1v1h-1zM15 5h1v1h-1zM19 5h3v1h-3zM23 5h1v1h-1zM26 5h1v1h-1zM32 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM24 6h1v1h-1zM26 6h7v1h-7zM13 7h1v1h-1zM15 7h1v1h-1zM17 7h3v1h-3zM21 7h3v1h-3zM0 8h1v1h-1zM2 8h1v1h-1zM4 8h1v1h-1zM6 8h1v1h-1zM11 8h1v1h-1zM13 8h1v1h-1zM17 8h1v1h-1zM20 8h2v1h-2zM28 8h1v1h-1zM31 8h1v1h-1zM0 9h2v1h-2zM4 9h1v1h-1zM8 9h1v1h-1zM10 9h2v1h-2zM13 9h2v1h-2zM16 9h2v1h-2zM21 9h2v1h-2zM24 9h4v1h-4zM31 9h2v1h-2zM4 10h3v1h-3zM8 10h3v1h-3zM14 10h1v1h-1zM17 10h2v1h-2zM25 10h3v1h-3zM30 10h3v1h-3zM0 11h1v1h-1zM2 11h1v1h-1zM7 11h2v1h-2zM12 11h4v1h-4zM17 11h1v1h-1zM21 11h1v1h-1zM23 11h1v1h-1zM25 11h1v1h-1zM28 11h1v1h-1zM31 11h2v1h-2zM0 12h3v1h-3zM4 12h3v1h-3zM8 12h1v1h-1zM10 12h1v1h-1zM12 12h1v1h-1zM14 12h4v1h-4zM20 12h2v1h-2zM25 12h3v1h-3zM29 12h1v1h-1zM31 12h1v1h-1zM1 13h1v1h-1zM4 13h2v1h-2zM7 13h1v1h-1zM12 13h4v1h-4zM17 13h1v1h-1zM20 13h2v1h-2zM24 13h3v1h-3zM29 13h2v1h-2zM32 13h1v1h-1zM2 14h5v1h-5zM9 14h4v1h-4zM14 14h1v1h-1zM21 14h2v1h-2zM24 14h2v1h-2zM27 14h1v1h-1zM29 14h4v1h-4zM0 15h3v1h-3zM4 15h2v1h-2zM8 15h4v1h-4zM16 15h8v1h-8zM26 15h1v1h-1zM28 15h1v1h-1zM31 15h1v1h-1zM4 16h1v1h-1zM6 16h2v1h-2zM10 16h8v1h-8zM19 16h1v1h-1zM21 16h1v1h-1zM24 16h3v1h-3zM2 17h1v1h-1zM5 17h1v1h-1zM10 17h1v1h-1zM12 17h1v1h-1zM14 17h1v1h-1zM16 17h2v1h-2zM21 17h1v1h-1zM24 17h1v1h-1zM26 17h2v1h-2zM31 17h2v1h-2zM0 18h1v1h-1zM3 18h5v1h-5zM9 18h3v1h-3zM14 18h1v1h-1zM18 18h1v1h-1zM20 18h1v1h-1zM22 18h1v1h-1zM24 18h3v1h-3zM30 18h1v1h-1zM32 18h1v1h-1zM1 19h2v1h-2zM4 19h1v1h-1zM9 19h1v1h-1zM13 19h1v1h-1zM16 19h3v1h-3zM21 19h4v1h-4zM27 19h2v1h-2zM31 19h2v1h-2zM1 20h1v1h-1zM3 20h2v1h-2zM6 20h1v1h-1zM9 20h2v1h-2zM12 20h1v1h-1zM14 20h1v1h-1zM16 20h2v1h-2zM20 20h2v1h-2zM26 20h1v1h-1zM29 20h1v1h-1zM32 20h1v1h-1zM1 21h2v1h-2zM7 21h7v1h-7zM18 21h1v1h-1zM20 21h2v1h-2zM24 21h3v1h-3zM30 21h3v1h-3zM0 22h1v1h-1zM3 22h2v1h-2zM6 22h2v1h-2zM11 22h1v1h-1zM13 22h2v1h-2zM22 22h1v1h-1zM25 22h2v1h-2zM29 22h1v1h-1zM31 22h2v1h-2zM1 23h1v1h-1zM4 23h2v1h-2zM7 23h1v1h-1zM11 23h5v1h-5zM17 23h1v1h-1zM20 23h4v1h-4zM25 23h1v1h-1zM28 23h2v1h-2zM32 23h1v1h-1zM0 24h1v1h-1zM6 24h2v1h-2zM9 24h1v1h-1zM11 24h1v1h-1zM14 24h4v1h-4zM19 24h1v1h-1zM21 24h1v1h-1zM24 24h5v1h-5zM8 25h2v1h-2zM13 25h1v1h-1zM16 25h2v1h-2zM21 25h1v1h-1zM24 25h1v1h-1zM28 25h2v1h-2zM31 25h2v1h-2zM0 26h7v1h-7zM13 26h2v1h-2zM16 26h3v1h-3zM21 26h4v1h-4zM26 26h1v1h-1zM28 26h1v1h-1zM30 26h3v1h-3zM0 27h1v1h-1zM6 27h1v1h-1zM10 27h3v1h-3zM14 27h1v1h-1zM16 27h3v1h-3zM21 27h1v1h-1zM24 27h1v1h-1zM28 27h1v1h-1zM0 28h1v1h-1zM2 28h3v1h-3zM6 28h1v1h-1zM8 28h1v1h-1zM10 28h1v1h-1zM14 28h4v1h-4zM20 28h2v1h-2zM24 28h6v1h-6zM31 28h2v1h-2zM0 29h1v1h-1zM2 29h3v1h-3zM6 29h1v1h-1zM9 29h3v1h-3zM13 29h2v1h-2zM16 29h1v1h-1zM28 29h1v1h-1zM30 29h1v1h-1zM32 29h1v1h-1zM0 30h1v1h-1zM2 30h3v1h-3zM6 30h1v1h-1zM8 30h1v1h-1zM13 30h2v1h-2zM16 30h1v1h-1zM21 30h1v1h-1zM24 30h1v1h-1zM28 30h2v1h-2zM32 30h1v1h-1zM0 31h1v1h-1zM6 31h1v1h-1zM12 31h1v1h-1zM15 31h1v1h-1zM17 31h1v1h-1zM19 31h1v1h-1zM21 31h1v1h-1zM23 31h2v1h-2zM26 31h1v1h-1zM28 31h1v1h-1zM31 31h1v1h-1zM0 32h7v1h-7zM8 32h3v1h-3zM12 32h1v1h-1zM14 32h6v1h-6zM21 32h6v1h-6zM28 32h1v1h-1zM31 32h2v1h-2z" fill="var(--ink)"/>
@@ -1776,5 +1807,29 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
   if(jst > "2026-11-30") el.hidden = false;
 })();
 </script>
-</body>
+<!--写真:始--><div id="lb" hidden role="dialog" aria-modal="true" aria-label="写真の拡大">
+  <button type="button" class="x" aria-label="閉じる">×</button>
+  <img alt="" decoding="async">
+  <p></p>
+</div>
+<script>
+(function () {
+  var lb = document.getElementById('lb'); if (!lb) return;
+  var img = lb.querySelector('img'), cap = lb.querySelector('p'), last = null;
+  function show(b) {
+    var f = b.parentNode.querySelector('figcaption'); last = b;
+    img.alt = b.querySelector('img').alt; img.src = b.getAttribute('data-l'); cap.textContent = f ? f.textContent : '';
+    lb.hidden = false; document.body.style.overflow = 'hidden';
+    try { history.pushState({ lb: 1 }, ''); } catch (e) { /* 戻るで閉じられないだけ */ }
+    lb.querySelector('.x').focus();
+  }
+  function hide() { if (lb.hidden) return; lb.hidden = true; img.removeAttribute('src'); document.body.style.overflow = ''; if (last) last.focus(); }
+  function back() { if (history.state && history.state.lb) history.back(); else hide(); }
+  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('.shots button.ph'); if (b) show(b); });
+  lb.addEventListener('click', function (e) { if (e.target === lb || e.target === img || (e.target.closest && e.target.closest('.x'))) back(); });
+  addEventListener('popstate', hide);
+  addEventListener('keydown', function (e) { if (e.key === 'Escape' && !lb.hidden) back(); });
+})();
+</script>
+<!--写真:終--></body>
 </html>

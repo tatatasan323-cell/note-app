@@ -1,0 +1,29 @@
+{
+ "name": "AI内製化時報",
+ "short_name": "AI内製化時報",
+ "lang": "ja",
+ "start_url": "../jihou-002.html",
+ "display": "browser",
+ "theme_color": "#2b2a28",
+ "background_color": "#f3ecdc",
+ "icons": [
+  {
+   "src": "jihou/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "jihou/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "jihou/icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}

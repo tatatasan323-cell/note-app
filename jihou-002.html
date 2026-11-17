@@ -3,13 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- この紙面は外部から何も読み込まない。宣言だけでなく、読み込み自体を禁止しておく -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; form-action 'none'; base-uri 'none'">
+<!-- この紙面は外部から何も読み込まない。宣言だけでなく、読み込み自体を禁止しておく（ホーム画面のアイコンと manifest だけは、同じ場所から読むのを許す） -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: 'self'; manifest-src 'self'; form-action 'none'; base-uri 'none'">
+<link rel="icon" href="icons/jihou/favicon.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="icons/jihou/apple-touch-icon.png">
+<link rel="manifest" href="icons/jihou-002.webmanifest">
+<meta name="theme-color" content="#2b2a28">
+<meta name="apple-mobile-web-app-title" content="AI内製化時報">
 <meta name="description" content="2026年7〜8月のAI事故70件。AIが空けた穴を別のAIが5日で突き、作っている会社は評価中の事故を自ら公表した。工房の点検結果と、事故一覧の全件を収録。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="ＡＩ内製化時報 第002号 ─ 穴を空けたのはAI、突いたのもAI">
 <meta property="og:description" content="AIが空けた穴を、別のAIが5日で見つけて突いた。7〜8月のAI事故70件を収録。">
-<meta property="og:image" content="https://tatatasan323-cell.github.io/note-app/jihou-002.png">
+<meta property="og:image" content="https://tatatasan323-cell.github.io/note-app/og/jihou-002.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:url" content="https://tatatasan323-cell.github.io/note-app/jihou-002.html">
 <meta name="twitter:card" content="summary_large_image">
 <style>html{-webkit-text-size-adjust:100%}body{margin:0}</style>

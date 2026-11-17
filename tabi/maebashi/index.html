@@ -497,7 +497,8 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
 .shots details.more summary::after{animation:none}   /* ページの「押せる印」の光は、数が多いほど主スレッドを使う。ここには足さない */
 .shots details.more .inner{padding:0 12px 12px}
 .shots .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 10px}
-.shots .grid button.ph img{aspect-ratio:1/1;object-fit:cover}
+/* 畳んだ中の写真も切り取らない（全景を見せ、足りない所は余白）。2026-11-17 松本と同じ作りに（前は 1:1 で切り取っていた） */
+.shots .grid button.ph img{aspect-ratio:4/3;object-fit:contain;background:var(--chip)}
 @media (min-width:560px){.shots .grid{grid-template-columns:repeat(3,1fr)}}
 #lb{position:fixed;inset:0;z-index:3000;background:rgba(10,10,12,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:44px 12px 16px}
 #lb[hidden]{display:none}
@@ -506,7 +507,26 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
 #lb .x{position:absolute;top:6px;right:6px;width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:26px;line-height:1;cursor:pointer}
 /*写真:終*/
 </style>
-</head>
+<!--写真:始--><script>
+(function () {
+  window.__lbIgnore = 0;
+  addEventListener('popstate', function (e) {
+    var lb = document.getElementById('lb');
+    if (window.__lbIgnore > 0) {
+      // 閉じるボタンで自分で戻した知らせ。窓はもう閉じてある。1回だけ受け流す
+      window.__lbIgnore--;
+      e.stopImmediatePropagation();
+      return;
+    }
+    if (lb && !lb.hidden) {
+      // 端末の「戻る」で、写真の窓だけを閉じる
+      e.stopImmediatePropagation();
+      if (window.__lbHide) window.__lbHide();
+    }
+  });
+})();
+</script>
+<!--写真:終--></head>
 <body>
 <div class="wrap">
 
@@ -1814,21 +1834,53 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
 </div>
 <script>
 (function () {
-  var lb = document.getElementById('lb'); if (!lb) return;
+  var lb = document.getElementById('lb');
+  if (!lb) return;
   var img = lb.querySelector('img'), cap = lb.querySelector('p'), last = null;
   function show(b) {
-    var f = b.parentNode.querySelector('figcaption'); last = b;
-    img.alt = b.querySelector('img').alt; img.src = b.getAttribute('data-l'); cap.textContent = f ? f.textContent : '';
-    lb.hidden = false; document.body.style.overflow = 'hidden';
-    try { history.pushState({ lb: 1 }, ''); } catch (e) { /* 戻るで閉じられないだけ */ }
+    var f = b.parentNode.querySelector('figcaption');
+    last = b;
+    img.alt = b.querySelector('img').alt;
+    img.src = b.getAttribute('data-l');
+    cap.textContent = f ? f.textContent : '';
+    lb.hidden = false;
+    document.body.style.overflow = 'hidden';
+    try {
+      history.pushState({ lb: 1, y: window.pageYOffset }, '');
+    } catch (e) {
+      // 履歴に積めない時は、端末の「戻る」で閉じられないだけ（×・背景・Esc では閉じる）
+      lb.setAttribute('data-nohist', '1');
+    }
     lb.querySelector('.x').focus();
   }
-  function hide() { if (lb.hidden) return; lb.hidden = true; img.removeAttribute('src'); document.body.style.overflow = ''; if (last) last.focus(); }
-  function back() { if (history.state && history.state.lb) history.back(); else hide(); }
-  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('.shots button.ph'); if (b) show(b); });
-  lb.addEventListener('click', function (e) { if (e.target === lb || e.target === img || (e.target.closest && e.target.closest('.x'))) back(); });
-  addEventListener('popstate', hide);
-  addEventListener('keydown', function (e) { if (e.key === 'Escape' && !lb.hidden) back(); });
+  function hide() {
+    if (lb.hidden) return;
+    lb.hidden = true;
+    img.removeAttribute('src');
+    document.body.style.overflow = '';
+    if (last) last.focus({ preventScroll: true });
+  }
+  window.__lbHide = hide;
+  // 閉じる：その場で閉じてから、積んだ1段だけ履歴を戻す（続けて押しても1段だけ）
+  function back() {
+    if (lb.hidden) return;
+    var mine = history.state && history.state.lb;
+    hide();
+    if (mine) {
+      window.__lbIgnore++;
+      history.back();
+    }
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('.shots button.ph');
+    if (b) show(b);
+  });
+  lb.addEventListener('click', function (e) {
+    if (e.target === lb || e.target === img || (e.target.closest && e.target.closest('.x'))) back();
+  });
+  addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !lb.hidden) back();
+  });
 })();
 </script>
 <!--写真:終--></body>

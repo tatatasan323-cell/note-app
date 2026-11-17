@@ -450,8 +450,55 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
   font-family:var(--sans);font-size:10px;line-height:1.5;letter-spacing:0;color:#5a5243;
   background:rgba(255,253,249,.88);padding:2px 8px;border-radius:4px;pointer-events:none}
 @media (min-width:900px){.imgnote{font-size:11.5px;left:14px;bottom:12px}}
+/*写真:始*/
+/* ---- 歩いて撮った街並みの写真 ---- */
+.phnote{font-size:12px;color:var(--sub);line-height:1.75;margin:10px 0 0}
+.shots{margin:13px 0 0}
+.shots .shhd{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--sub);margin:0 0 6px;letter-spacing:.03em}
+.shots .row{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;margin:0 -16px;padding:0 16px 8px;-webkit-overflow-scrolling:touch}
+.note .shots .row{margin:0 -15px;padding:0 15px 8px}
+.shots .row::after{content:"";flex:none;width:6px}
+.shots .row figure{flex:none;scroll-snap-align:start;width:calc(190px * var(--r));max-width:84vw}
+.shots figure{margin:0}
+.shots button.ph{display:block;width:100%;padding:0;border:0;border-radius:10px;overflow:hidden;background:var(--chip);cursor:zoom-in;line-height:0}
+.shots button.ph img{display:block;width:100%;height:auto}
+.shots figcaption{text-align:left;font-size:12px;color:var(--sub);line-height:1.65;margin:6px 1px 0}
+.shots details.more{box-shadow:none;background:var(--chip);border-color:transparent;margin:6px 0 0}
+.shots details.more summary{min-height:44px;font-size:13px;font-weight:600}
+/* ページの「押せる印」の光は、数が多いほど主スレッドを使う。ここには足さない */
+.shots details.more summary::after{animation:none}
+.shots details.more .inner{padding:0 12px 12px}
+.shots .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 10px}
+/* 畳んだ中の写真も切り取らない（全景を見せ、足りない所は余白） */
+.shots .grid button.ph img{aspect-ratio:4/3;object-fit:contain;background:var(--chip)}
+@media (min-width:560px){.shots .grid{grid-template-columns:repeat(3,1fr)}}
+#lb{position:fixed;inset:0;z-index:3000;background:rgba(10,10,12,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:44px 12px 16px}
+#lb[hidden]{display:none}
+#lb img{max-width:96vw;max-height:76vh;width:auto;height:auto;border-radius:6px;background:#222}
+#lb p{color:#eee;font-size:13.5px;line-height:1.7;margin:12px 8px 0;max-width:34em;text-align:center}
+#lb .x{position:absolute;top:6px;right:6px;width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:26px;line-height:1;cursor:pointer}
+/*写真:終*/
 </style>
-</head>
+<!--写真:始--><script>
+(function () {
+  window.__lbIgnore = 0;
+  addEventListener('popstate', function (e) {
+    var lb = document.getElementById('lb');
+    if (window.__lbIgnore > 0) {
+      // 閉じるボタンで自分で戻した知らせ。窓はもう閉じてある。1回だけ受け流す
+      window.__lbIgnore--;
+      e.stopImmediatePropagation();
+      return;
+    }
+    if (lb && !lb.hidden) {
+      // 端末の「戻る」で、写真の窓だけを閉じる
+      e.stopImmediatePropagation();
+      if (window.__lbHide) window.__lbHide();
+    }
+  });
+})();
+</script>
+<!--写真:終--></head>
 <body>
 <div class="wrap">
 
@@ -510,7 +557,8 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
 <b>この中から気になるところを回るくらいでよいかな</b>、という作り方をしています。<br>
 点線が引いてある言葉は、さわると少し説明が出ます。
 </p>
-
+<!--写真:始--><p class="phnote">ところどころに添えた写真は、制作者が歩いて撮ったものです。お店のおすすめではなく、街の雰囲気を伝えるための写真です（顔と車のナンバーはぼかしています）。</p>
+<!--写真:終-->
 <p class="howto">
   <span class="k">押せます</span>
   <span><b>地図の番号</b>を押すと、そのお店や場所の説明に飛びます。<b>右に › が付いた行</b>も同じです。
@@ -909,7 +957,8 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
     <h4><span class="num">1</span>松本駅 お城口</h4>
     <p class="body">東口が「お城口」。城下町へは、駅前通りを東へ→本町通りを北へ、で10分ほどです。<br>
     ここが<b>乗り物のハブ</b>でもあります。美ヶ原温泉行きバスは<b>3番のりば</b>、周遊バスのタウンスニーカーは北コースが21番・東コースが22番。タクシー乗り場もお城口の正面。シェアサイクルの置き場もあります。</p>
-    <dl class="dl">
+    <!--写真:始--><div class="shots"><p class="shhd"><span>歩いて撮った写真</span></p><div class="row" role="group" aria-label="歩いて撮った写真"><figure style="--r:0.750"><button type="button" class="ph" data-l="img/machi/l/p001.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p001.webp" width="315" height="420" loading="lazy" decoding="async" alt="列車の窓から見た景色。手前にすすき、奥に家並みと紅葉した山"></button><figcaption>松本へ向かう列車の窓から。すすきと、色づいた山</figcaption></figure><figure style="--r:0.750"><button type="button" class="ph" data-l="img/machi/l/p014.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p014.webp" width="315" height="420" loading="lazy" decoding="async" alt="れんが敷きの細い道。奥にアーケードの入口が見える"></button><figcaption>駅から城下町へ。れんが敷きの細い道</figcaption></figure></div></div>
+    <!--写真:終--><dl class="dl">
       <div><dt>ロッカー</dt><dd>小400円 〜 特大1,000円</dd></div>
       <div><dt>次へ</dt><dd>本町通り経由で約600m・8分</dd></div>
     </dl>
@@ -921,7 +970,8 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
   <div class="card" id="p2">
     <h4><span class="num">2</span>開運堂 本店 <span class="ruby">かいうんどう</span></h4>
     <p class="body">明治17年創業の和菓子屋。くるみと蜂蜜の「真味糖（しんみとう）」と、ニッキの生地で餡を巻いた蒸し菓子「開運老松」が看板です。<b>宿への手土産をここで済ませておくと、あとが身軽</b>。店内にカフェも併設。</p>
-    <dl class="dl">
+    <!--写真:始--><div class="shots"><p class="shhd"><span>歩いて撮った写真</span></p><div class="row" role="group" aria-label="歩いて撮った写真"><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p038.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p038.webp" width="560" height="420" loading="lazy" decoding="async" alt="和菓子店「開運堂」の正面。金文字の看板と、季節の菓子ののぼり"></button><figcaption>開運堂 本店。金文字の看板が目印です</figcaption></figure><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p044.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p044.webp" width="560" height="420" loading="lazy" decoding="async" alt="しめ縄を巻いた丸い石と「牛つなぎ石」と刻まれた石柱、説明の看板"></button><figcaption>本町通りの角に「牛つなぎ石」。塩を運んだ牛をつないだと伝わる石です</figcaption></figure></div></div>
+    <!--写真:終--><dl class="dl">
       <div><dt>営業</dt><dd>9:00〜18:00</dd></div>
       <div><dt>定休</dt><dd><span class="ok">元旦のみ</span></dd></div>
       <div><dt>住所</dt><dd>松本市中央2-2-15</dd></div>
@@ -935,7 +985,8 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
     <h4><span class="num">3</span>千歳橋 <span class="ruby">せんさいばし</span></h4>
     <p class="body">女鳥羽川を渡る橋。もとは木の「大手橋」で、たびたび流されました。明治9年、取り壊した大手門の門台の石を使って石造アーチに架け替え、東京の万世橋にならって改名。<b>石だから流されない、千年でも万年でも</b>、という名前です。いまの橋は昭和39年の架け替えで、親柱の照明にその名残があります。<br>
     江戸時代はこの川が境目で、<b>北が武家地、南が町人地</b>。渡った先で空気が変わるのはそのせいです。</p>
-    <div class="tools"><a class="sv" href="https://www.google.com/maps/@?api=1&amp;map_action=pano&amp;viewpoint=36.2343,137.9697">ストリートビューで見る</a></div>
+    <!--写真:始--><div class="shots"><p class="shhd"><span>歩いて撮った写真</span></p><div class="row" role="group" aria-label="歩いて撮った写真"><figure style="--r:0.750"><button type="button" class="ph" data-l="img/machi/l/p057.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p057.webp" width="315" height="420" loading="lazy" decoding="async" alt="石の親柱の上に、ガラスの玉が並んだ照明。柱に「女鳥羽川」の銘板"></button><figcaption>千歳橋の親柱。上に古風な照明がのっています</figcaption></figure><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p058.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p058.webp" width="560" height="420" loading="lazy" decoding="async" alt="橋の手すりごしに見る川。左岸に石垣と家並み、奥に鉄塔"></button><figcaption>千歳橋から見た女鳥羽川。川べりに石垣が続きます</figcaption></figure></div></div>
+    <!--写真:終--><div class="tools"><a class="sv" href="https://www.google.com/maps/@?api=1&amp;map_action=pano&amp;viewpoint=36.2343,137.9697">ストリートビューで見る</a></div>
   </div>
 
   <div class="note">
@@ -956,7 +1007,8 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
       ただ、<b>天守に登るのは今回だとちょっと厳しいかもしれません</b>。11/7・8は11月3〜10日の「国宝松本城Week」にあたり、松本城公式の混雑予想カレンダーでも<b>両日とも「とても混雑（60分以上）」</b>になっています。天守の入口まで60分以上の待ちを見込んでおくほうが安心です。<br>
       8:30〜17:00（最終入場16:30）／大人1,200円（電子）・1,300円（当日窓口）・小中400円<br>
       本丸庭園（有料エリア）には<b>国宝松本城おもてなし隊</b>が9:00〜16:00ごろ出没します。甲冑姿の武士や忍者で、一緒に写真を撮ってくれます。</p>
-      <div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=%E6%9D%BE%E6%9C%AC%E5%9F%8E">松本城の地図</a></div>
+      <!--写真:始--><div class="shots"><p class="shhd"><span>歩いて撮った写真</span></p><div class="row" role="group" aria-label="歩いて撮った写真"><figure style="--r:1.488"><button type="button" class="ph" data-l="img/machi/l/p106.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p106.webp" width="625" height="420" loading="lazy" decoding="async" alt="堀の向こうの天守と石垣。左奥に赤い橋。水面に天守が映っている"></button><figcaption>赤い橋と天守。堀ぞいを歩くと、見える角度が変わります</figcaption></figure><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p081.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p081.webp" width="560" height="420" loading="lazy" decoding="async" alt="手前に赤く色づいた枝、その向こうに黒い天守と山並み"></button><figcaption>赤い葉の枝ごしに、松本城の天守</figcaption></figure></div><details class="more"><summary>ほかの写真も見る（3枚）</summary><div class="inner"><div class="grid"><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p088.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p088.webp" width="560" height="420" loading="lazy" decoding="async" alt="木の門と、左右に続く白い塀。塀に三角と四角の小さな窓が開いている"></button><figcaption>白い塀に、三角と四角の小窓（狭間）</figcaption></figure><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p092.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p092.webp" width="560" height="420" loading="lazy" decoding="async" alt="松の木の手前から見た堀と白い塀、その奥の門と天守"></button><figcaption>堀の向こうに門と天守。水に塀が映ります</figcaption></figure><figure style="--r:0.750"><button type="button" class="ph" data-l="img/machi/l/p112.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p112.webp" width="315" height="420" loading="lazy" decoding="async" alt="芝生の上の白い四角い行灯に「国宝 松本城」の文字"></button><figcaption>「国宝 松本城」の行灯</figcaption></figure></div></div></details></div>
+    <!--写真:終--><div class="tools"><a href="https://www.google.com/maps/search/?api=1&amp;query=%E6%9D%BE%E6%9C%AC%E5%9F%8E">松本城の地図</a></div>
 
       <p id="p10"><b>10. 国宝 旧開智学校校舎</b>（松本城から徒歩7分）<br>
       明治9年、地元の大工棟梁・立石清重が設計施工した<button class="term" type="button" data-tip="明治のはじめ、日本の大工が見よう見まねで洋風を取り入れた建築。窓や塔は洋館ふうなのに、骨組みは日本の伝統工法のまま——という、時代の継ぎ目そのものみたいな建物です。">擬洋風建築</button>。2019年、近代の学校建築として初めて<b>国宝</b>になりました。耐震工事で長く閉まっていましたが2024年11月に再開し、<b>2026年4月、創建150年に合わせて12部屋の展示をリニューアル</b>したばかり。<br>
@@ -1054,7 +1106,8 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
     <h4><span class="num">4</span>なわて通り・カエル大明神</h4>
     <p class="body">女鳥羽川の土手沿いに、小さな店が長屋のように並ぶ通り。「縄のように長い土手」が名前の由来です。2016年から24時間歩行者天国なので、車を気にせず歩けます。<br>
     あちこちにカエルの石像がいるのは、昔この川にいた<button class="term" type="button" data-tip="きれいな渓流にしか棲まないカエル。鳴き声が鹿に似ているので「河鹿」と書きます。その声が聞こえなくなったことが、この通りの願かけの始まりでした。">カジカガエル</button>がまた棲めるように、と昭和46年に「カエル大明神」を祀ったのが始まり。</p>
-    <dl class="dl">
+    <!--写真:始--><div class="shots"><p class="shhd"><span>歩いて撮った写真</span></p><div class="row" role="group" aria-label="歩いて撮った写真"><figure style="--r:0.750"><button type="button" class="ph" data-l="img/machi/l/p129.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p129.webp" width="315" height="420" loading="lazy" decoding="async" alt="大きなガマガエルの上に、刀を持った緑のカエルが乗った像"></button><figcaption>なわて通りの「ガマ侍」。刀をかついだカエルです</figcaption></figure><figure style="--r:1.812"><button type="button" class="ph" data-l="img/machi/l/p157.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p157.webp" width="761" height="420" loading="lazy" decoding="async" alt="長屋造りの店が並ぶ通り。黄色い提灯と白いのれん"></button><figcaption>長屋の軒先に、提灯とのれん</figcaption></figure><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p145.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p145.webp" width="560" height="420" loading="lazy" decoding="async" alt="川ぞいの石垣の上に、白壁と黒い木の長屋が並ぶ。奥に山"></button><figcaption>長屋の裏は石垣と川。奥に山まで見えます</figcaption></figure></div></div>
+    <!--写真:終--><dl class="dl">
       <div><dt>料金</dt><dd><span class="free">無料・24時間</span></dd></div>
       <div><dt>ひとこと</dt><dd>個々の店の休みはまちまち（火・水休が多め）</dd></div>
     </dl>
@@ -1064,7 +1117,8 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
   <div class="card" id="p5">
     <h4><span class="num">5</span>たい焼き ふるさと</h4>
     <p class="body">1946年創業。<button class="term" type="button" data-tip="たい焼きを一匹ずつ一丁の型で焼く方法。まとめて焼く「養殖もの」に対して、こちらは「天然もの」と呼ばれます。">一本焼き</button>の店です。あんこは北海道産小豆と国産砂糖3種。歩きながら一つ、がちょうどいい規模感。</p>
-    <dl class="dl">
+    <!--写真:始--><div class="shots"><p class="shhd"><span>歩いて撮った写真</span></p><div class="row" role="group" aria-label="歩いて撮った写真"><figure style="--r:0.614"><button type="button" class="ph" data-l="img/machi/l/p155.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p155.webp" width="258" height="420" loading="lazy" decoding="async" alt="木の壁に「天然」の文字と、たい焼きの絵と「TAIYAKI FURUSATO」の文字"></button><figcaption>「天然」の文字。一匹ずつ焼くたい焼きの印です</figcaption></figure><figure style="--r:0.750"><button type="button" class="ph" data-l="img/machi/l/p154.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p154.webp" width="315" height="420" loading="lazy" decoding="async" alt="木の壁に掛けた、柄の長い鉄の焼き型と、鯛の形の飾り"></button><figcaption>店の壁に、一匹ずつ焼くための焼き型</figcaption></figure></div></div>
+    <!--写真:終--><dl class="dl">
       <div><dt>営業</dt><dd>10:00〜17:00</dd></div>
       <div><dt>定休</dt><dd>火・水曜 <span class="ok">→ 11/7は営業日</span></dd></div>
     </dl>
@@ -1074,7 +1128,8 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
   <div class="card" id="p6">
     <h4><span class="num">6</span>四柱神社 <span class="ruby">よはしらじんじゃ</span></h4>
     <p class="body">名前のとおり、天之御中主神・高皇産霊神・神皇産霊神・天照大神の<b>四柱</b>をまとめて祀っています。全部そろっているので「願いごとむすびの神」。明治12年に今の場所へ。境内が開けていて、腰を下ろすのにちょうどいいです。</p>
-    <dl class="dl">
+    <!--写真:始--><div class="shots"><p class="shhd"><span>歩いて撮った写真</span></p><div class="row" role="group" aria-label="歩いて撮った写真"><figure style="--r:0.690"><button type="button" class="ph" data-l="img/machi/l/p063.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p063.webp" width="290" height="420" loading="lazy" decoding="async" alt="石畳の参道に、赤や黄色に色づいたもみじ。参道を歩く人"></button><figcaption>四柱神社の参道。もみじが枝を広げます</figcaption></figure><figure style="--r:0.750"><button type="button" class="ph" data-l="img/machi/l/p072.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p072.webp" width="315" height="420" loading="lazy" decoding="async" alt="石畳の道の先に、赤いもみじと、ピンクと青の提灯の列"></button><figcaption>境内に提灯が並び、もみじが真っ赤</figcaption></figure></div></div>
+    <!--写真:終--><dl class="dl">
       <div><dt>参拝</dt><dd><span class="free">境内自由</span></dd></div>
       <div><dt>社務所</dt><dd>9:00〜16:30（御朱印・お守り）</dd></div>
     </dl>
@@ -1200,13 +1255,15 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
   <div class="note">
     <p><button class="term" type="button" data-tip="中山道の洗馬（せば）で分かれて善光寺へ向かった道。北国街道西街道とも呼ばれます。松本の城下町は、この街道が通ったから商人町として栄えました。">善光寺街道</button>沿いの商人町。<b>明治21年1月の大火で約1,500戸が焼け</b>、残ったのは土蔵だけでした。そのあと火に強い土蔵造りが一気に増え、いまの白と黒の<button class="term" type="button" data-tip="黒い平瓦を壁一面に菱形に貼り、継ぎ目を白い漆喰でかまぼこ状に盛り上げた壁。その盛り上がりの形が海の「なまこ」に似ているから、この名前がついたと言われます。">なまこ壁</button>の通りになっています。<br>
     通りそのものが見どころなので、どこかの店に入らなくても、歩くだけで成立します。</p>
-    <p><a class="sv" href="https://www.google.com/maps/@?api=1&amp;map_action=pano&amp;viewpoint=36.23380,137.97150">通りの様子をストリートビューで見る</a></p>
+    <!--写真:始--><div class="shots"><p class="shhd"><span>歩いて撮った写真</span></p><div class="row" role="group" aria-label="歩いて撮った写真"><figure style="--r:1.333"><button type="button" class="ph" data-l="img/machi/l/p182.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p182.webp" width="560" height="420" loading="lazy" decoding="async" alt="赤い手すりごしに見る川。左の石垣の上に白壁の長屋、奥に山"></button><figcaption>赤い欄干の橋から。川べりに長屋が並びます</figcaption></figure><figure style="--r:2.210"><button type="button" class="ph" data-l="img/machi/l/p187.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p187.webp" width="928" height="420" loading="lazy" decoding="async" alt="白壁の蔵造りの店が並ぶ通り。歩く人と車"></button><figcaption>中町通り。白壁の蔵造りの店が続きます</figcaption></figure><figure style="--r:0.750"><button type="button" class="ph" data-l="img/machi/l/p189.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p189.webp" width="315" height="420" loading="lazy" decoding="async" alt="白壁に菱形の模様（なまこ壁）の店。入口に灯りのともった看板と鉢植え"></button><figcaption>なまこ壁の店先。灯りのともった看板</figcaption></figure><figure style="--r:0.845"><button type="button" class="ph" data-l="img/machi/l/p203.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p203.webp" width="355" height="420" loading="lazy" decoding="async" alt="黒い壁に白い格子模様のなまこ壁の蔵と、細い通り"></button><figcaption>黒い蔵に、白いなまこ壁がくっきり</figcaption></figure></div></div>
+    <!--写真:終--><p><a class="sv" href="https://www.google.com/maps/@?api=1&amp;map_action=pano&amp;viewpoint=36.23380,137.97150">通りの様子をストリートビューで見る</a></p>
   </div>
 
   <div class="card" id="p11">
     <h4><span class="num">11</span>珈琲 まるも</h4>
     <p class="body">昭和31年（1956）から。<button class="term" type="button" data-tip="安土桃山時代に始まる松本の家具。ミズメザクラという硬くて粘りのある木を使います。昭和51年、家具業界では全国で初めて伝統的工芸品に指定されました。">松本民芸家具</button>の創始者・池田三四郎が設計した店で、開店のとき柳宗悦が見に来て褒めたという逸話つき。椅子もテーブルも松本民芸家具です。深煎りの珈琲と、かための自家製プリン（300円）。</p>
-    <dl class="dl">
+    <!--写真:始--><div class="shots"><p class="shhd"><span>歩いて撮った写真</span></p><div class="row" role="group" aria-label="歩いて撮った写真"><figure style="--r:1.031"><button type="button" class="ph" data-l="img/machi/l/p209.webp" aria-label="写真を大きく見る"><img src="img/machi/s/p209.webp" width="433" height="420" loading="lazy" decoding="async" alt="白い蔵造りの建物に「珈琲 まるも」の看板。手前に横断歩道"></button><figcaption>珈琲 まるも。白い蔵の喫茶店です</figcaption></figure></div></div>
+    <!--写真:終--><dl class="dl">
       <div><dt>営業</dt><dd>9:00〜16:00（L.O. 15:30）</dd></div>
       <div><dt>定休</dt><dd>月・火曜 <span class="ok">→ 11/7は営業日</span></dd></div>
     </dl>
@@ -1658,7 +1715,8 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
   日の出・日の入りは松本市中心部の緯度経度からの計算値、気温は気象庁・松本観測点の平年値（1991〜2020年）、標高は国土地理院の標高データ、徒歩の距離と時間は各地点の座標から出した概算です。<br>
   バスの運賃は2026年3月に改定があったので、幅を持たせて書いています。<b>当日、念のため確認してください。</b><br>
   地図は実際の緯度経度をもとに起こした略図です。通りの並びと位置関係は正しいですが、<b>縮尺は正確ではありません</b>。隣り合う店の前後関係など細かいところは、各カードの「地図」「ストリートビュー」から実地図でご確認ください。<br>
-  表紙・裏表紙の絵と、地図の下に敷いた絵は、生成AIで作った<b>イメージ</b>です。実際の建物の形や配置とは異なります（表紙・裏表紙の絵の左下にも注記を入れてあります）。
+  表紙・裏表紙の絵と、地図の下に敷いた絵は、生成AIで作った<b>イメージ</b>です。実際の建物の形や配置とは異なります（表紙・裏表紙の絵の左下にも注記を入れてあります）。<!--写真:始--><br>
+  ところどころに添えた街並みの写真は、制作者が歩いて撮ったものです。特定のお店のおすすめや宣伝ではなく、街の雰囲気を伝えるための写真で、写っている店の営業時間などは、写真ではなくカードの情報でご確認ください。顔や車のナンバーはぼかしています。<!--写真:終-->
   <div class="qrbox">
     <svg viewBox="-2 -2 41 41" role="img" aria-label="この案内を開くQRコード">
       <path d="M0 0h7v1h-7zM8 0h1v1h-1zM10 0h1v1h-1zM13 0h2v1h-2zM17 0h1v1h-1zM19 0h3v1h-3zM24 0h5v1h-5zM30 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM18 1h2v1h-2zM22 1h1v1h-1zM25 1h2v1h-2zM30 1h1v1h-1zM36 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM10 2h1v1h-1zM12 2h1v1h-1zM15 2h1v1h-1zM17 2h2v1h-2zM21 2h2v1h-2zM24 2h1v1h-1zM26 2h2v1h-2zM30 2h1v1h-1zM32 2h3v1h-3zM36 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM8 3h1v1h-1zM10 3h6v1h-6zM18 3h1v1h-1zM22 3h1v1h-1zM25 3h4v1h-4zM30 3h1v1h-1zM32 3h3v1h-3zM36 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h1v1h-1zM13 4h1v1h-1zM15 4h1v1h-1zM17 4h2v1h-2zM23 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM32 4h3v1h-3zM36 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM10 5h1v1h-1zM16 5h2v1h-2zM19 5h2v1h-2zM24 5h1v1h-1zM28 5h1v1h-1zM30 5h1v1h-1zM36 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM24 6h1v1h-1zM26 6h1v1h-1zM28 6h1v1h-1zM30 6h7v1h-7zM8 7h1v1h-1zM10 7h4v1h-4zM15 7h2v1h-2zM19 7h6v1h-6zM26 7h1v1h-1zM28 7h1v1h-1zM0 8h1v1h-1zM4 8h1v1h-1zM6 8h6v1h-6zM13 8h1v1h-1zM15 8h2v1h-2zM20 8h1v1h-1zM23 8h2v1h-2zM26 8h1v1h-1zM28 8h6v1h-6zM36 8h1v1h-1zM0 9h1v1h-1zM2 9h3v1h-3zM8 9h1v1h-1zM17 9h3v1h-3zM21 9h1v1h-1zM23 9h2v1h-2zM26 9h3v1h-3zM32 9h4v1h-4zM0 10h1v1h-1zM5 10h2v1h-2zM11 10h2v1h-2zM15 10h1v1h-1zM18 10h2v1h-2zM23 10h5v1h-5zM31 10h1v1h-1zM2 11h3v1h-3zM7 11h1v1h-1zM10 11h2v1h-2zM15 11h9v1h-9zM29 11h1v1h-1zM31 11h2v1h-2zM34 11h2v1h-2zM0 12h1v1h-1zM3 12h1v1h-1zM5 12h2v1h-2zM10 12h1v1h-1zM13 12h2v1h-2zM17 12h2v1h-2zM20 12h5v1h-5zM26 12h5v1h-5zM33 12h4v1h-4zM0 13h1v1h-1zM4 13h2v1h-2zM8 13h2v1h-2zM12 13h2v1h-2zM15 13h2v1h-2zM18 13h1v1h-1zM20 13h2v1h-2zM23 13h1v1h-1zM27 13h2v1h-2zM32 13h2v1h-2zM0 14h1v1h-1zM2 14h1v1h-1zM5 14h3v1h-3zM13 14h3v1h-3zM17 14h1v1h-1zM23 14h2v1h-2zM26 14h2v1h-2zM29 14h1v1h-1zM31 14h5v1h-5zM1 15h1v1h-1zM5 15h1v1h-1zM11 15h1v1h-1zM13 15h1v1h-1zM15 15h1v1h-1zM17 15h3v1h-3zM22 15h3v1h-3zM26 15h3v1h-3zM31 15h2v1h-2zM34 15h2v1h-2zM0 16h4v1h-4zM6 16h1v1h-1zM8 16h2v1h-2zM11 16h1v1h-1zM13 16h3v1h-3zM18 16h2v1h-2zM22 16h1v1h-1zM24 16h1v1h-1zM29 16h3v1h-3zM33 16h2v1h-2zM36 16h1v1h-1zM0 17h1v1h-1zM7 17h1v1h-1zM11 17h2v1h-2zM16 17h2v1h-2zM19 17h2v1h-2zM23 17h1v1h-1zM25 17h5v1h-5zM32 17h2v1h-2zM35 17h1v1h-1zM2 18h1v1h-1zM5 18h4v1h-4zM13 18h1v1h-1zM16 18h1v1h-1zM18 18h1v1h-1zM20 18h1v1h-1zM23 18h1v1h-1zM25 18h1v1h-1zM27 18h1v1h-1zM29 18h1v1h-1zM31 18h4v1h-4zM2 19h2v1h-2zM5 19h1v1h-1zM7 19h3v1h-3zM11 19h1v1h-1zM13 19h2v1h-2zM17 19h2v1h-2zM21 19h1v1h-1zM26 19h2v1h-2zM31 19h2v1h-2zM34 19h2v1h-2zM1 20h1v1h-1zM3 20h4v1h-4zM8 20h1v1h-1zM10 20h1v1h-1zM13 20h1v1h-1zM15 20h1v1h-1zM17 20h1v1h-1zM19 20h4v1h-4zM24 20h1v1h-1zM26 20h2v1h-2zM29 20h3v1h-3zM34 20h1v1h-1zM0 21h6v1h-6zM7 21h4v1h-4zM12 21h1v1h-1zM14 21h2v1h-2zM17 21h2v1h-2zM23 21h1v1h-1zM25 21h1v1h-1zM27 21h3v1h-3zM31 21h2v1h-2zM35 21h1v1h-1zM0 22h1v1h-1zM4 22h3v1h-3zM10 22h1v1h-1zM13 22h1v1h-1zM15 22h1v1h-1zM18 22h1v1h-1zM20 22h6v1h-6zM27 22h2v1h-2zM31 22h4v1h-4zM0 23h1v1h-1zM2 23h1v1h-1zM10 23h3v1h-3zM14 23h2v1h-2zM20 23h2v1h-2zM27 23h1v1h-1zM29 23h1v1h-1zM31 23h2v1h-2zM34 23h2v1h-2zM0 24h5v1h-5zM6 24h3v1h-3zM10 24h3v1h-3zM14 24h1v1h-1zM16 24h1v1h-1zM19 24h2v1h-2zM29 24h3v1h-3zM33 24h2v1h-2zM36 24h1v1h-1zM0 25h1v1h-1zM4 25h1v1h-1zM11 25h1v1h-1zM13 25h2v1h-2zM17 25h3v1h-3zM21 25h3v1h-3zM25 25h1v1h-1zM27 25h3v1h-3zM31 25h2v1h-2zM3 26h1v1h-1zM5 26h3v1h-3zM9 26h3v1h-3zM14 26h2v1h-2zM18 26h2v1h-2zM21 26h5v1h-5zM27 26h1v1h-1zM31 26h1v1h-1zM34 26h1v1h-1zM3 27h2v1h-2zM9 27h1v1h-1zM12 27h2v1h-2zM15 27h3v1h-3zM19 27h3v1h-3zM23 27h1v1h-1zM27 27h1v1h-1zM29 27h1v1h-1zM32 27h1v1h-1zM34 27h1v1h-1zM36 27h1v1h-1zM0 28h3v1h-3zM4 28h4v1h-4zM9 28h2v1h-2zM12 28h2v1h-2zM17 28h1v1h-1zM21 28h2v1h-2zM24 28h1v1h-1zM26 28h1v1h-1zM28 28h5v1h-5zM34 28h1v1h-1zM36 28h1v1h-1zM8 29h1v1h-1zM10 29h1v1h-1zM12 29h1v1h-1zM15 29h2v1h-2zM18 29h1v1h-1zM21 29h3v1h-3zM25 29h1v1h-1zM27 29h2v1h-2zM32 29h1v1h-1zM35 29h1v1h-1zM0 30h7v1h-7zM8 30h1v1h-1zM11 30h1v1h-1zM13 30h5v1h-5zM23 30h2v1h-2zM26 30h1v1h-1zM28 30h1v1h-1zM30 30h1v1h-1zM32 30h1v1h-1zM0 31h1v1h-1zM6 31h1v1h-1zM10 31h1v1h-1zM12 31h4v1h-4zM17 31h2v1h-2zM22 31h3v1h-3zM26 31h1v1h-1zM28 31h1v1h-1zM32 31h3v1h-3zM0 32h1v1h-1zM2 32h3v1h-3zM6 32h1v1h-1zM8 32h2v1h-2zM12 32h1v1h-1zM14 32h1v1h-1zM18 32h1v1h-1zM22 32h3v1h-3zM28 32h7v1h-7zM36 32h1v1h-1zM0 33h1v1h-1zM2 33h3v1h-3zM6 33h1v1h-1zM9 33h5v1h-5zM16 33h2v1h-2zM19 33h2v1h-2zM23 33h1v1h-1zM25 33h1v1h-1zM27 33h1v1h-1zM29 33h3v1h-3zM36 33h1v1h-1zM0 34h1v1h-1zM2 34h3v1h-3zM6 34h1v1h-1zM10 34h3v1h-3zM16 34h1v1h-1zM18 34h1v1h-1zM20 34h2v1h-2zM23 34h1v1h-1zM25 34h1v1h-1zM27 34h4v1h-4zM33 34h1v1h-1zM0 35h1v1h-1zM6 35h1v1h-1zM10 35h3v1h-3zM17 35h2v1h-2zM21 35h2v1h-2zM26 35h1v1h-1zM29 35h1v1h-1zM32 35h1v1h-1zM34 35h2v1h-2zM0 36h7v1h-7zM8 36h1v1h-1zM10 36h1v1h-1zM12 36h1v1h-1zM15 36h3v1h-3zM19 36h4v1h-4zM24 36h1v1h-1zM26 36h2v1h-2zM29 36h1v1h-1zM31 36h1v1h-1zM34 36h3v1h-3z" fill="var(--ink)"/>
@@ -2099,6 +2157,10 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
     DAYS = [iso(d0), iso(d1)];
     NAMES = [jp(d0) + " ※確認用", jp(d1)];
   }
+  /* 旅の最後の日（日本時間で数える）を過ぎたら、天気の箱は出さない（予報も取りに行かない）。
+     過ぎた後も「11/7ぶんが出るのは…ごろから」と出続け、これから予報が出るように読めたため（2026-11-17） */
+  var today = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+  if(today > DAYS[DAYS.length - 1]) return;
   var box = document.getElementById("wx");
   if(!box || !window.fetch) return;
 
@@ -2204,5 +2266,61 @@ details:nth-of-type(3n)   > summary::after{animation-delay:-2.7s}
     });
 })();
 </script>
-</body>
+<!--写真:始--><div id="lb" hidden role="dialog" aria-modal="true" aria-label="写真の拡大">
+  <button type="button" class="x" aria-label="閉じる">×</button>
+  <img alt="" decoding="async">
+  <p></p>
+</div>
+<script>
+(function () {
+  var lb = document.getElementById('lb');
+  if (!lb) return;
+  var img = lb.querySelector('img'), cap = lb.querySelector('p'), last = null;
+  function show(b) {
+    var f = b.parentNode.querySelector('figcaption');
+    last = b;
+    img.alt = b.querySelector('img').alt;
+    img.src = b.getAttribute('data-l');
+    cap.textContent = f ? f.textContent : '';
+    lb.hidden = false;
+    document.body.style.overflow = 'hidden';
+    try {
+      history.pushState({ lb: 1, y: window.pageYOffset }, '');
+    } catch (e) {
+      // 履歴に積めない時は、端末の「戻る」で閉じられないだけ（×・背景・Esc では閉じる）
+      lb.setAttribute('data-nohist', '1');
+    }
+    lb.querySelector('.x').focus();
+  }
+  function hide() {
+    if (lb.hidden) return;
+    lb.hidden = true;
+    img.removeAttribute('src');
+    document.body.style.overflow = '';
+    if (last) last.focus({ preventScroll: true });
+  }
+  window.__lbHide = hide;
+  // 閉じる：その場で閉じてから、積んだ1段だけ履歴を戻す（続けて押しても1段だけ）
+  function back() {
+    if (lb.hidden) return;
+    var mine = history.state && history.state.lb;
+    hide();
+    if (mine) {
+      window.__lbIgnore++;
+      history.back();
+    }
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('.shots button.ph');
+    if (b) show(b);
+  });
+  lb.addEventListener('click', function (e) {
+    if (e.target === lb || e.target === img || (e.target.closest && e.target.closest('.x'))) back();
+  });
+  addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !lb.hidden) back();
+  });
+})();
+</script>
+<!--写真:終--></body>
 </html>

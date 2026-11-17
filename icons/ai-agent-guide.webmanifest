@@ -1,0 +1,29 @@
+{
+ "name": "AI内製化の羅針盤",
+ "short_name": "AIエージェント",
+ "lang": "ja",
+ "start_url": "../ai-agent-guide.html",
+ "display": "browser",
+ "theme_color": "#141f36",
+ "background_color": "#141f36",
+ "icons": [
+  {
+   "src": "rashinban/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "rashinban/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "rashinban/icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}

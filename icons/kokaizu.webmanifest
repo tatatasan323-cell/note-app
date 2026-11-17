@@ -1,0 +1,29 @@
+{
+ "name": "AIで儲かる順番の航海図",
+ "short_name": "AIの航海図",
+ "lang": "ja",
+ "start_url": "../",
+ "display": "browser",
+ "theme_color": "#123456",
+ "background_color": "#123456",
+ "icons": [
+  {
+   "src": "kokaizu/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "kokaizu/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "kokaizu/icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
